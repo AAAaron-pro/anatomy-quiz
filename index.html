@@ -22,15 +22,15 @@
         .panel { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: fit-content; }
         .form-group { margin-bottom: 1rem; text-align: left; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
         .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; margin-bottom: 0.5rem; }
         .btn-primary:hover { background: #2980b9; }
 
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
-        .option-btn { padding: 1rem; border: 2px solid var(--accent); background: white; color: var(--accent); border-radius: 4px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+        .option-btn { padding: 1rem; border: 2px solid var(--accent); background: white; color: var(--accent); border-radius: 4px; cursor: pointer; font-size: 1rem; transition: all 0.2s; font-weight: 500; }
         .option-btn:hover { background: var(--accent); color: white; }
         
-        #feedback { margin-top: 1rem; font-weight: bold; text-align: center; font-size: 1.2rem; }
+        #feedback { margin-top: 1.2rem; font-weight: bold; text-align: center; font-size: 1.15rem; line-height: 1.5; }
         .correct { color: #27ae60; }
         .incorrect { color: #e74c3c; }
 
@@ -38,6 +38,13 @@
         .user-info img { width: 32px; height: 32px; border-radius: 50%; }
         
         .badge { background: #e74c3c; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+
+        .mode-toggle-group { display: flex; gap: 1rem; background: #eef2f7; padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .mode-toggle-group label { cursor: pointer; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 0.3rem; }
+
+        .checkbox-list { max-height: 130px; overflow-y: auto; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; text-align: left; }
+        .checkbox-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; }
+        .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -59,14 +66,14 @@
     <!-- 登入區塊 -->
     <div id="login-zone" class="card">
         <h3>歡迎使用雲端解剖學系統</h3>
-        <p>這是一個支援多人連線、自動記憶學習曲線的專業系統。<br>請先使用 Google 帳號登入以載入您的專屬進度。</p>
+        <p>支援多人連線與艾賓豪斯記憶曲線。<br>請先使用 Google 帳號登入以載入您的專屬進度。</p>
         <button class="btn-primary" style="width: auto; margin-top: 1rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
     <!-- 檔案載入區塊 (登入後顯示) -->
     <div id="setup-zone" class="card" style="display: none;">
-        <h3>準備階段：餵給系統您的圖片</h3>
-        <p style="color: #666; font-size: 0.9em;">(圖片從您的本機資料夾讀取，題庫座標與記憶進度由雲端運算)</p>
+        <h3>準備階段：載入圖片資料夾</h3>
+        <p style="color: #666; font-size: 0.9em;">(圖片從本機讀取以節省頻寬，題庫與艾賓豪斯記憶曲線由雲端運算)</p>
         <input type="file" id="folder-input" webkitdirectory directory multiple accept="image/*" style="margin: 1rem 0;">
         <br>
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
@@ -103,15 +110,41 @@
                 測驗區 
                 <span id="srs-status" class="badge">計算中...</span>
             </h3>
+
+            <!-- 題型切換 -->
+            <div class="mode-toggle-group">
+                <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
+                <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 拼寫填空題</label>
+            </div>
             
-            <!-- 模式二：範圍篩選選單 -->
+            <!-- 範圍多選清單 (支援勾選多張圖片) -->
             <div class="form-group" style="background: #eef2f7; padding: 0.8rem; border-radius: 6px; margin-bottom: 1rem;">
-                <label style="color: #2c3e50;">🎯 測驗題目範圍：</label>
-                <select id="quiz-scope-selector" onchange="onScopeChanged()"></select>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <label style="color: #2c3e50; margin: 0;">🎯 自選出題圖片：</label>
+                    <div>
+                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; cursor: pointer; border-radius: 3px; border: 1px solid #ccc; background: white;" onclick="toggleAllImages(true)">全選</button>
+                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; cursor: pointer; border-radius: 3px; border: 1px solid #ccc; background: white;" onclick="toggleAllImages(false)">全不選</button>
+                    </div>
+                </div>
+                <div id="image-checkboxes-container" class="checkbox-list">
+                    <!-- 動態生成勾選框 -->
+                </div>
             </div>
 
             <p>請問圖片中被遮蔽的<strong style="color:#e74c3c;">紅色區塊</strong>是什麼構造？</p>
-            <div class="options-grid" id="quiz-options"></div>
+
+            <!-- 選擇題區 -->
+            <div id="mcq-container">
+                <div class="options-grid" id="quiz-options"></div>
+            </div>
+
+            <!-- 填空題區 -->
+            <div id="fill-container" style="display: none; margin-top: 1rem;">
+                <div class="form-group">
+                    <input type="text" id="fill-input" placeholder="請輸入構造英文名稱 (按 Enter 送出)..." autocomplete="off">
+                </div>
+                <button class="btn-primary" id="fill-submit-btn" onclick="submitFillAnswer()">提交答案</button>
+            </div>
             
             <div id="feedback"></div>
             <button class="btn-primary" id="next-btn" style="display: none; margin-top: 1rem;" onclick="nextQuestion()">下一題</button>
@@ -144,7 +177,8 @@
     let quizDatabase = [];
     let userProgress = {};
     let currentQuestion = null;
-    let selectedScope = "all";
+    let selectedImages = new Set(); // 儲存勾選的圖片集合
+    let quizType = "mcq";
     
     const canvas = document.getElementById('editor-canvas');
     const ctx = canvas.getContext('2d');
@@ -189,38 +223,71 @@
             userProgress = {};
             pSnap.forEach(d => { userProgress[d.data().quizId] = d.data(); });
 
-            updateScopeSelector();
+            // 預設全選所有圖檔
+            quizDatabase.forEach(q => selectedImages.add(q.image));
+            updateScopeCheckboxes();
         } catch (error) {
             console.error("讀取資料庫失敗", error);
         }
     }
 
-    function updateScopeSelector() {
-        const selector = document.getElementById('quiz-scope-selector');
-        selector.innerHTML = '';
+    // 更新圖片多選清單
+    function updateScopeCheckboxes() {
+        const container = document.getElementById('image-checkboxes-container');
+        container.innerHTML = '';
         
-        const allOption = document.createElement('option');
-        allOption.value = 'all';
-        allOption.text = `🌟 全部圖片 (綜合測驗 - 共 ${quizDatabase.length} 題)`;
-        selector.appendChild(allOption);
-
-        // 統計每張圖有幾題
         const counts = {};
         quizDatabase.forEach(q => counts[q.image] = (counts[q.image] || 0) + 1);
 
         for (const [imgName, count] of Object.entries(counts)) {
-            const opt = document.createElement('option');
-            opt.value = imgName;
-            opt.text = `📖 ${imgName} (專項 - 共 ${count} 題)`;
-            selector.appendChild(opt);
+            const label = document.createElement('label');
+            label.className = 'checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = imgName;
+            checkbox.checked = selectedImages.has(imgName);
+            
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) selectedImages.add(imgName);
+                else selectedImages.delete(imgName);
+                window.nextQuestion();
+            });
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(` 📖 ${imgName} (${count} 題)`));
+            container.appendChild(label);
         }
-        selector.value = selectedScope;
     }
 
-    window.onScopeChanged = () => {
-        selectedScope = document.getElementById('quiz-scope-selector').value;
+    window.toggleAllImages = (selectAll) => {
+        const checkboxes = document.querySelectorAll('#image-checkboxes-container input[type="checkbox"]');
+        selectedImages.clear();
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll;
+            if (selectAll) selectedImages.add(cb.value);
+        });
         window.nextQuestion();
     };
+
+    window.onQuizTypeChanged = () => {
+        const radios = document.getElementsByName('quiz-type');
+        for (const r of radios) {
+            if (r.checked) quizType = r.value;
+        }
+        if (quizType === 'mcq') {
+            document.getElementById('mcq-container').style.display = 'block';
+            document.getElementById('fill-container').style.display = 'none';
+        } else {
+            document.getElementById('mcq-container').style.display = 'none';
+            document.getElementById('fill-container').style.display = 'block';
+            setTimeout(() => document.getElementById('fill-input').focus(), 100);
+        }
+    };
+
+    document.getElementById('fill-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') window.submitFillAnswer();
+    });
 
     document.getElementById('folder-input').addEventListener('change', function(e) {
         const files = e.target.files;
@@ -305,7 +372,8 @@
             quizDatabase.push({ id: docRef.id, ...newQuiz });
             document.getElementById('term-input').value = "";
             loadEditorImage(currentImage);
-            updateScopeSelector();
+            selectedImages.add(currentImage);
+            updateScopeCheckboxes();
             alert("✅ 成功存入雲端！");
         } catch (e) {
             alert("上傳失敗: " + e.message);
@@ -331,15 +399,15 @@
     };
 
     window.nextQuestion = () => {
-        // 依照範圍篩選題目
-        let activePool = quizDatabase;
-        if (selectedScope !== 'all') {
-            activePool = quizDatabase.filter(q => q.image === selectedScope);
-        }
+        // 篩選所有被勾選之圖片的題目
+        let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
 
         if (activePool.length === 0) {
-            alert("此範圍內目前沒有任何題目！請先到「題庫編輯器」建立題目。");
-            window.switchMode('editor'); return;
+            document.getElementById('srs-status').innerText = `⚠️ 請至少勾選一張圖片`;
+            qCtx.clearRect(0, 0, quizCanvas.width, quizCanvas.height);
+            document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請在上方「自選出題圖片」中勾選至少一張圖片！</span>';
+            document.getElementById('quiz-options').innerHTML = '';
+            return;
         }
 
         const now = Date.now();
@@ -374,9 +442,9 @@
             quizDatabase.forEach(item => {
                 if (item.image === q.image) {
                     if (item.id === q.id) {
-                        qCtx.fillStyle = "#e74c3c"; // 目標實心紅
+                        qCtx.fillStyle = "#e74c3c";
                     } else {
-                        qCtx.fillStyle = "black"; // 其他黑底隱藏
+                        qCtx.fillStyle = "black";
                     }
                     qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
                 }
@@ -387,7 +455,7 @@
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
         
-        // 產生選項 (優先從同張圖或題庫中抽)
+        // 選擇題選項生成
         let options = [q.term];
         let attempts = 0;
         let poolForDistractors = activePool.length >= 4 ? activePool : quizDatabase;
@@ -406,16 +474,35 @@
             btn.onclick = () => window.checkAnswer(opt, q.term);
             optionsGrid.appendChild(btn);
         });
+
+        // 填空題重置
+        const fillInput = document.getElementById('fill-input');
+        fillInput.value = '';
+        fillInput.disabled = false;
+        document.getElementById('fill-submit-btn').disabled = false;
+        if (quizType === 'fill') {
+            setTimeout(() => fillInput.focus(), 50);
+        }
     }
 
+    window.submitFillAnswer = () => {
+        const fillInput = document.getElementById('fill-input');
+        const userTyped = fillInput.value.trim();
+        if (!userTyped) return;
+        
+        fillInput.disabled = true;
+        document.getElementById('fill-submit-btn').disabled = true;
+        window.checkAnswer(userTyped, currentQuestion.term);
+    };
+
     window.checkAnswer = async (selected, correct) => {
-        const isCorrect = (selected === correct);
+        const isCorrect = (selected.trim().toLowerCase() === correct.trim().toLowerCase());
         const feedback = document.getElementById('feedback');
         
         if (isCorrect) {
-            feedback.innerHTML = '<span class="correct">✅ 答對了！(已為您延後下次複習時間)</span>';
+            feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】<br><small style="color:#555;">(已為您延後下次複習時間)</small></span>`;
         } else {
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：${correct} (將盡快讓您再次複習)</span>`;
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'}，將盡快再次複習)</small></span>`;
         }
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
