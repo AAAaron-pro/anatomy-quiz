@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>獸醫解剖學專業圖鑑與測驗系統 (雲端版)</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --bg: #f5f6fa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: #333; }
+        header { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .nav-btns button { background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; margin-left: 0.5rem; display: none; }
+        .nav-btns button.active, .nav-btns button:hover { background: white; color: var(--primary); }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; text-align: center; }
+        
+        .workspace { display: none; gap: 2rem; grid-template-columns: 2fr 1fr; }
+        .workspace.active { display: grid; }
+        .canvas-container { background: white; border: 2px dashed #ccc; border-radius: 8px; overflow: hidden; position: relative; }
+        canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
+        
+        .panel { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: fit-content; }
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; margin-bottom: 0.5rem; }
+        .btn-primary:hover { background: #2980b9; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+        .option-btn { padding: 1rem; border: 2px solid var(--accent); background: white; color: var(--accent); border-radius: 4px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+        .option-btn:hover { background: var(--accent); color: white; }
+        
+        #feedback { margin-top: 1rem; font-weight: bold; text-align: center; font-size: 1.2rem; }
+        .correct { color: #27ae60; }
+        .incorrect { color: #e74c3c; }
+
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .user-info img { width: 32px; height: 32px; border-radius: 50%; }
+        
+        .badge { background: #e74c3c; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>🦴 解剖學雲端題庫</h2>
+    <div class="user-info" id="user-info" style="display: none;">
+        <img id="user-avatar" src="" alt="avatar">
+        <span id="user-name"></span>
+        <div class="nav-btns">
+            <button id="nav-editor" onclick="switchMode('editor')">🛠️ 題庫編輯器</button>
+            <button id="nav-quiz" onclick="switchMode('quiz')">📝 測驗模式</button>
+            <button onclick="logout()" style="border-color: #e74c3c; color: #e74c3c;">登出</button>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <!-- 登入區塊 -->
+    <div id="login-zone" class="card">
+        <h3>歡迎使用雲端解剖學系統</h3>
+        <p>這是一個支援多人連線、自動記憶學習曲線的專業系統。<br>請先使用 Google 帳號登入以載入您的專屬進度。</p>
+        <button class="btn-primary" style="width: auto; margin-top: 1rem;" onclick="login()">🌐 使用 Google 登入</button>
+    </div>
+
+    <!-- 檔案載入區塊 (登入後顯示) -->
+    <div id="setup-zone" class="card" style="display: none;">
+        <h3>準備階段：餵給系統您的圖片</h3>
+        <p style="color: #666; font-size: 0.9em;">(為節省雲端流量，圖片仍從您的本機讀取，但題庫座標與記憶進度由雲端運算)</p>
+        <input type="file" id="folder-input" webkitdirectory directory multiple accept="image/*" style="margin: 1rem 0;">
+        <br>
+        <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
+    </div>
+
+    <!-- 編輯器模式 -->
+    <div id="mode-editor" class="workspace">
+        <div class="canvas-container">
+            <canvas id="editor-canvas"></canvas>
+        </div>
+        <div class="panel">
+            <h3>雲端題庫編輯器</h3>
+            <div class="form-group">
+                <label>目前圖片:</label>
+                <select id="image-selector"></select>
+            </div>
+            <p style="font-size: 0.9em; color: #666;">在圖片上拖曳畫出紅框，遮蔽專有名詞。</p>
+            <div class="form-group">
+                <label>專有名詞 (正解):</label>
+                <input type="text" id="term-input" placeholder="例如: Maxilla">
+            </div>
+            <button class="btn-primary" onclick="saveMaskRegion()">儲存上傳至雲端</button>
+            <p style="font-size: 0.8em; color: #27ae60; text-align: center; margin-top: 1rem;">✅ 儲存後將即時同步給所有使用者</p>
+        </div>
+    </div>
+
+    <!-- 測驗模式 -->
+    <div id="mode-quiz" class="workspace">
+        <div class="canvas-container">
+            <canvas id="quiz-canvas"></canvas>
+        </div>
+        <div class="panel">
+            <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                測驗區 
+                <span id="srs-status" class="badge">計算中...</span>
+            </h3>
+            <p>請問圖片中被遮蔽的<strong style="color:#e74c3c;">紅色區塊</strong>，是什麼構造？</p>
+            <div class="options-grid" id="quiz-options"></div>
+            
+            <div id="feedback"></div>
+            <button class="btn-primary" id="next-btn" style="display: none; margin-top: 1rem;" onclick="nextQuestion()">下一題</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK (ES Modules) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+    // 您提供的 Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAwObWPvCT4yBHcW6NiXLvPIEn4r96Wq8s",
+      authDomain: "anatomy-quiz-7cb36.firebaseapp.com",
+      projectId: "anatomy-quiz-7cb36",
+      storageBucket: "anatomy-quiz-7cb36.firebasestorage.app",
+      messagingSenderId: "111035488873",
+      appId: "1:111035488873:web:8b4cbac3f7c56eefd5a0f8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // 全域變數
+    let currentUser = null;
+    let imagesData = {};
+    let currentImage = null;
+    let quizDatabase = []; // 公用題庫
+    let userProgress = {}; // 私人進度
+    let currentQuestion = null;
+    
+    // Canvas 初始化
+    const canvas = document.getElementById('editor-canvas');
+    const ctx = canvas.getContext('2d');
+    const quizCanvas = document.getElementById('quiz-canvas');
+    const qCtx = quizCanvas.getContext('2d');
+    let isDrawing = false;
+    let startX, startY, currentX, currentY;
+
+    // --- 認證系統 (Authentication) ---
+    window.login = () => {
+        signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("登入失敗: " + err.message));
+    };
+    
+    window.logout = () => {
+        signOut(auth).then(() => location.reload());
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-zone').style.display = 'none';
+            document.getElementById('setup-zone').style.display = 'block';
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('user-avatar').src = user.photoURL;
+            document.querySelectorAll('.nav-btns button').forEach(b => b.style.display = 'inline-block');
+            
+            // 下載雲端資料
+            await fetchCloudData();
+        } else {
+            document.getElementById('login-zone').style.display = 'block';
+            document.getElementById('setup-zone').style.display = 'none';
+            document.getElementById('user-info').style.display = 'none';
+            document.querySelectorAll('.workspace').forEach(w => w.classList.remove('active'));
+        }
+    });
+
+    // --- 抓取雲端資料 (Firestore) ---
+    async function fetchCloudData() {
+        try {
+            // 抓公用題庫
+            const qSnap = await getDocs(collection(db, "quiz_data"));
+            quizDatabase = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            // 抓個人進度
+            const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
+            const pSnap = await getDocs(pQuery);
+            userProgress = {};
+            pSnap.forEach(d => { userProgress[d.data().quizId] = d.data(); });
+        } catch (error) {
+            console.error("讀取資料庫失敗 (如果您剛開資料庫，可能要等一兩分鐘)", error);
+        }
+    }
+
+    // --- 圖片載入系統 (維持本地高效率) ---
+    document.getElementById('folder-input').addEventListener('change', function(e) {
+        const files = e.target.files;
+        const selector = document.getElementById('image-selector');
+        selector.innerHTML = '';
+        
+        let loaded = 0;
+        for (let file of files) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imagesData[file.name] = event.target.result;
+                    const option = document.createElement('option');
+                    option.value = file.name; option.text = file.name;
+                    selector.appendChild(option);
+                    if(loaded === 0) loadEditorImage(file.name);
+                    loaded++;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+
+    window.finishSetup = () => {
+        if (Object.keys(imagesData).length === 0) return alert("請先選擇包含圖片的資料夾！");
+        document.getElementById('setup-zone').style.display = 'none';
+        window.switchMode('quiz');
+    };
+
+    document.getElementById('image-selector').addEventListener('change', (e) => loadEditorImage(e.target.value));
+
+    function loadEditorImage(filename) {
+        currentImage = filename;
+        const img = new Image();
+        img.onload = () => {
+            canvas.width = img.width; canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            drawExistingMasks();
+        };
+        img.src = imagesData[filename];
+    }
+
+    // --- 編輯器 Canvas 互動與上傳 ---
+    canvas.addEventListener('mousedown', e => {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        startX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        startY = (e.clientY - rect.top) * (canvas.height / rect.height);
+    });
+
+    canvas.addEventListener('mousemove', e => {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        currentX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        currentY = (e.clientY - rect.top) * (canvas.height / rect.height);
+        
+        const img = new Image();
+        img.src = imagesData[currentImage];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        drawExistingMasks();
+        
+        ctx.fillStyle = "rgba(231, 76, 60, 0.5)"; 
+        ctx.fillRect(startX, startY, currentX - startX, currentY - startY);
+        ctx.strokeStyle = "red";
+        ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+    });
+
+    canvas.addEventListener('mouseup', () => { isDrawing = false; });
+
+    window.saveMaskRegion = async () => {
+        const term = document.getElementById('term-input').value.trim();
+        if (!term) return alert("請輸入專有名詞！");
+        
+        const newQuiz = {
+            image: currentImage, term: term,
+            mask: { x: startX, y: startY, w: currentX - startX, h: currentY - startY },
+            creatorId: currentUser.uid, createdAt: Date.now()
+        };
+        
+        try {
+            // 直接寫入 Firebase
+            const docRef = await addDoc(collection(db, "quiz_data"), newQuiz);
+            quizDatabase.push({ id: docRef.id, ...newQuiz });
+            document.getElementById('term-input').value = "";
+            loadEditorImage(currentImage);
+            alert("✅ 成功存入雲端！");
+        } catch (e) {
+            alert("上傳失敗: " + e.message);
+        }
+    };
+
+    function drawExistingMasks() {
+        quizDatabase.forEach(item => {
+            if (item.image === currentImage) {
+                ctx.fillStyle = "black";
+                ctx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+            }
+        });
+    }
+
+    // --- 艾賓豪斯測驗引擎 (SM-2 改良版) ---
+    window.switchMode = (mode) => {
+        document.querySelectorAll('.workspace').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btns button').forEach(el => el.classList.remove('active'));
+        document.getElementById(`nav-${mode}`).classList.add('active');
+        document.getElementById(`mode-${mode}`).classList.add('active');
+        
+        if (mode === 'quiz') window.nextQuestion();
+    };
+
+    window.nextQuestion = () => {
+        if (quizDatabase.length === 0) {
+            alert("雲端題庫目前為空！請先到「題庫編輯器」建立題目。");
+            window.switchMode('editor'); return;
+        }
+
+        const now = Date.now();
+        // 篩選出今天必須複習的卡片 (包含從沒做過的新題)
+        let dueCards = quizDatabase.filter(q => {
+            const prog = userProgress[q.id];
+            if (!prog) return true; // 新題目
+            return prog.nextReviewDate <= now; // 該複習了
+        });
+
+        if (dueCards.length > 0) {
+            document.getElementById('srs-status').innerText = `🔥 今日必刷: ${dueCards.length} 題`;
+            currentQuestion = dueCards[Math.floor(Math.random() * dueCards.length)];
+        } else {
+            document.getElementById('srs-status').innerText = `🏆 今日進度已達成 | 額外刷題中...`;
+            // 無限刷題：隨機抽一題
+            currentQuestion = quizDatabase[Math.floor(Math.random() * quizDatabase.length)];
+        }
+
+        renderQuestion(currentQuestion);
+    };
+
+    function renderQuestion(q) {
+        if(!imagesData[q.image]) {
+            alert("找不到這題的圖片，請確認您有載入包含 " + q.image + " 的資料夾！");
+            return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+            quizCanvas.width = img.width; quizCanvas.height = img.height;
+            qCtx.drawImage(img, 0, 0);
+            
+            quizDatabase.forEach(item => {
+                if (item.image === q.image) {
+                    if (item.id === q.id) {
+                        qCtx.fillStyle = "#e74c3c"; // 目標紅色實心
+                    } else {
+                        qCtx.fillStyle = "black"; // 其他黑底隱藏
+                    }
+                    qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                }
+            });
+        };
+        img.src = imagesData[q.image];
+        
+        document.getElementById('feedback').innerHTML = '';
+        document.getElementById('next-btn').style.display = 'none';
+        
+        // 產生選項
+        let options = [q.term];
+        let attempts = 0;
+        while (options.length < 4 && options.length < quizDatabase.length && attempts < 50) {
+            let randTerm = quizDatabase[Math.floor(Math.random() * quizDatabase.length)].term;
+            if (!options.includes(randTerm)) options.push(randTerm);
+            attempts++;
+        }
+        options.sort(() => Math.random() - 0.5);
+        
+        const optionsGrid = document.getElementById('quiz-options');
+        optionsGrid.innerHTML = '';
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn'; btn.innerText = opt;
+            btn.onclick = () => window.checkAnswer(opt, q.term);
+            optionsGrid.appendChild(btn);
+        });
+    }
+
+    window.checkAnswer = async (selected, correct) => {
+        const isCorrect = (selected === correct);
+        const feedback = document.getElementById('feedback');
+        
+        if (isCorrect) {
+            feedback.innerHTML = '<span class="correct">✅ 答對了！(已為您延後下次複習時間)</span>';
+        } else {
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：${correct} (將盡快讓您再次複習)</span>`;
+        }
+        
+        // 禁用所有按鈕防止連點
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+        document.getElementById('next-btn').style.display = 'block';
+
+        // 艾賓豪斯進度運算
+        const quizId = currentQuestion.id;
+        let prog = userProgress[quizId] || { repetitions: 0, interval: 0, easeFactor: 2.5 };
+        
+        if (isCorrect) {
+            if (prog.repetitions === 0) prog.interval = 1;
+            else if (prog.repetitions === 1) prog.interval = 6;
+            else prog.interval = Math.round(prog.interval * prog.easeFactor);
+            prog.repetitions += 1;
+            prog.easeFactor = Math.max(1.3, prog.easeFactor + 0.1);
+        } else {
+            prog.repetitions = 0;
+            prog.interval = 1;
+            prog.easeFactor = Math.max(1.3, prog.easeFactor - 0.2);
+        }
+        
+        // 設定下次複習時間 (目前時間 + 間隔天數的毫秒)
+        prog.nextReviewDate = Date.now() + (prog.interval * 24 * 60 * 60 * 1000);
+        prog.userId = currentUser.uid;
+        prog.quizId = quizId;
+
+        // 本機更新與雲端同步
+        userProgress[quizId] = prog; 
+        try {
+            await setDoc(doc(db, "user_progress", `${currentUser.uid}_${quizId}`), prog);
+        } catch(e) {
+            console.error("進度儲存失敗:", e);
+        }
+    };
+</script>
+</body>
+</html>
