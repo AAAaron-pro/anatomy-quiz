@@ -19,7 +19,7 @@
         canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
         
         .panel { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: fit-content; text-align: left; }
-        .form-group { margin-bottom: 1rem; }
+        .form-group { margin-bottom: 0.9rem; }
         .form-group label { display: block; margin-bottom: 0.4rem; font-weight: bold; color: var(--secondary); font-size: 0.9rem; }
         .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
         .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.2rem; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; transition: background 0.2s; }
@@ -39,10 +39,11 @@
         .user-info img { width: 32px; height: 32px; border-radius: 50%; }
         .badge { background: var(--danger); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
 
-        .mode-toggle-group { display: flex; gap: 0.8rem; background: #f1f5f9; padding: 0.5rem 0.8rem; border-radius: 6px; margin-bottom: 0.8rem; align-items: center; }
+        /* 乾淨且強制不換行的控制列 */
+        .mode-toggle-group { display: flex; gap: 0.8rem; background: #f1f5f9; padding: 0.5rem 0.8rem; border-radius: 6px; margin-bottom: 0.6rem; align-items: center; white-space: nowrap; }
         .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.88rem; display: flex; align-items: center; gap: 0.3rem; margin: 0; }
 
-        /* 分類樹狀折疊 Accordion 樣式 */
+        /* 分類樹狀折疊清單 */
         .category-tree { max-height: 190px; overflow-y: auto; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; }
         .cat-group { margin-bottom: 0.4rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.3rem; }
         .cat-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 0.88rem; color: #1e293b; padding: 0.2rem 0.4rem; border-radius: 4px; }
@@ -52,7 +53,7 @@
         .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: #475569; cursor: pointer; }
         .checkbox-item input { width: auto; margin: 0; }
 
-        /* 學習分析儀表板專用樣式 */
+        /* 學習分析儀表板樣式 */
         .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; text-align: left; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; font-size: 0.9rem; }
         .stats-table th, .stats-table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
@@ -98,7 +99,7 @@
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
     </div>
 
-    <!-- 1. 編輯器模式 (含分類標籤與語意化命名儲存) -->
+    <!-- 1. 編輯器模式 -->
     <div id="mode-editor" class="workspace">
         <div class="canvas-container">
             <canvas id="editor-canvas"></canvas>
@@ -106,8 +107,8 @@
         <div class="panel">
             <h3>🛠️ 題庫編輯器</h3>
             <div class="form-group">
-                <label>📁 檔案分類 (例如: 頭顱骨 / 前肢骨 / 脊椎骨):</label>
-                <input type="text" id="category-input" list="category-suggestions" placeholder="手動輸入或選取分類...">
+                <label>📁 檔案分類 (預設: head_skull):</label>
+                <input type="text" id="category-input" list="category-suggestions" placeholder="例如: head_skull" value="head_skull">
                 <datalist id="category-suggestions"></datalist>
             </div>
             <div class="form-group">
@@ -124,7 +125,7 @@
         </div>
     </div>
 
-    <!-- 2. 測驗模式 (含樹狀分類、相似字根出題、4/6選項) -->
+    <!-- 2. 測驗模式 -->
     <div id="mode-quiz" class="workspace">
         <div class="canvas-container">
             <canvas id="quiz-canvas"></canvas>
@@ -135,17 +136,18 @@
                 <span id="srs-status" class="badge">計算中...</span>
             </h3>
 
-            <!-- 題型切換 & 選項數切換 -->
+            <!-- 題型切換 -->
             <div class="mode-toggle-group">
                 <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
                 <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 拼寫填空題</label>
             </div>
             
+            <!-- 乾淨不換行的難度切換列 -->
             <div id="option-count-bar" class="mode-toggle-group" style="justify-content: space-between;">
-                <span style="font-size: 0.85rem; font-weight: bold; color: #475569;">選擇題難度：</span>
+                <span style="font-size: 0.85rem; font-weight: bold; color: #475569;">選擇題題數：</span>
                 <div style="display: flex; gap: 0.8rem;">
-                    <label><input type="radio" name="option-count" value="4" checked onchange="onOptionCountChanged()"> 4 選 1 (標準)</label>
-                    <label><input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()"> 6 選 1 (高鑑別)</label>
+                    <label><input type="radio" name="option-count" value="4" checked onchange="onOptionCountChanged()"> 4 選 1</label>
+                    <label><input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()"> 6 選 1</label>
                 </div>
             </div>
 
@@ -158,19 +160,15 @@
                         <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(false)">全不選</button>
                     </div>
                 </div>
-                <div id="category-tree" class="category-tree">
-                    <!-- 動態生成樹狀摺疊清單 -->
-                </div>
+                <div id="category-tree" class="category-tree"></div>
             </div>
 
             <p style="margin: 0.4rem 0;">請問圖片中被遮蔽的<strong style="color:var(--danger);">紅色區塊</strong>是什麼構造？</p>
 
-            <!-- 選擇題區 -->
             <div id="mcq-container">
                 <div class="options-grid grid-4" id="quiz-options"></div>
             </div>
 
-            <!-- 填空題區 -->
             <div id="fill-container" style="display: none; margin-top: 0.8rem;">
                 <div class="form-group">
                     <input type="text" id="fill-input" placeholder="請輸入構造英文名稱 (按 Enter 送出)..." autocomplete="off">
@@ -186,10 +184,9 @@
     <!-- 3. 學習分析模式 (儀表板) -->
     <div id="mode-analytics" class="card" style="display: none;">
         <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
-        <p style="text-align: left; color: #64748b; font-size: 0.9rem;">依據艾賓豪斯記憶模型與個人歷史作答紀錄即時彙整。</p>
+        <p style="text-align: left; color: #64748b; font-size: 0.9rem;">依據艾賓豪斯記憶模型與歷史作答紀錄即時彙整。</p>
         
         <div class="analytics-grid">
-            <!-- 區塊 A: 各分類答題率 -->
             <div>
                 <h4 style="margin: 0.5rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
                 <table class="stats-table">
@@ -202,21 +199,14 @@
                             <th>正確率</th>
                         </tr>
                     </thead>
-                    <tbody id="category-stats-body">
-                        <!-- 動態填入 -->
-                    </tbody>
+                    <tbody id="category-stats-body"></tbody>
                 </table>
             </div>
 
-            <!-- 區塊 B: 致命弱點單字排行榜 -->
             <div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0.5rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
-                </div>
+                <h4 style="margin: 0.5rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
                 <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">系統判定最常答錯或遺忘指數最高的骨骼構造：</p>
-                <ul class="weak-list" id="weak-terms-list">
-                    <!-- 動態填入 -->
-                </ul>
+                <ul class="weak-list" id="weak-terms-list"></ul>
                 <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 一鍵針對弱點突擊特訓</button>
             </div>
         </div>
@@ -251,7 +241,7 @@
     let selectedImages = new Set();
     let quizType = "mcq";
     let optionCount = 4;
-    let weakDrillPool = null; // 弱點特訓專用題庫
+    let weakDrillPool = null;
     
     const canvas = document.getElementById('editor-canvas');
     const ctx = canvas.getContext('2d');
@@ -260,7 +250,6 @@
     let isDrawing = false;
     let startX, startY, currentX, currentY;
 
-    // 常見解剖學字根/詞綴關鍵詞清單 (高混淆匹配引擎核心)
     const ANATOMICAL_AFFIXES = [
         'foramen', 'fossa', 'process', 'crest', 'canal', 'tubercle', 'tuberosity',
         'condyle', 'epicondyle', 'fissure', 'notch', 'sulcus', 'trochlea', 'spine',
@@ -292,18 +281,26 @@
     async function fetchCloudData() {
         try {
             const qSnap = await getDocs(collection(db, "quiz_data"));
-            quizDatabase = qSnap.docs.map(d => ({ 
-                id: d.id, 
-                category: d.data().category || "未分類 (General)",
-                ...d.data() 
-            }));
+            
+            // 【優化 1】：舊題目若無分類，一律自動歸入 "head_skull"
+            quizDatabase = qSnap.docs.map(d => {
+                const data = d.data();
+                let cat = data.category;
+                if (!cat || cat === "未分類" || cat === "未分類 (General)") {
+                    cat = "head_skull";
+                }
+                return {
+                    id: d.id,
+                    ...data,
+                    category: cat
+                };
+            });
             
             const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
             const pSnap = await getDocs(pQuery);
             userProgress = {};
             pSnap.forEach(d => { userProgress[d.data().quizId] = d.data(); });
 
-            // 預設全選所有圖檔
             quizDatabase.forEach(q => selectedImages.add(q.image));
             buildCategoryTree();
             updateCategorySuggestions();
@@ -312,7 +309,6 @@
         }
     }
 
-    // 建立分類標籤自動完成提示
     function updateCategorySuggestions() {
         const datalist = document.getElementById('category-suggestions');
         datalist.innerHTML = '';
@@ -324,15 +320,13 @@
         });
     }
 
-    // 建構階層式分類摺疊清單 (Accordion Category Tree)
     function buildCategoryTree() {
         const container = document.getElementById('category-tree');
         container.innerHTML = '';
 
-        // 按分類將圖片分組
         const grouped = {};
         quizDatabase.forEach(q => {
-            const cat = q.category || "未分類 (General)";
+            const cat = q.category || "head_skull";
             if (!grouped[cat]) grouped[cat] = {};
             grouped[cat][q.image] = (grouped[cat][q.image] || 0) + 1;
         });
@@ -341,7 +335,6 @@
             const groupDiv = document.createElement('div');
             groupDiv.className = 'cat-group';
 
-            // 分類標題列
             const header = document.createElement('div');
             header.className = 'cat-header';
             
@@ -372,7 +365,6 @@
             header.appendChild(titleSpan);
             header.appendChild(toggleIcon);
 
-            // 展開子清單 (各圖片)
             const childrenDiv = document.createElement('div');
             childrenDiv.className = 'cat-children';
 
@@ -513,17 +505,15 @@
 
     canvas.addEventListener('mouseup', () => { isDrawing = false; });
 
-    // 語意化 Document ID 產生器 (解決 Firestore 亂碼問題)
     function sanitizeId(str) {
         return (str || '').trim().replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
     }
 
     window.saveMaskRegion = async () => {
         const term = document.getElementById('term-input').value.trim();
-        const category = document.getElementById('category-input').value.trim() || "未分類";
+        const category = document.getElementById('category-input').value.trim() || "head_skull";
         if (!term) return alert("請輸入專有名詞！");
         
-        // 語意化命名規範: [分類]_[圖片名]_[專有名詞]
         const docId = `${sanitizeId(category)}_${sanitizeId(currentImage)}_${sanitizeId(term)}`;
         
         const newQuiz = {
@@ -536,10 +526,8 @@
         };
         
         try {
-            // 使用 setDoc 指定可讀性極高的語意化 ID
             await setDoc(doc(db, "quiz_data", docId), newQuiz);
             
-            // 本地快取更新
             const existingIdx = quizDatabase.findIndex(q => q.id === docId);
             if (existingIdx >= 0) quizDatabase[existingIdx] = { id: docId, ...newQuiz };
             else quizDatabase.push({ id: docId, ...newQuiz });
@@ -564,7 +552,6 @@
         });
     }
 
-    // 模式導覽切換
     window.switchMode = (mode) => {
         document.querySelectorAll('.workspace').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-btns button').forEach(el => el.classList.remove('active'));
@@ -581,36 +568,24 @@
         }
     };
 
-    // 智慧高混淆干擾項生成器 (字根/字型比對演算法)
     function generateSmartDistractors(targetTerm, pool, targetCount) {
         const targetLower = targetTerm.toLowerCase();
-        
-        // 1. 抓取正解的解剖學特徵詞綴 (例如: foramen, fossa, crest 等)
         const targetKeywords = ANATOMICAL_AFFIXES.filter(affix => targetLower.includes(affix));
 
-        // 2. 對候選清單進行相關度評分 (Relevance Scoring)
         const candidates = pool
             .filter(q => q.term.trim().toLowerCase() !== targetLower)
             .map(q => {
                 const termLower = q.term.toLowerCase();
                 let score = 0;
-                
-                // 規則 A: 擁有完全相同的解剖詞綴 (分數極高，如四個選項都是 foramen)
                 for (const kw of targetKeywords) {
                     if (termLower.includes(kw)) score += 10;
                 }
-
-                // 規則 B: 字串長度相近度
                 const lenDiff = Math.abs(q.term.length - targetTerm.length);
                 if (lenDiff <= 3) score += 3;
-
-                // 規則 C: 字首字母相同 (字型視覺相似)
                 if (termLower[0] === targetLower[0]) score += 2;
-
                 return { term: q.term, score: score };
             });
 
-        // 3. 優先選擇分數最高（最相似）的選項
         candidates.sort((a, b) => b.score - a.score);
 
         const distractors = [];
@@ -625,7 +600,6 @@
             }
         }
 
-        // 4. 若題庫中同字根單字不足，則由總題庫隨機補足
         if (distractors.length < targetCount - 1) {
             const allTerms = quizDatabase.map(q => q.term);
             for (const t of allTerms) {
@@ -645,7 +619,6 @@
     window.nextQuestion = () => {
         let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
 
-        // 如果是弱點突擊模式，強制使用弱點題庫
         if (weakDrillPool && weakDrillPool.length > 0) {
             activePool = weakDrillPool;
         }
@@ -690,7 +663,7 @@
             quizDatabase.forEach(item => {
                 if (item.image === q.image) {
                     if (item.id === q.id) {
-                        qCtx.fillStyle = "#e74c3c"; // 實心紅遮罩
+                        qCtx.fillStyle = "#e74c3c";
                     } else {
                         qCtx.fillStyle = "black";
                     }
@@ -703,7 +676,6 @@
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
         
-        // 產生高混淆智慧選項 (支援 4 或 6 選項)
         const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
         const optionsGrid = document.getElementById('quiz-options');
         optionsGrid.innerHTML = '';
@@ -715,7 +687,6 @@
             optionsGrid.appendChild(btn);
         });
 
-        // 填空題重置
         const fillInput = document.getElementById('fill-input');
         fillInput.value = '';
         fillInput.disabled = false;
@@ -745,7 +716,6 @@
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         document.getElementById('next-btn').style.display = 'block';
 
-        // 艾賓豪斯進度與累積統計記錄
         const quizId = currentQuestion.id;
         let prog = userProgress[quizId] || { 
             repetitions: 0, 
@@ -784,15 +754,14 @@
         }
     };
 
-    // --- 學習分析儀表板渲染邏輯 ---
+    // --- 【優化 2】：學習分析儀表板 (舊紀錄完美回推相容) ---
     function renderAnalytics() {
         const tbody = document.getElementById('category-stats-body');
         tbody.innerHTML = '';
 
-        // 1. 各分類統計
         const catStats = {};
         quizDatabase.forEach(q => {
-            const cat = q.category || "未分類";
+            const cat = q.category || "head_skull";
             if (!catStats[cat]) {
                 catStats[cat] = { total: 0, answered: 0, correct: 0, wrong: 0 };
             }
@@ -800,9 +769,21 @@
 
             const p = userProgress[q.id];
             if (p) {
-                catStats[cat].answered += (p.totalAnswered || 0);
-                catStats[cat].correct += (p.correctCount || 0);
-                catStats[cat].wrong += (p.wrongCount || 0);
+                // 向下相容演算法：若舊紀錄無計數器，由 repetitions / 熟練度回推認列
+                let total = p.totalAnswered;
+                let corr = p.correctCount;
+                let wrg = p.wrongCount || 0;
+
+                if (total === undefined || total === null) {
+                    const reps = p.repetitions || 0;
+                    total = reps > 0 ? reps : (p.nextReviewDate ? 1 : 0);
+                    corr = total;
+                    wrg = 0;
+                }
+
+                catStats[cat].answered += total;
+                catStats[cat].correct += corr;
+                catStats[cat].wrong += wrg;
             }
         });
 
@@ -823,23 +804,27 @@
             tbody.appendChild(tr);
         }
 
-        // 2. Top 10 弱點單字分析 (依錯誤次數與低熟練度排序)
+        // Top 10 弱點單字排行榜 (相容舊紀錄)
         const weakList = document.getElementById('weak-terms-list');
         weakList.innerHTML = '';
 
         const scoredTerms = quizDatabase.map(q => {
             const p = userProgress[q.id] || { wrongCount: 0, totalAnswered: 0, easeFactor: 2.5 };
-            // 計算遺忘弱點指數: 錯誤次數越重、easeFactor 越低，排名越前面
-            const weaknessScore = (p.wrongCount * 3) + ((3.0 - p.easeFactor) * 2);
+            let total = p.totalAnswered;
+            let wrg = p.wrongCount || 0;
+            if (total === undefined || total === null) {
+                total = p.repetitions || 0;
+            }
+            const ef = p.easeFactor || 2.5;
+            const weaknessScore = (wrg * 4) + Math.max(0, (2.5 - ef) * 5) + (p.interval === 1 && total > 0 ? 3 : 0);
             return {
                 quiz: q,
-                wrongCount: p.wrongCount || 0,
-                totalAnswered: p.totalAnswered || 0,
+                wrongCount: wrg,
+                totalAnswered: total,
                 weaknessScore: weaknessScore
             };
         });
 
-        // 篩選出有錯過或高弱點的題目
         scoredTerms.sort((a, b) => b.weaknessScore - a.weaknessScore);
         const topWeak = scoredTerms.slice(0, 10).filter(item => item.totalAnswered > 0 || item.wrongCount > 0);
 
@@ -866,18 +851,16 @@
         });
     }
 
-    // 弱點突擊特訓
     window.startWeakDrill = () => {
         const scoredTerms = quizDatabase.map(q => {
             const p = userProgress[q.id] || { wrongCount: 0, easeFactor: 2.5 };
-            return { quiz: q, score: (p.wrongCount * 3) + (3.0 - p.easeFactor) };
+            return { quiz: q, score: (p.wrongCount * 4) + Math.max(0, (2.5 - (p.easeFactor || 2.5)) * 5) };
         });
         scoredTerms.sort((a, b) => b.score - a.score);
         weakDrillPool = scoredTerms.slice(0, 10).map(item => item.quiz);
 
         if (weakDrillPool.length === 0) return alert("目前還沒有產生足夠的答題數據！");
-        
-        alert(`⚡ 已啟動 Top ${weakDrillPool.length} 弱點專項特訓！系統將鎖定這些骨骼構造進行高強度轟炸！`);
+        alert(`⚡ 已啟動 Top ${weakDrillPool.length} 弱點專項特訓！`);
         window.switchMode('quiz');
     };
 </script>
