@@ -3,60 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獸醫解剖學專業圖鑑與測驗系統 (雲端版)</title>
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V5 旗艦版)</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --bg: #f5f6fa; }
+        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --bg: #f5f6fa; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: #333; }
-        header { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .nav-btns button { background: transparent; border: 1px solid white; color: white; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; margin-left: 0.5rem; display: none; }
-        .nav-btns button.active, .nav-btns button:hover { background: white; color: var(--primary); }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        header { background: var(--primary); color: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .nav-btns button { background: transparent; border: 1px solid rgba(255,255,255,0.7); color: white; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; margin-left: 0.5rem; transition: all 0.2s; font-size: 0.95rem; }
+        .nav-btns button.active, .nav-btns button:hover { background: white; color: var(--primary); font-weight: bold; }
+        .container { max-width: 1280px; margin: 1.5rem auto; padding: 0 1rem; }
         
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; text-align: center; }
-        
-        .workspace { display: none; gap: 2rem; grid-template-columns: 2fr 1fr; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 1.5rem; text-align: center; }
+        .workspace { display: none; gap: 1.5rem; grid-template-columns: 2.2fr 1fr; }
         .workspace.active { display: grid; }
-        .canvas-container { background: white; border: 2px dashed #ccc; border-radius: 8px; overflow: hidden; position: relative; }
+        .canvas-container { background: white; border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden; position: relative; }
         canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
         
-        .panel { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: fit-content; }
-        .form-group { margin-bottom: 1rem; text-align: left; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; margin-bottom: 0.5rem; }
+        .panel { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: fit-content; text-align: left; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: bold; color: var(--secondary); font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.2rem; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; transition: background 0.2s; }
         .btn-primary:hover { background: #2980b9; }
 
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
-        .option-btn { padding: 1rem; border: 2px solid var(--accent); background: white; color: var(--accent); border-radius: 4px; cursor: pointer; font-size: 1rem; transition: all 0.2s; font-weight: 500; }
-        .option-btn:hover { background: var(--accent); color: white; }
+        .options-grid { display: grid; gap: 0.8rem; margin-top: 1rem; }
+        .grid-4 { grid-template-columns: 1fr 1fr; }
+        .grid-6 { grid-template-columns: 1fr 1fr 1fr; }
+        .option-btn { padding: 0.9rem; border: 2px solid #bdc3c7; background: white; color: #2c3e50; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.15s; }
+        .option-btn:hover { border-color: var(--accent); color: var(--accent); background: #ebf5fb; }
         
         #feedback { margin-top: 1.2rem; font-weight: bold; text-align: center; font-size: 1.15rem; line-height: 1.5; }
-        .correct { color: #27ae60; }
-        .incorrect { color: #e74c3c; }
+        .correct { color: var(--success); }
+        .incorrect { color: var(--danger); }
 
         .user-info { display: flex; align-items: center; gap: 1rem; }
         .user-info img { width: 32px; height: 32px; border-radius: 50%; }
-        
-        .badge { background: #e74c3c; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .badge { background: var(--danger); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
 
-        .mode-toggle-group { display: flex; gap: 1rem; background: #eef2f7; padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
-        .mode-toggle-group label { cursor: pointer; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 0.3rem; }
+        .mode-toggle-group { display: flex; gap: 0.8rem; background: #f1f5f9; padding: 0.5rem 0.8rem; border-radius: 6px; margin-bottom: 0.8rem; align-items: center; }
+        .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.88rem; display: flex; align-items: center; gap: 0.3rem; margin: 0; }
 
-        .checkbox-list { max-height: 130px; overflow-y: auto; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; text-align: left; }
-        .checkbox-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; }
-        .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
+        /* 分類樹狀折疊 Accordion 樣式 */
+        .category-tree { max-height: 190px; overflow-y: auto; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; }
+        .cat-group { margin-bottom: 0.4rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.3rem; }
+        .cat-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 0.88rem; color: #1e293b; padding: 0.2rem 0.4rem; border-radius: 4px; }
+        .cat-header:hover { background: #f8fafc; }
+        .cat-children { padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.3rem; }
+        .cat-children.collapsed { display: none; }
+        .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: #475569; cursor: pointer; }
+        .checkbox-item input { width: auto; margin: 0; }
+
+        /* 學習分析儀表板專用樣式 */
+        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; text-align: left; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; font-size: 0.9rem; }
+        .stats-table th, .stats-table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .stats-table th { background: #f8fafc; color: #475569; font-weight: bold; }
+        .accuracy-pill { padding: 0.2rem 0.5rem; border-radius: 10px; font-weight: bold; font-size: 0.8rem; }
+        .acc-high { background: #d4edda; color: #155724; }
+        .acc-med { background: #fff3cd; color: #856404; }
+        .acc-low { background: #f8d7da; color: #721c24; }
+        .weak-list { list-style: none; padding: 0; margin-top: 0.8rem; }
+        .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; border-radius: 4px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.5rem; font-size: 0.88rem; }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🦴 解剖學雲端題庫</h2>
+    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.75rem; background: #16a085; padding: 2px 6px; border-radius: 4px;">V5 旗艦版</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name"></span>
         <div class="nav-btns">
             <button id="nav-editor" onclick="switchMode('editor')">🛠️ 題庫編輯器</button>
-            <button id="nav-quiz" onclick="switchMode('quiz')">📝 測驗模式</button>
+            <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗模式</button>
+            <button id="nav-analytics" onclick="switchMode('analytics')">📊 學習分析</button>
             <button onclick="logout()" style="border-color: #e74c3c; color: #e74c3c;">登出</button>
         </div>
     </div>
@@ -65,42 +84,47 @@
 <div class="container">
     <!-- 登入區塊 -->
     <div id="login-zone" class="card">
-        <h3>歡迎使用雲端解剖學系統</h3>
-        <p>支援多人連線與艾賓豪斯記憶曲線。<br>請先使用 Google 帳號登入以載入您的專屬進度。</p>
+        <h3>歡迎使用解剖學專業記憶系統</h3>
+        <p>完整支援分類樹狀索引、字根高混淆模擬考、與個人化弱點雷達。<br>請登入 Google 帳號以連線雲端資料庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 1rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
     <!-- 檔案載入區塊 (登入後顯示) -->
     <div id="setup-zone" class="card" style="display: none;">
         <h3>準備階段：載入圖片資料夾</h3>
-        <p style="color: #666; font-size: 0.9em;">(圖片從本機讀取以節省頻寬，題庫與艾賓豪斯記憶曲線由雲端運算)</p>
+        <p style="color: #666; font-size: 0.9em;">(請選取包含解剖圖檔的「參考資料」資料夾)</p>
         <input type="file" id="folder-input" webkitdirectory directory multiple accept="image/*" style="margin: 1rem 0;">
         <br>
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
     </div>
 
-    <!-- 編輯器模式 -->
+    <!-- 1. 編輯器模式 (含分類標籤與語意化命名儲存) -->
     <div id="mode-editor" class="workspace">
         <div class="canvas-container">
             <canvas id="editor-canvas"></canvas>
         </div>
         <div class="panel">
-            <h3>雲端題庫編輯器</h3>
+            <h3>🛠️ 題庫編輯器</h3>
             <div class="form-group">
-                <label>目前編輯圖片:</label>
+                <label>📁 檔案分類 (例如: 頭顱骨 / 前肢骨 / 脊椎骨):</label>
+                <input type="text" id="category-input" list="category-suggestions" placeholder="手動輸入或選取分類...">
+                <datalist id="category-suggestions"></datalist>
+            </div>
+            <div class="form-group">
+                <label>🖼️ 目前編輯圖片:</label>
                 <select id="image-selector"></select>
             </div>
-            <p style="font-size: 0.9em; color: #666;">在圖片上拖曳畫出紅框，遮蔽專有名詞。</p>
+            <p style="font-size: 0.85em; color: #666;">在圖片上拖曳畫出紅框，遮蔽專有名詞。</p>
             <div class="form-group">
-                <label>專有名詞 (正解):</label>
-                <input type="text" id="term-input" placeholder="例如: Maxilla">
+                <label>🔤 專有名詞 (正解):</label>
+                <input type="text" id="term-input" placeholder="例如: Jugular foramen">
             </div>
             <button class="btn-primary" onclick="saveMaskRegion()">儲存上傳至雲端</button>
-            <p style="font-size: 0.8em; color: #27ae60; text-align: center; margin-top: 1rem;">✅ 儲存後將即時同步給所有使用者</p>
+            <p style="font-size: 0.8em; color: #27ae60; text-align: center; margin-top: 1rem;">✅ 採用語意化 ID 存檔，Firebase 後台清楚好整理！</p>
         </div>
     </div>
 
-    <!-- 測驗模式 -->
+    <!-- 2. 測驗模式 (含樹狀分類、相似字根出題、4/6選項) -->
     <div id="mode-quiz" class="workspace">
         <div class="canvas-container">
             <canvas id="quiz-canvas"></canvas>
@@ -111,35 +135,43 @@
                 <span id="srs-status" class="badge">計算中...</span>
             </h3>
 
-            <!-- 題型切換 -->
+            <!-- 題型切換 & 選項數切換 -->
             <div class="mode-toggle-group">
                 <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
                 <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 拼寫填空題</label>
             </div>
             
-            <!-- 範圍多選清單 (支援勾選多張圖片) -->
-            <div class="form-group" style="background: #eef2f7; padding: 0.8rem; border-radius: 6px; margin-bottom: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                    <label style="color: #2c3e50; margin: 0;">🎯 自選出題圖片：</label>
-                    <div>
-                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; cursor: pointer; border-radius: 3px; border: 1px solid #ccc; background: white;" onclick="toggleAllImages(true)">全選</button>
-                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; cursor: pointer; border-radius: 3px; border: 1px solid #ccc; background: white;" onclick="toggleAllImages(false)">全不選</button>
-                    </div>
-                </div>
-                <div id="image-checkboxes-container" class="checkbox-list">
-                    <!-- 動態生成勾選框 -->
+            <div id="option-count-bar" class="mode-toggle-group" style="justify-content: space-between;">
+                <span style="font-size: 0.85rem; font-weight: bold; color: #475569;">選擇題難度：</span>
+                <div style="display: flex; gap: 0.8rem;">
+                    <label><input type="radio" name="option-count" value="4" checked onchange="onOptionCountChanged()"> 4 選 1 (標準)</label>
+                    <label><input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()"> 6 選 1 (高鑑別)</label>
                 </div>
             </div>
 
-            <p>請問圖片中被遮蔽的<strong style="color:#e74c3c;">紅色區塊</strong>是什麼構造？</p>
+            <!-- 檔案分類與樹狀勾選清單 -->
+            <div class="form-group" style="background: #f8fafc; padding: 0.75rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 0.8rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <label style="color: #1e293b; margin: 0; font-size: 0.85rem;">📁 檔案分類與出題範圍：</label>
+                    <div>
+                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(true)">全選</button>
+                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(false)">全不選</button>
+                    </div>
+                </div>
+                <div id="category-tree" class="category-tree">
+                    <!-- 動態生成樹狀摺疊清單 -->
+                </div>
+            </div>
+
+            <p style="margin: 0.4rem 0;">請問圖片中被遮蔽的<strong style="color:var(--danger);">紅色區塊</strong>是什麼構造？</p>
 
             <!-- 選擇題區 -->
             <div id="mcq-container">
-                <div class="options-grid" id="quiz-options"></div>
+                <div class="options-grid grid-4" id="quiz-options"></div>
             </div>
 
             <!-- 填空題區 -->
-            <div id="fill-container" style="display: none; margin-top: 1rem;">
+            <div id="fill-container" style="display: none; margin-top: 0.8rem;">
                 <div class="form-group">
                     <input type="text" id="fill-input" placeholder="請輸入構造英文名稱 (按 Enter 送出)..." autocomplete="off">
                 </div>
@@ -150,13 +182,52 @@
             <button class="btn-primary" id="next-btn" style="display: none; margin-top: 1rem;" onclick="nextQuestion()">下一題</button>
         </div>
     </div>
+
+    <!-- 3. 學習分析模式 (儀表板) -->
+    <div id="mode-analytics" class="card" style="display: none;">
+        <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
+        <p style="text-align: left; color: #64748b; font-size: 0.9rem;">依據艾賓豪斯記憶模型與個人歷史作答紀錄即時彙整。</p>
+        
+        <div class="analytics-grid">
+            <!-- 區塊 A: 各分類答題率 -->
+            <div>
+                <h4 style="margin: 0.5rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>分類名稱</th>
+                            <th>題庫數</th>
+                            <th>答題數</th>
+                            <th>正確 / 錯誤</th>
+                            <th>正確率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="category-stats-body">
+                        <!-- 動態填入 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 區塊 B: 致命弱點單字排行榜 -->
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0.5rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
+                </div>
+                <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">系統判定最常答錯或遺忘指數最高的骨骼構造：</p>
+                <ul class="weak-list" id="weak-terms-list">
+                    <!-- 動態填入 -->
+                </ul>
+                <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 一鍵針對弱點突擊特訓</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAwObWPvCT4yBHcW6NiXLvPIEn4r96Wq8s",
@@ -177,8 +248,10 @@
     let quizDatabase = [];
     let userProgress = {};
     let currentQuestion = null;
-    let selectedImages = new Set(); // 儲存勾選的圖片集合
+    let selectedImages = new Set();
     let quizType = "mcq";
+    let optionCount = 4;
+    let weakDrillPool = null; // 弱點特訓專用題庫
     
     const canvas = document.getElementById('editor-canvas');
     const ctx = canvas.getContext('2d');
@@ -187,13 +260,15 @@
     let isDrawing = false;
     let startX, startY, currentX, currentY;
 
-    window.login = () => {
-        signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("登入失敗: " + err.message));
-    };
-    
-    window.logout = () => {
-        signOut(auth).then(() => location.reload());
-    };
+    // 常見解剖學字根/詞綴關鍵詞清單 (高混淆匹配引擎核心)
+    const ANATOMICAL_AFFIXES = [
+        'foramen', 'fossa', 'process', 'crest', 'canal', 'tubercle', 'tuberosity',
+        'condyle', 'epicondyle', 'fissure', 'notch', 'sulcus', 'trochlea', 'spine',
+        'sinus', 'meatus', 'bulla', 'linea', 'ramus', 'arch', 'head', 'neck', 'facet'
+    ];
+
+    window.login = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("登入失敗: " + err.message));
+    window.logout = () => signOut(auth).then(() => location.reload());
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -210,13 +285,18 @@
             document.getElementById('setup-zone').style.display = 'none';
             document.getElementById('user-info').style.display = 'none';
             document.querySelectorAll('.workspace').forEach(w => w.classList.remove('active'));
+            document.getElementById('mode-analytics').style.display = 'none';
         }
     });
 
     async function fetchCloudData() {
         try {
             const qSnap = await getDocs(collection(db, "quiz_data"));
-            quizDatabase = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            quizDatabase = qSnap.docs.map(d => ({ 
+                id: d.id, 
+                category: d.data().category || "未分類 (General)",
+                ...d.data() 
+            }));
             
             const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
             const pSnap = await getDocs(pQuery);
@@ -225,64 +305,140 @@
 
             // 預設全選所有圖檔
             quizDatabase.forEach(q => selectedImages.add(q.image));
-            updateScopeCheckboxes();
+            buildCategoryTree();
+            updateCategorySuggestions();
         } catch (error) {
             console.error("讀取資料庫失敗", error);
         }
     }
 
-    // 更新圖片多選清單
-    function updateScopeCheckboxes() {
-        const container = document.getElementById('image-checkboxes-container');
-        container.innerHTML = '';
-        
-        const counts = {};
-        quizDatabase.forEach(q => counts[q.image] = (counts[q.image] || 0) + 1);
+    // 建立分類標籤自動完成提示
+    function updateCategorySuggestions() {
+        const datalist = document.getElementById('category-suggestions');
+        datalist.innerHTML = '';
+        const cats = Array.from(new Set(quizDatabase.map(q => q.category))).filter(Boolean);
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            datalist.appendChild(opt);
+        });
+    }
 
-        for (const [imgName, count] of Object.entries(counts)) {
-            const label = document.createElement('label');
-            label.className = 'checkbox-item';
+    // 建構階層式分類摺疊清單 (Accordion Category Tree)
+    function buildCategoryTree() {
+        const container = document.getElementById('category-tree');
+        container.innerHTML = '';
+
+        // 按分類將圖片分組
+        const grouped = {};
+        quizDatabase.forEach(q => {
+            const cat = q.category || "未分類 (General)";
+            if (!grouped[cat]) grouped[cat] = {};
+            grouped[cat][q.image] = (grouped[cat][q.image] || 0) + 1;
+        });
+
+        for (const [catName, images] of Object.entries(grouped)) {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'cat-group';
+
+            // 分類標題列
+            const header = document.createElement('div');
+            header.className = 'cat-header';
             
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = imgName;
-            checkbox.checked = selectedImages.has(imgName);
-            
-            checkbox.addEventListener('change', (e) => {
-                if (e.target.checked) selectedImages.add(imgName);
-                else selectedImages.delete(imgName);
+            const catCheckbox = document.createElement('input');
+            catCheckbox.type = 'checkbox';
+            catCheckbox.style.marginRight = '6px';
+            const catImages = Object.keys(images);
+            catCheckbox.checked = catImages.every(img => selectedImages.has(img));
+
+            catCheckbox.addEventListener('click', (e) => {
+                e.stopPropagation();
+                catImages.forEach(img => {
+                    if (e.target.checked) selectedImages.add(img);
+                    else selectedImages.delete(img);
+                });
+                buildCategoryTree();
                 window.nextQuestion();
             });
 
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(` 📖 ${imgName} (${count} 題)`));
-            container.appendChild(label);
+            const titleSpan = document.createElement('span');
+            titleSpan.innerHTML = `📁 <strong>${catName}</strong> <small style="color:#64748b;">(${Object.values(images).reduce((a,b)=>a+b, 0)} 題)</small>`;
+
+            const toggleIcon = document.createElement('span');
+            toggleIcon.innerText = '▾';
+            toggleIcon.style.fontSize = '0.75rem';
+
+            header.appendChild(catCheckbox);
+            header.appendChild(titleSpan);
+            header.appendChild(toggleIcon);
+
+            // 展開子清單 (各圖片)
+            const childrenDiv = document.createElement('div');
+            childrenDiv.className = 'cat-children';
+
+            header.addEventListener('click', () => {
+                childrenDiv.classList.toggle('collapsed');
+                toggleIcon.innerText = childrenDiv.classList.contains('collapsed') ? '▸' : '▾';
+            });
+
+            for (const [imgName, count] of Object.entries(images)) {
+                const label = document.createElement('label');
+                label.className = 'checkbox-item';
+                
+                const imgCheckbox = document.createElement('input');
+                imgCheckbox.type = 'checkbox';
+                imgCheckbox.value = imgName;
+                imgCheckbox.checked = selectedImages.has(imgName);
+
+                imgCheckbox.addEventListener('change', (e) => {
+                    if (e.target.checked) selectedImages.add(imgName);
+                    else selectedImages.delete(imgName);
+                    catCheckbox.checked = catImages.every(img => selectedImages.has(img));
+                    window.nextQuestion();
+                });
+
+                label.appendChild(imgCheckbox);
+                label.appendChild(document.createTextNode(`📖 ${imgName} (${count} 題)`));
+                childrenDiv.appendChild(label);
+            }
+
+            groupDiv.appendChild(header);
+            groupDiv.appendChild(childrenDiv);
+            container.appendChild(groupDiv);
         }
     }
 
-    window.toggleAllImages = (selectAll) => {
-        const checkboxes = document.querySelectorAll('#image-checkboxes-container input[type="checkbox"]');
+    window.toggleAllScopes = (selectAll) => {
         selectedImages.clear();
-        checkboxes.forEach(cb => {
-            cb.checked = selectAll;
-            if (selectAll) selectedImages.add(cb.value);
-        });
+        if (selectAll) {
+            quizDatabase.forEach(q => selectedImages.add(q.image));
+        }
+        buildCategoryTree();
         window.nextQuestion();
     };
 
     window.onQuizTypeChanged = () => {
         const radios = document.getElementsByName('quiz-type');
-        for (const r of radios) {
-            if (r.checked) quizType = r.value;
-        }
+        for (const r of radios) if (r.checked) quizType = r.value;
+        
         if (quizType === 'mcq') {
             document.getElementById('mcq-container').style.display = 'block';
             document.getElementById('fill-container').style.display = 'none';
+            document.getElementById('option-count-bar').style.display = 'flex';
         } else {
             document.getElementById('mcq-container').style.display = 'none';
             document.getElementById('fill-container').style.display = 'block';
+            document.getElementById('option-count-bar').style.display = 'none';
             setTimeout(() => document.getElementById('fill-input').focus(), 100);
         }
+    };
+
+    window.onOptionCountChanged = () => {
+        const radios = document.getElementsByName('option-count');
+        for (const r of radios) if (r.checked) optionCount = parseInt(r.value);
+        const grid = document.getElementById('quiz-options');
+        grid.className = `options-grid grid-${optionCount}`;
+        if (currentQuestion) renderQuestion(currentQuestion);
     };
 
     document.getElementById('fill-input').addEventListener('keydown', (e) => {
@@ -357,24 +513,43 @@
 
     canvas.addEventListener('mouseup', () => { isDrawing = false; });
 
+    // 語意化 Document ID 產生器 (解決 Firestore 亂碼問題)
+    function sanitizeId(str) {
+        return (str || '').trim().replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
+    }
+
     window.saveMaskRegion = async () => {
         const term = document.getElementById('term-input').value.trim();
+        const category = document.getElementById('category-input').value.trim() || "未分類";
         if (!term) return alert("請輸入專有名詞！");
         
+        // 語意化命名規範: [分類]_[圖片名]_[專有名詞]
+        const docId = `${sanitizeId(category)}_${sanitizeId(currentImage)}_${sanitizeId(term)}`;
+        
         const newQuiz = {
-            image: currentImage, term: term,
+            category: category,
+            image: currentImage, 
+            term: term,
             mask: { x: startX, y: startY, w: currentX - startX, h: currentY - startY },
-            creatorId: currentUser.uid, createdAt: Date.now()
+            creatorId: currentUser.uid, 
+            createdAt: Date.now()
         };
         
         try {
-            const docRef = await addDoc(collection(db, "quiz_data"), newQuiz);
-            quizDatabase.push({ id: docRef.id, ...newQuiz });
+            // 使用 setDoc 指定可讀性極高的語意化 ID
+            await setDoc(doc(db, "quiz_data", docId), newQuiz);
+            
+            // 本地快取更新
+            const existingIdx = quizDatabase.findIndex(q => q.id === docId);
+            if (existingIdx >= 0) quizDatabase[existingIdx] = { id: docId, ...newQuiz };
+            else quizDatabase.push({ id: docId, ...newQuiz });
+
             document.getElementById('term-input').value = "";
             loadEditorImage(currentImage);
             selectedImages.add(currentImage);
-            updateScopeCheckboxes();
-            alert("✅ 成功存入雲端！");
+            buildCategoryTree();
+            updateCategorySuggestions();
+            alert(`✅ 成功儲存！Firestore ID 為: \n${docId}`);
         } catch (e) {
             alert("上傳失敗: " + e.message);
         }
@@ -389,23 +564,96 @@
         });
     }
 
+    // 模式導覽切換
     window.switchMode = (mode) => {
         document.querySelectorAll('.workspace').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-btns button').forEach(el => el.classList.remove('active'));
+        document.getElementById('mode-analytics').style.display = 'none';
+
         document.getElementById(`nav-${mode}`).classList.add('active');
-        document.getElementById(`mode-${mode}`).classList.add('active');
         
-        if (mode === 'quiz') window.nextQuestion();
+        if (mode === 'analytics') {
+            document.getElementById('mode-analytics').style.display = 'block';
+            renderAnalytics();
+        } else {
+            document.getElementById(`mode-${mode}`).classList.add('active');
+            if (mode === 'quiz') window.nextQuestion();
+        }
     };
 
+    // 智慧高混淆干擾項生成器 (字根/字型比對演算法)
+    function generateSmartDistractors(targetTerm, pool, targetCount) {
+        const targetLower = targetTerm.toLowerCase();
+        
+        // 1. 抓取正解的解剖學特徵詞綴 (例如: foramen, fossa, crest 等)
+        const targetKeywords = ANATOMICAL_AFFIXES.filter(affix => targetLower.includes(affix));
+
+        // 2. 對候選清單進行相關度評分 (Relevance Scoring)
+        const candidates = pool
+            .filter(q => q.term.trim().toLowerCase() !== targetLower)
+            .map(q => {
+                const termLower = q.term.toLowerCase();
+                let score = 0;
+                
+                // 規則 A: 擁有完全相同的解剖詞綴 (分數極高，如四個選項都是 foramen)
+                for (const kw of targetKeywords) {
+                    if (termLower.includes(kw)) score += 10;
+                }
+
+                // 規則 B: 字串長度相近度
+                const lenDiff = Math.abs(q.term.length - targetTerm.length);
+                if (lenDiff <= 3) score += 3;
+
+                // 規則 C: 字首字母相同 (字型視覺相似)
+                if (termLower[0] === targetLower[0]) score += 2;
+
+                return { term: q.term, score: score };
+            });
+
+        // 3. 優先選擇分數最高（最相似）的選項
+        candidates.sort((a, b) => b.score - a.score);
+
+        const distractors = [];
+        const usedTerms = new Set([targetLower]);
+
+        for (const item of candidates) {
+            const tLower = item.term.trim().toLowerCase();
+            if (!usedTerms.has(tLower)) {
+                distractors.push(item.term);
+                usedTerms.add(tLower);
+                if (distractors.length >= targetCount - 1) break;
+            }
+        }
+
+        // 4. 若題庫中同字根單字不足，則由總題庫隨機補足
+        if (distractors.length < targetCount - 1) {
+            const allTerms = quizDatabase.map(q => q.term);
+            for (const t of allTerms) {
+                const tLower = t.trim().toLowerCase();
+                if (!usedTerms.has(tLower)) {
+                    distractors.push(t);
+                    usedTerms.add(tLower);
+                    if (distractors.length >= targetCount - 1) break;
+                }
+            }
+        }
+
+        const options = [targetTerm, ...distractors];
+        return options.sort(() => Math.random() - 0.5);
+    }
+
     window.nextQuestion = () => {
-        // 篩選所有被勾選之圖片的題目
         let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
 
+        // 如果是弱點突擊模式，強制使用弱點題庫
+        if (weakDrillPool && weakDrillPool.length > 0) {
+            activePool = weakDrillPool;
+        }
+
         if (activePool.length === 0) {
-            document.getElementById('srs-status').innerText = `⚠️ 請至少勾選一張圖片`;
+            document.getElementById('srs-status').innerText = `⚠️ 範圍為空`;
             qCtx.clearRect(0, 0, quizCanvas.width, quizCanvas.height);
-            document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請在上方「自選出題圖片」中勾選至少一張圖片！</span>';
+            document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請勾選左側的分類圖片以開始出題！</span>';
             document.getElementById('quiz-options').innerHTML = '';
             return;
         }
@@ -425,10 +673,10 @@
             currentQuestion = activePool[Math.floor(Math.random() * activePool.length)];
         }
 
-        renderQuestion(currentQuestion, activePool);
+        renderQuestion(currentQuestion);
     };
 
-    function renderQuestion(q, activePool) {
+    function renderQuestion(q) {
         if(!imagesData[q.image]) {
             alert("找不到這題的圖片，請確認您載入的資料夾包含 " + q.image);
             return;
@@ -442,7 +690,7 @@
             quizDatabase.forEach(item => {
                 if (item.image === q.image) {
                     if (item.id === q.id) {
-                        qCtx.fillStyle = "#e74c3c";
+                        qCtx.fillStyle = "#e74c3c"; // 實心紅遮罩
                     } else {
                         qCtx.fillStyle = "black";
                     }
@@ -455,22 +703,14 @@
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
         
-        // 選擇題選項生成
-        let options = [q.term];
-        let attempts = 0;
-        let poolForDistractors = activePool.length >= 4 ? activePool : quizDatabase;
-        while (options.length < 4 && options.length < poolForDistractors.length && attempts < 50) {
-            let randTerm = poolForDistractors[Math.floor(Math.random() * poolForDistractors.length)].term;
-            if (!options.includes(randTerm)) options.push(randTerm);
-            attempts++;
-        }
-        options.sort(() => Math.random() - 0.5);
-        
+        // 產生高混淆智慧選項 (支援 4 或 6 選項)
+        const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
         const optionsGrid = document.getElementById('quiz-options');
         optionsGrid.innerHTML = '';
         options.forEach(opt => {
             const btn = document.createElement('button');
-            btn.className = 'option-btn'; btn.innerText = opt;
+            btn.className = 'option-btn'; 
+            btn.innerText = opt;
             btn.onclick = () => window.checkAnswer(opt, q.term);
             optionsGrid.appendChild(btn);
         });
@@ -480,16 +720,13 @@
         fillInput.value = '';
         fillInput.disabled = false;
         document.getElementById('fill-submit-btn').disabled = false;
-        if (quizType === 'fill') {
-            setTimeout(() => fillInput.focus(), 50);
-        }
+        if (quizType === 'fill') setTimeout(() => fillInput.focus(), 50);
     }
 
     window.submitFillAnswer = () => {
         const fillInput = document.getElementById('fill-input');
         const userTyped = fillInput.value.trim();
         if (!userTyped) return;
-        
         fillInput.disabled = true;
         document.getElementById('fill-submit-btn').disabled = true;
         window.checkAnswer(userTyped, currentQuestion.term);
@@ -502,22 +739,33 @@
         if (isCorrect) {
             feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】<br><small style="color:#555;">(已為您延後下次複習時間)</small></span>`;
         } else {
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'}，將盡快再次複習)</small></span>`;
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您選擇/輸入: ${selected || '未填寫'}，將盡快再次複習)</small></span>`;
         }
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         document.getElementById('next-btn').style.display = 'block';
 
+        // 艾賓豪斯進度與累積統計記錄
         const quizId = currentQuestion.id;
-        let prog = userProgress[quizId] || { repetitions: 0, interval: 0, easeFactor: 2.5 };
+        let prog = userProgress[quizId] || { 
+            repetitions: 0, 
+            interval: 0, 
+            easeFactor: 2.5,
+            totalAnswered: 0,
+            correctCount: 0,
+            wrongCount: 0
+        };
         
+        prog.totalAnswered = (prog.totalAnswered || 0) + 1;
         if (isCorrect) {
+            prog.correctCount = (prog.correctCount || 0) + 1;
             if (prog.repetitions === 0) prog.interval = 1;
             else if (prog.repetitions === 1) prog.interval = 6;
             else prog.interval = Math.round(prog.interval * prog.easeFactor);
             prog.repetitions += 1;
             prog.easeFactor = Math.max(1.3, prog.easeFactor + 0.1);
         } else {
+            prog.wrongCount = (prog.wrongCount || 0) + 1;
             prog.repetitions = 0;
             prog.interval = 1;
             prog.easeFactor = Math.max(1.3, prog.easeFactor - 0.2);
@@ -526,6 +774,7 @@
         prog.nextReviewDate = Date.now() + (prog.interval * 24 * 60 * 60 * 1000);
         prog.userId = currentUser.uid;
         prog.quizId = quizId;
+        prog.lastAnsweredAt = Date.now();
 
         userProgress[quizId] = prog; 
         try {
@@ -533,6 +782,103 @@
         } catch(e) {
             console.error("進度儲存失敗:", e);
         }
+    };
+
+    // --- 學習分析儀表板渲染邏輯 ---
+    function renderAnalytics() {
+        const tbody = document.getElementById('category-stats-body');
+        tbody.innerHTML = '';
+
+        // 1. 各分類統計
+        const catStats = {};
+        quizDatabase.forEach(q => {
+            const cat = q.category || "未分類";
+            if (!catStats[cat]) {
+                catStats[cat] = { total: 0, answered: 0, correct: 0, wrong: 0 };
+            }
+            catStats[cat].total += 1;
+
+            const p = userProgress[q.id];
+            if (p) {
+                catStats[cat].answered += (p.totalAnswered || 0);
+                catStats[cat].correct += (p.correctCount || 0);
+                catStats[cat].wrong += (p.wrongCount || 0);
+            }
+        });
+
+        for (const [catName, s] of Object.entries(catStats)) {
+            const rate = s.answered > 0 ? Math.round((s.correct / s.answered) * 100) : 0;
+            let pillClass = 'acc-high';
+            if (rate < 60) pillClass = 'acc-low';
+            else if (rate < 80) pillClass = 'acc-med';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${catName}</strong></td>
+                <td>${s.total} 題</td>
+                <td>${s.answered} 次</td>
+                <td><span style="color:var(--success); font-weight:bold;">${s.correct}</span> / <span style="color:var(--danger); font-weight:bold;">${s.wrong}</span></td>
+                <td><span class="accuracy-pill ${pillClass}">${s.answered > 0 ? rate + '%' : '未測驗'}</span></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // 2. Top 10 弱點單字分析 (依錯誤次數與低熟練度排序)
+        const weakList = document.getElementById('weak-terms-list');
+        weakList.innerHTML = '';
+
+        const scoredTerms = quizDatabase.map(q => {
+            const p = userProgress[q.id] || { wrongCount: 0, totalAnswered: 0, easeFactor: 2.5 };
+            // 計算遺忘弱點指數: 錯誤次數越重、easeFactor 越低，排名越前面
+            const weaknessScore = (p.wrongCount * 3) + ((3.0 - p.easeFactor) * 2);
+            return {
+                quiz: q,
+                wrongCount: p.wrongCount || 0,
+                totalAnswered: p.totalAnswered || 0,
+                weaknessScore: weaknessScore
+            };
+        });
+
+        // 篩選出有錯過或高弱點的題目
+        scoredTerms.sort((a, b) => b.weaknessScore - a.weaknessScore);
+        const topWeak = scoredTerms.slice(0, 10).filter(item => item.totalAnswered > 0 || item.wrongCount > 0);
+
+        if (topWeak.length === 0) {
+            weakList.innerHTML = '<li style="color:#64748b; font-size:0.85rem; padding:0.5rem;">🎉 尚無明顯弱點單字，請多進行幾輪測驗！</li>';
+            return;
+        }
+
+        topWeak.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'weak-item';
+            const rate = item.totalAnswered > 0 ? Math.round(((item.totalAnswered - item.wrongCount) / item.totalAnswered) * 100) : 0;
+            li.innerHTML = `
+                <div>
+                    <strong>#${index + 1} ${item.quiz.term}</strong>
+                    <br><small style="color:#64748b;">分類: ${item.quiz.category} | 圖片: ${item.quiz.image}</small>
+                </div>
+                <div style="text-align:right;">
+                    <span style="color:var(--danger); font-weight:bold;">錯 ${item.wrongCount} 次</span>
+                    <br><small style="color:#64748b;">勝率 ${rate}%</small>
+                </div>
+            `;
+            weakList.appendChild(li);
+        });
+    }
+
+    // 弱點突擊特訓
+    window.startWeakDrill = () => {
+        const scoredTerms = quizDatabase.map(q => {
+            const p = userProgress[q.id] || { wrongCount: 0, easeFactor: 2.5 };
+            return { quiz: q, score: (p.wrongCount * 3) + (3.0 - p.easeFactor) };
+        });
+        scoredTerms.sort((a, b) => b.score - a.score);
+        weakDrillPool = scoredTerms.slice(0, 10).map(item => item.quiz);
+
+        if (weakDrillPool.length === 0) return alert("目前還沒有產生足夠的答題數據！");
+        
+        alert(`⚡ 已啟動 Top ${weakDrillPool.length} 弱點專項特訓！系統將鎖定這些骨骼構造進行高強度轟炸！`);
+        window.switchMode('quiz');
     };
 </script>
 </body>
