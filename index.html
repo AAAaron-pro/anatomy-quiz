@@ -16,7 +16,6 @@
         .workspace { display: none; gap: 1.2rem; grid-template-columns: 2.2fr 1fr; }
         .workspace.active { display: grid; }
         
-        /* 畫布容器 */
         .canvas-container { background: #1a1a1a; border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden; position: relative; display: flex; justify-content: center; align-items: center; min-height: 250px; }
         canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
         
@@ -33,7 +32,6 @@
         .option-btn { padding: 0.8rem 0.6rem; border: 2px solid #cbd5e1; background: white; color: #1e293b; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.15s; text-align: left; position: relative; }
         .option-btn:hover { border-color: var(--accent); color: var(--accent); background: #ebf5fb; }
         
-        /* 桌面端鍵盤數字徽章 */
         .key-badge { display: inline-block; background: #e2e8f0; color: #475569; font-size: 0.75rem; padding: 1px 5px; border-radius: 3px; margin-right: 6px; font-family: monospace; vertical-align: middle; border: 1px solid #cbd5e1; }
         
         #feedback { margin-top: 0.8rem; font-weight: bold; text-align: center; font-size: 1.1rem; line-height: 1.4; }
@@ -47,7 +45,6 @@
         .mode-toggle-group { display: flex; gap: 0.6rem; background: #f1f5f9; padding: 0.45rem 0.7rem; border-radius: 6px; margin-bottom: 0.6rem; align-items: center; white-space: nowrap; }
         .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem; margin: 0; }
 
-        /* 出題範圍智能收摺抽屜 */
         .scope-drawer { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 0.7rem; padding: 0.5rem 0.7rem; }
         .scope-drawer-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
         .scope-drawer-header:hover { opacity: 0.85; }
@@ -60,7 +57,6 @@
         .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #475569; cursor: pointer; }
         .checkbox-item input { width: auto; margin: 0; }
 
-        /* 學習分析儀表板樣式 */
         .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; text-align: left; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.88rem; }
         .stats-table th, .stats-table td { padding: 0.65rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
@@ -72,22 +68,18 @@
         .weak-list { list-style: none; padding: 0; margin-top: 0.6rem; }
         .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.7rem; border-radius: 4px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.4rem; font-size: 0.85rem; }
 
-        /* 📱 手機與平板專屬響應式極致排版 (One-Screen Viewport) */
         @media (max-width: 900px) {
             header { padding: 0.5rem 0.8rem; }
             header h2 { font-size: 1.05rem; }
             .container { margin: 0.4rem auto; padding: 0 0.4rem; }
             .workspace { display: flex; flex-direction: column; gap: 0.5rem; }
-            
-            /* 圖片高度強制約束在視窗的 36vh 內，確保與按鈕同屏 */
             .canvas-container { max-height: 36vh; min-height: 180px; width: 100%; }
             canvas { max-height: 36vh; width: auto; object-fit: contain; }
-            
             .panel { padding: 0.75rem; }
             .options-grid { gap: 0.45rem; margin-top: 0.4rem; }
-            .grid-6 { grid-template-columns: 1fr 1fr; } /* 6 選項在手機改為兩欄直列 */
+            .grid-6 { grid-template-columns: 1fr 1fr; }
             .option-btn { padding: 0.7rem 0.5rem; font-size: 0.88rem; }
-            .key-badge { display: none; } /* 行動端觸控不需要顯示鍵盤符號 */
+            .key-badge { display: none; }
             .btn-primary { padding: 0.65rem 1rem; font-size: 0.95rem; }
             .analytics-grid { grid-template-columns: 1fr; }
         }
@@ -110,14 +102,12 @@
 </header>
 
 <div class="container">
-    <!-- 登入區塊 -->
     <div id="login-zone" class="card">
         <h3>歡迎使用解剖學專業記憶系統 (V6)</h3>
         <p style="font-size: 0.9rem; color: #555;">支援電腦端數字熱鍵、秒進下一題與手機平板同屏操作。<br>請登入 Google 帳號以載入雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
-    <!-- 檔案載入區塊 -->
     <div id="setup-zone" class="card" style="display: none;">
         <h3>準備階段：載入圖片資料夾</h3>
         <p style="color: #666; font-size: 0.85em;">(選取本機包含解剖圖的「參考資料」資料夾)</p>
@@ -126,7 +116,6 @@
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
     </div>
 
-    <!-- 1. 編輯器模式 -->
     <div id="mode-editor" class="workspace">
         <div class="canvas-container">
             <canvas id="editor-canvas"></canvas>
@@ -151,7 +140,6 @@
         </div>
     </div>
 
-    <!-- 2. 測驗模式 (極致優化版) -->
     <div id="mode-quiz" class="workspace">
         <div class="canvas-container">
             <canvas id="quiz-canvas"></canvas>
@@ -162,7 +150,6 @@
                 <span id="srs-status" class="badge">計算中...</span>
             </div>
 
-            <!-- 出題範圍智能收摺抽屜 (預設收合) -->
             <div class="scope-drawer">
                 <div class="scope-drawer-header" onclick="toggleScopeDrawer()">
                     <span style="font-size: 0.82rem; font-weight: bold; color: #1e293b;">
@@ -179,7 +166,6 @@
                 </div>
             </div>
 
-            <!-- 控制選項 (題型 & 題數) -->
             <div style="display: flex; gap: 0.5rem; justify-content: space-between; margin-bottom: 0.5rem;">
                 <div class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
                     <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
@@ -193,12 +179,10 @@
 
             <p style="margin: 0.2rem 0; font-size: 0.9rem;">請回答<strong style="color:var(--danger);">紅色區塊</strong>構造名稱：</p>
 
-            <!-- 選擇題區 -->
             <div id="mcq-container">
                 <div class="options-grid grid-4" id="quiz-options"></div>
             </div>
 
-            <!-- 填空題區 -->
             <div id="fill-container" style="display: none; margin-top: 0.5rem;">
                 <div class="form-group" style="margin-bottom: 0.4rem;">
                     <input type="text" id="fill-input" placeholder="輸入名稱 (Enter 送出 / 答對再按 Enter 下一題)..." autocomplete="off">
@@ -211,7 +195,6 @@
         </div>
     </div>
 
-    <!-- 3. 學習分析模式 -->
     <div id="mode-analytics" class="card" style="display: none;">
         <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
         <div class="analytics-grid">
@@ -330,7 +313,6 @@
         }
     }
 
-    // --- 智能收摺出題範圍抽屜 ---
     window.toggleScopeDrawer = () => {
         isDrawerOpen = !isDrawerOpen;
         document.getElementById('scope-drawer-body').style.display = isDrawerOpen ? 'block' : 'none';
@@ -467,16 +449,13 @@
         if (currentQuestion) renderQuestion(currentQuestion);
     };
 
-    // --- ⌨️ 電腦端極速熱鍵系統 (數字鍵選答案 + Enter 下一題) ---
     window.addEventListener('keydown', (e) => {
-        // 如果使用者正在題庫編輯器打字，不觸發熱鍵
         const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
         const isEditingOtherInput = activeTag === 'input' && document.activeElement.id !== 'fill-input';
         if (isEditingOtherInput) return;
 
         const nextBtn = document.getElementById('next-btn');
 
-        // 1. 作答後敲擊 Enter 鍵秒進下一題
         if (nextBtn && nextBtn.style.display !== 'none') {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -485,7 +464,6 @@
             }
         }
 
-        // 2. 選擇題模式：敲數字鍵 1-4 或 1-6 秒選答案 (支援上方數字與右側九宮格)
         if (quizType === 'mcq') {
             let num = -1;
             if (e.key >= '1' && e.key <= '6') num = parseInt(e.key);
@@ -504,7 +482,6 @@
         }
     });
 
-    // 填空題輸入框 Enter 雙階段機制 (第 1 下送出，第 2 下跳下一題)
     document.getElementById('fill-input').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -752,7 +729,6 @@
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
         
-        // 渲染選項 (加上鍵盤數字標籤)
         const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
         const optionsGrid = document.getElementById('quiz-options');
         optionsGrid.innerHTML = '';
@@ -799,16 +775,18 @@
             totalAnswered: 0, correctCount: 0, wrongCount: 0
         };
         
+        // 【修復核心】：保證數值永不為 undefined，防止 NaN
         prog.totalAnswered = (prog.totalAnswered || 0) + 1;
+        prog.correctCount = (prog.correctCount || 0) + (isCorrect ? 1 : 0);
+        prog.wrongCount = (prog.wrongCount || 0) + (isCorrect ? 0 : 1);
+
         if (isCorrect) {
-            prog.correctCount = (prog.correctCount || 0) + 1;
             if (prog.repetitions === 0) prog.interval = 1;
             else if (prog.repetitions === 1) prog.interval = 6;
             else prog.interval = Math.round(prog.interval * prog.easeFactor);
             prog.repetitions += 1;
             prog.easeFactor = Math.max(1.3, prog.easeFactor + 0.1);
         } else {
-            prog.wrongCount = (prog.wrongCount || 0) + 1;
             prog.repetitions = 0;
             prog.interval = 1;
             prog.easeFactor = Math.max(1.3, prog.easeFactor - 0.2);
@@ -827,6 +805,7 @@
         }
     };
 
+    // --- 學習分析儀表板 (終結 NaN 完美修復版) ---
     function renderAnalytics() {
         const tbody = document.getElementById('category-stats-body');
         tbody.innerHTML = '';
@@ -839,22 +818,25 @@
 
             const p = userProgress[q.id];
             if (p) {
-                let total = p.totalAnswered;
-                let corr = p.correctCount;
-                let wrg = p.wrongCount || 0;
-                if (total === undefined || total === null) {
-                    const reps = p.repetitions || 0;
-                    total = reps > 0 ? reps : (p.nextReviewDate ? 1 : 0);
-                    corr = total; wrg = 0;
-                }
-                catStats[cat].answered += total;
-                catStats[cat].correct += corr;
-                catStats[cat].wrong += wrg;
+                const total = p.totalAnswered ?? (p.repetitions || (p.nextReviewDate ? 1 : 0)) ?? 0;
+                const wrg = p.wrongCount || 0;
+                // 自動補全防呆：若無明確 correctCount，自動由 (total - wrg) 推算，保證為實體數字
+                const corr = (p.correctCount !== undefined && p.correctCount !== null) 
+                    ? p.correctCount 
+                    : Math.max(0, total - wrg);
+
+                catStats[cat].answered += (total || 0);
+                catStats[cat].correct += (corr || 0);
+                catStats[cat].wrong += (wrg || 0);
             }
         });
 
         for (const [catName, s] of Object.entries(catStats)) {
-            const rate = s.answered > 0 ? Math.round((s.correct / s.answered) * 100) : 0;
+            // 安全除法計算正確率，永不出現 NaN%
+            const rate = (s.answered > 0 && !isNaN(s.correct)) 
+                ? Math.round((s.correct / s.answered) * 100) 
+                : 0;
+
             let pillClass = 'acc-high';
             if (rate < 60) pillClass = 'acc-low';
             else if (rate < 80) pillClass = 'acc-med';
@@ -874,12 +856,13 @@
         weakList.innerHTML = '';
 
         const scoredTerms = quizDatabase.map(q => {
-            const p = userProgress[q.id] || { wrongCount: 0, totalAnswered: 0, easeFactor: 2.5 };
-            let total = p.totalAnswered ?? p.repetitions ?? 0;
-            let wrg = p.wrongCount || 0;
+            const p = userProgress[q.id] || {};
+            const total = p.totalAnswered ?? p.repetitions ?? 0;
+            const wrg = p.wrongCount || 0;
+            const corr = (p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg);
             const ef = p.easeFactor || 2.5;
             const weaknessScore = (wrg * 4) + Math.max(0, (2.5 - ef) * 5) + (p.interval === 1 && total > 0 ? 3 : 0);
-            return { quiz: q, wrongCount: wrg, totalAnswered: total, weaknessScore: weaknessScore };
+            return { quiz: q, wrongCount: wrg, correctCount: corr, totalAnswered: total, weaknessScore: weaknessScore };
         });
 
         scoredTerms.sort((a, b) => b.weaknessScore - a.weaknessScore);
@@ -893,7 +876,10 @@
         topWeak.forEach((item, index) => {
             const li = document.createElement('li');
             li.className = 'weak-item';
-            const rate = item.totalAnswered > 0 ? Math.round(((item.totalAnswered - item.wrongCount) / item.totalAnswered) * 100) : 0;
+            const rate = (item.totalAnswered > 0 && !isNaN(item.correctCount)) 
+                ? Math.round((item.correctCount / item.totalAnswered) * 100) 
+                : 0;
+
             li.innerHTML = `
                 <div>
                     <strong>#${index + 1} ${item.quiz.term}</strong>
