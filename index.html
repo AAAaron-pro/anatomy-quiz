@@ -2,81 +2,108 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V5 旗艦版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V6 極速版)</title>
     <style>
         :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --bg: #f5f6fa; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: #333; }
-        header { background: var(--primary); color: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-        .nav-btns button { background: transparent; border: 1px solid rgba(255,255,255,0.7); color: white; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; margin-left: 0.5rem; transition: all 0.2s; font-size: 0.95rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: #333; -webkit-tap-highlight-color: transparent; }
+        header { background: var(--primary); color: white; padding: 0.7rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .nav-btns button { background: transparent; border: 1px solid rgba(255,255,255,0.7); color: white; padding: 0.45rem 0.8rem; cursor: pointer; border-radius: 4px; margin-left: 0.4rem; transition: all 0.2s; font-size: 0.9rem; }
         .nav-btns button.active, .nav-btns button:hover { background: white; color: var(--primary); font-weight: bold; }
-        .container { max-width: 1280px; margin: 1.5rem auto; padding: 0 1rem; }
+        .container { max-width: 1280px; margin: 1rem auto; padding: 0 0.8rem; }
         
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 1.5rem; text-align: center; }
-        .workspace { display: none; gap: 1.5rem; grid-template-columns: 2.2fr 1fr; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 1.2rem; text-align: center; }
+        .workspace { display: none; gap: 1.2rem; grid-template-columns: 2.2fr 1fr; }
         .workspace.active { display: grid; }
-        .canvas-container { background: white; border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden; position: relative; }
+        
+        /* 畫布容器 */
+        .canvas-container { background: #1a1a1a; border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden; position: relative; display: flex; justify-content: center; align-items: center; min-height: 250px; }
         canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
         
-        .panel { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: fit-content; text-align: left; }
-        .form-group { margin-bottom: 0.9rem; }
-        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: bold; color: var(--secondary); font-size: 0.9rem; }
-        .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.2rem; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; transition: background 0.2s; }
+        .panel { background: white; padding: 1.2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: fit-content; text-align: left; }
+        .form-group { margin-bottom: 0.8rem; }
+        .form-group label { display: block; margin-bottom: 0.3rem; font-weight: bold; color: var(--secondary); font-size: 0.88rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.55rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.2rem; border-radius: 6px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; transition: background 0.2s; }
         .btn-primary:hover { background: #2980b9; }
 
-        .options-grid { display: grid; gap: 0.8rem; margin-top: 1rem; }
+        .options-grid { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
         .grid-4 { grid-template-columns: 1fr 1fr; }
         .grid-6 { grid-template-columns: 1fr 1fr 1fr; }
-        .option-btn { padding: 0.9rem; border: 2px solid #bdc3c7; background: white; color: #2c3e50; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.15s; }
+        .option-btn { padding: 0.8rem 0.6rem; border: 2px solid #cbd5e1; background: white; color: #1e293b; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.15s; text-align: left; position: relative; }
         .option-btn:hover { border-color: var(--accent); color: var(--accent); background: #ebf5fb; }
         
-        #feedback { margin-top: 1.2rem; font-weight: bold; text-align: center; font-size: 1.15rem; line-height: 1.5; }
+        /* 桌面端鍵盤數字徽章 */
+        .key-badge { display: inline-block; background: #e2e8f0; color: #475569; font-size: 0.75rem; padding: 1px 5px; border-radius: 3px; margin-right: 6px; font-family: monospace; vertical-align: middle; border: 1px solid #cbd5e1; }
+        
+        #feedback { margin-top: 0.8rem; font-weight: bold; text-align: center; font-size: 1.1rem; line-height: 1.4; }
         .correct { color: var(--success); }
         .incorrect { color: var(--danger); }
 
-        .user-info { display: flex; align-items: center; gap: 1rem; }
-        .user-info img { width: 32px; height: 32px; border-radius: 50%; }
-        .badge { background: var(--danger); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .user-info { display: flex; align-items: center; gap: 0.8rem; }
+        .user-info img { width: 30px; height: 30px; border-radius: 50%; }
+        .badge { background: var(--danger); color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
 
-        /* 乾淨且強制不換行的控制列 */
-        .mode-toggle-group { display: flex; gap: 0.8rem; background: #f1f5f9; padding: 0.5rem 0.8rem; border-radius: 6px; margin-bottom: 0.6rem; align-items: center; white-space: nowrap; }
-        .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.88rem; display: flex; align-items: center; gap: 0.3rem; margin: 0; }
+        .mode-toggle-group { display: flex; gap: 0.6rem; background: #f1f5f9; padding: 0.45rem 0.7rem; border-radius: 6px; margin-bottom: 0.6rem; align-items: center; white-space: nowrap; }
+        .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem; margin: 0; }
 
-        /* 分類樹狀折疊清單 */
-        .category-tree { max-height: 190px; overflow-y: auto; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; }
-        .cat-group { margin-bottom: 0.4rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.3rem; }
-        .cat-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 0.88rem; color: #1e293b; padding: 0.2rem 0.4rem; border-radius: 4px; }
+        /* 出題範圍智能收摺抽屜 */
+        .scope-drawer { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 0.7rem; padding: 0.5rem 0.7rem; }
+        .scope-drawer-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .scope-drawer-header:hover { opacity: 0.85; }
+        .category-tree { max-height: 170px; overflow-y: auto; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; margin-top: 0.4rem; }
+        .cat-group { margin-bottom: 0.35rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.25rem; }
+        .cat-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: #1e293b; padding: 0.2rem 0.3rem; border-radius: 4px; }
         .cat-header:hover { background: #f8fafc; }
-        .cat-children { padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.3rem; }
+        .cat-children { padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.25rem; }
         .cat-children.collapsed { display: none; }
-        .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: #475569; cursor: pointer; }
+        .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #475569; cursor: pointer; }
         .checkbox-item input { width: auto; margin: 0; }
 
         /* 學習分析儀表板樣式 */
-        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; text-align: left; }
-        .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; font-size: 0.9rem; }
-        .stats-table th, .stats-table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; text-align: left; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.88rem; }
+        .stats-table th, .stats-table td { padding: 0.65rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
         .stats-table th { background: #f8fafc; color: #475569; font-weight: bold; }
-        .accuracy-pill { padding: 0.2rem 0.5rem; border-radius: 10px; font-weight: bold; font-size: 0.8rem; }
+        .accuracy-pill { padding: 0.2rem 0.5rem; border-radius: 10px; font-weight: bold; font-size: 0.78rem; }
         .acc-high { background: #d4edda; color: #155724; }
         .acc-med { background: #fff3cd; color: #856404; }
         .acc-low { background: #f8d7da; color: #721c24; }
-        .weak-list { list-style: none; padding: 0; margin-top: 0.8rem; }
-        .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; border-radius: 4px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.5rem; font-size: 0.88rem; }
+        .weak-list { list-style: none; padding: 0; margin-top: 0.6rem; }
+        .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.7rem; border-radius: 4px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.4rem; font-size: 0.85rem; }
+
+        /* 📱 手機與平板專屬響應式極致排版 (One-Screen Viewport) */
+        @media (max-width: 900px) {
+            header { padding: 0.5rem 0.8rem; }
+            header h2 { font-size: 1.05rem; }
+            .container { margin: 0.4rem auto; padding: 0 0.4rem; }
+            .workspace { display: flex; flex-direction: column; gap: 0.5rem; }
+            
+            /* 圖片高度強制約束在視窗的 36vh 內，確保與按鈕同屏 */
+            .canvas-container { max-height: 36vh; min-height: 180px; width: 100%; }
+            canvas { max-height: 36vh; width: auto; object-fit: contain; }
+            
+            .panel { padding: 0.75rem; }
+            .options-grid { gap: 0.45rem; margin-top: 0.4rem; }
+            .grid-6 { grid-template-columns: 1fr 1fr; } /* 6 選項在手機改為兩欄直列 */
+            .option-btn { padding: 0.7rem 0.5rem; font-size: 0.88rem; }
+            .key-badge { display: none; } /* 行動端觸控不需要顯示鍵盤符號 */
+            .btn-primary { padding: 0.65rem 1rem; font-size: 0.95rem; }
+            .analytics-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.75rem; background: #16a085; padding: 2px 6px; border-radius: 4px;">V5 旗艦版</span></h2>
+    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V6 極速版</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
-        <span id="user-name"></span>
+        <span id="user-name" style="font-size: 0.9rem;"></span>
         <div class="nav-btns">
-            <button id="nav-editor" onclick="switchMode('editor')">🛠️ 題庫編輯器</button>
-            <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗模式</button>
-            <button id="nav-analytics" onclick="switchMode('analytics')">📊 學習分析</button>
+            <button id="nav-editor" onclick="switchMode('editor')">🛠️ 編輯器</button>
+            <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗</button>
+            <button id="nav-analytics" onclick="switchMode('analytics')">📊 分析</button>
             <button onclick="logout()" style="border-color: #e74c3c; color: #e74c3c;">登出</button>
         </div>
     </div>
@@ -85,16 +112,16 @@
 <div class="container">
     <!-- 登入區塊 -->
     <div id="login-zone" class="card">
-        <h3>歡迎使用解剖學專業記憶系統</h3>
-        <p>完整支援分類樹狀索引、字根高混淆模擬考、與個人化弱點雷達。<br>請登入 Google 帳號以連線雲端資料庫。</p>
-        <button class="btn-primary" style="width: auto; margin-top: 1rem;" onclick="login()">🌐 使用 Google 登入</button>
+        <h3>歡迎使用解剖學專業記憶系統 (V6)</h3>
+        <p style="font-size: 0.9rem; color: #555;">支援電腦端數字熱鍵、秒進下一題與手機平板同屏操作。<br>請登入 Google 帳號以載入雲端題庫。</p>
+        <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
-    <!-- 檔案載入區塊 (登入後顯示) -->
+    <!-- 檔案載入區塊 -->
     <div id="setup-zone" class="card" style="display: none;">
         <h3>準備階段：載入圖片資料夾</h3>
-        <p style="color: #666; font-size: 0.9em;">(請選取包含解剖圖檔的「參考資料」資料夾)</p>
-        <input type="file" id="folder-input" webkitdirectory directory multiple accept="image/*" style="margin: 1rem 0;">
+        <p style="color: #666; font-size: 0.85em;">(選取本機包含解剖圖的「參考資料」資料夾)</p>
+        <input type="file" id="folder-input" webkitdirectory directory multiple accept="image/*" style="margin: 0.8rem 0;">
         <br>
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
     </div>
@@ -105,7 +132,7 @@
             <canvas id="editor-canvas"></canvas>
         </div>
         <div class="panel">
-            <h3>🛠️ 題庫編輯器</h3>
+            <h3 style="margin-top: 0;">🛠️ 題庫編輯器</h3>
             <div class="form-group">
                 <label>📁 檔案分類 (預設: head_skull):</label>
                 <input type="text" id="category-input" list="category-suggestions" placeholder="例如: head_skull" value="head_skull">
@@ -115,80 +142,81 @@
                 <label>🖼️ 目前編輯圖片:</label>
                 <select id="image-selector"></select>
             </div>
-            <p style="font-size: 0.85em; color: #666;">在圖片上拖曳畫出紅框，遮蔽專有名詞。</p>
+            <p style="font-size: 0.85em; color: #666; margin: 0.4rem 0;">拖曳紅框遮蔽專有名詞：</p>
             <div class="form-group">
                 <label>🔤 專有名詞 (正解):</label>
                 <input type="text" id="term-input" placeholder="例如: Jugular foramen">
             </div>
             <button class="btn-primary" onclick="saveMaskRegion()">儲存上傳至雲端</button>
-            <p style="font-size: 0.8em; color: #27ae60; text-align: center; margin-top: 1rem;">✅ 採用語意化 ID 存檔，Firebase 後台清楚好整理！</p>
         </div>
     </div>
 
-    <!-- 2. 測驗模式 -->
+    <!-- 2. 測驗模式 (極致優化版) -->
     <div id="mode-quiz" class="workspace">
         <div class="canvas-container">
             <canvas id="quiz-canvas"></canvas>
         </div>
         <div class="panel">
-            <h3 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                測驗區 
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <span style="font-weight: bold; color: var(--primary); font-size: 0.95rem;">🎯 測驗進行中</span>
                 <span id="srs-status" class="badge">計算中...</span>
-            </h3>
-
-            <!-- 題型切換 -->
-            <div class="mode-toggle-group">
-                <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
-                <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 拼寫填空題</label>
             </div>
-            
-            <!-- 乾淨不換行的難度切換列 -->
-            <div id="option-count-bar" class="mode-toggle-group" style="justify-content: space-between;">
-                <span style="font-size: 0.85rem; font-weight: bold; color: #475569;">選擇題題數：</span>
-                <div style="display: flex; gap: 0.8rem;">
+
+            <!-- 出題範圍智能收摺抽屜 (預設收合) -->
+            <div class="scope-drawer">
+                <div class="scope-drawer-header" onclick="toggleScopeDrawer()">
+                    <span style="font-size: 0.82rem; font-weight: bold; color: #1e293b;">
+                        📁 出題範圍 <small id="scope-summary" style="color: #64748b; font-weight: normal; margin-left: 4px;">(計算中)</small>
+                    </span>
+                    <span id="drawer-arrow-icon" style="font-size: 0.75rem; color: #64748b;">▸ 展開範圍設定</span>
+                </div>
+                <div id="scope-drawer-body" style="display: none; margin-top: 0.4rem; border-top: 1px dashed #cbd5e1; padding-top: 0.4rem;">
+                    <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-bottom: 0.3rem;">
+                        <button type="button" style="font-size: 0.72rem; padding: 0.15rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(true)">全選</button>
+                        <button type="button" style="font-size: 0.72rem; padding: 0.15rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(false)">全不選</button>
+                    </div>
+                    <div id="category-tree" class="category-tree"></div>
+                </div>
+            </div>
+
+            <!-- 控制選項 (題型 & 題數) -->
+            <div style="display: flex; gap: 0.5rem; justify-content: space-between; margin-bottom: 0.5rem;">
+                <div class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
+                    <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
+                    <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 填空題</label>
+                </div>
+                <div id="option-count-bar" class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
                     <label><input type="radio" name="option-count" value="4" checked onchange="onOptionCountChanged()"> 4 選 1</label>
                     <label><input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()"> 6 選 1</label>
                 </div>
             </div>
 
-            <!-- 檔案分類與樹狀勾選清單 -->
-            <div class="form-group" style="background: #f8fafc; padding: 0.75rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 0.8rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                    <label style="color: #1e293b; margin: 0; font-size: 0.85rem;">📁 檔案分類與出題範圍：</label>
-                    <div>
-                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(true)">全選</button>
-                        <button type="button" style="font-size: 0.75rem; padding: 0.2rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(false)">全不選</button>
-                    </div>
-                </div>
-                <div id="category-tree" class="category-tree"></div>
-            </div>
+            <p style="margin: 0.2rem 0; font-size: 0.9rem;">請回答<strong style="color:var(--danger);">紅色區塊</strong>構造名稱：</p>
 
-            <p style="margin: 0.4rem 0;">請問圖片中被遮蔽的<strong style="color:var(--danger);">紅色區塊</strong>是什麼構造？</p>
-
+            <!-- 選擇題區 -->
             <div id="mcq-container">
                 <div class="options-grid grid-4" id="quiz-options"></div>
             </div>
 
-            <div id="fill-container" style="display: none; margin-top: 0.8rem;">
-                <div class="form-group">
-                    <input type="text" id="fill-input" placeholder="請輸入構造英文名稱 (按 Enter 送出)..." autocomplete="off">
+            <!-- 填空題區 -->
+            <div id="fill-container" style="display: none; margin-top: 0.5rem;">
+                <div class="form-group" style="margin-bottom: 0.4rem;">
+                    <input type="text" id="fill-input" placeholder="輸入名稱 (Enter 送出 / 答對再按 Enter 下一題)..." autocomplete="off">
                 </div>
                 <button class="btn-primary" id="fill-submit-btn" onclick="submitFillAnswer()">提交答案</button>
             </div>
             
             <div id="feedback"></div>
-            <button class="btn-primary" id="next-btn" style="display: none; margin-top: 1rem;" onclick="nextQuestion()">下一題</button>
+            <button class="btn-primary" id="next-btn" style="display: none; margin-top: 0.7rem; background: #27ae60;" onclick="nextQuestion()">下一題 (或敲 Enter 鍵)</button>
         </div>
     </div>
 
-    <!-- 3. 學習分析模式 (儀表板) -->
+    <!-- 3. 學習分析模式 -->
     <div id="mode-analytics" class="card" style="display: none;">
         <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
-        <p style="text-align: left; color: #64748b; font-size: 0.9rem;">依據艾賓豪斯記憶模型與歷史作答紀錄即時彙整。</p>
-        
         <div class="analytics-grid">
             <div>
-                <h4 style="margin: 0.5rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
+                <h4 style="margin: 0.4rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
                 <table class="stats-table">
                     <thead>
                         <tr>
@@ -204,10 +232,9 @@
             </div>
 
             <div>
-                <h4 style="margin: 0.5rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
-                <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 0.5rem 0;">系統判定最常答錯或遺忘指數最高的骨骼構造：</p>
+                <h4 style="margin: 0.4rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
                 <ul class="weak-list" id="weak-terms-list"></ul>
-                <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 一鍵針對弱點突擊特訓</button>
+                <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 啟動弱點專項特訓</button>
             </div>
         </div>
     </div>
@@ -242,6 +269,7 @@
     let quizType = "mcq";
     let optionCount = 4;
     let weakDrillPool = null;
+    let isDrawerOpen = false;
     
     const canvas = document.getElementById('editor-canvas');
     const ctx = canvas.getContext('2d');
@@ -281,19 +309,11 @@
     async function fetchCloudData() {
         try {
             const qSnap = await getDocs(collection(db, "quiz_data"));
-            
-            // 【優化 1】：舊題目若無分類，一律自動歸入 "head_skull"
             quizDatabase = qSnap.docs.map(d => {
                 const data = d.data();
                 let cat = data.category;
-                if (!cat || cat === "未分類" || cat === "未分類 (General)") {
-                    cat = "head_skull";
-                }
-                return {
-                    id: d.id,
-                    ...data,
-                    category: cat
-                };
+                if (!cat || cat === "未分類" || cat === "未分類 (General)") cat = "head_skull";
+                return { id: d.id, ...data, category: cat };
             });
             
             const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
@@ -304,9 +324,23 @@
             quizDatabase.forEach(q => selectedImages.add(q.image));
             buildCategoryTree();
             updateCategorySuggestions();
+            updateScopeSummary();
         } catch (error) {
             console.error("讀取資料庫失敗", error);
         }
+    }
+
+    // --- 智能收摺出題範圍抽屜 ---
+    window.toggleScopeDrawer = () => {
+        isDrawerOpen = !isDrawerOpen;
+        document.getElementById('scope-drawer-body').style.display = isDrawerOpen ? 'block' : 'none';
+        document.getElementById('drawer-arrow-icon').innerText = isDrawerOpen ? '▴ 收合設定' : '▸ 展開範圍設定';
+    };
+
+    function updateScopeSummary() {
+        const totalImages = selectedImages.size;
+        const totalQuestions = quizDatabase.filter(q => selectedImages.has(q.image)).length;
+        document.getElementById('scope-summary').innerText = `(已選 ${totalImages} 張圖 · ${totalQuestions} 題)`;
     }
 
     function updateCategorySuggestions() {
@@ -315,8 +349,7 @@
         const cats = Array.from(new Set(quizDatabase.map(q => q.category))).filter(Boolean);
         cats.forEach(c => {
             const opt = document.createElement('option');
-            opt.value = c;
-            datalist.appendChild(opt);
+            opt.value = c; datalist.appendChild(opt);
         });
     }
 
@@ -340,7 +373,7 @@
             
             const catCheckbox = document.createElement('input');
             catCheckbox.type = 'checkbox';
-            catCheckbox.style.marginRight = '6px';
+            catCheckbox.style.marginRight = '5px';
             const catImages = Object.keys(images);
             catCheckbox.checked = catImages.every(img => selectedImages.has(img));
 
@@ -351,6 +384,7 @@
                     else selectedImages.delete(img);
                 });
                 buildCategoryTree();
+                updateScopeSummary();
                 window.nextQuestion();
             });
 
@@ -386,6 +420,7 @@
                     if (e.target.checked) selectedImages.add(imgName);
                     else selectedImages.delete(imgName);
                     catCheckbox.checked = catImages.every(img => selectedImages.has(img));
+                    updateScopeSummary();
                     window.nextQuestion();
                 });
 
@@ -402,10 +437,9 @@
 
     window.toggleAllScopes = (selectAll) => {
         selectedImages.clear();
-        if (selectAll) {
-            quizDatabase.forEach(q => selectedImages.add(q.image));
-        }
+        if (selectAll) quizDatabase.forEach(q => selectedImages.add(q.image));
         buildCategoryTree();
+        updateScopeSummary();
         window.nextQuestion();
     };
 
@@ -433,15 +467,60 @@
         if (currentQuestion) renderQuestion(currentQuestion);
     };
 
+    // --- ⌨️ 電腦端極速熱鍵系統 (數字鍵選答案 + Enter 下一題) ---
+    window.addEventListener('keydown', (e) => {
+        // 如果使用者正在題庫編輯器打字，不觸發熱鍵
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        const isEditingOtherInput = activeTag === 'input' && document.activeElement.id !== 'fill-input';
+        if (isEditingOtherInput) return;
+
+        const nextBtn = document.getElementById('next-btn');
+
+        // 1. 作答後敲擊 Enter 鍵秒進下一題
+        if (nextBtn && nextBtn.style.display !== 'none') {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                window.nextQuestion();
+                return;
+            }
+        }
+
+        // 2. 選擇題模式：敲數字鍵 1-4 或 1-6 秒選答案 (支援上方數字與右側九宮格)
+        if (quizType === 'mcq') {
+            let num = -1;
+            if (e.key >= '1' && e.key <= '6') num = parseInt(e.key);
+            if (e.code && e.code.startsWith('Numpad')) {
+                const np = parseInt(e.code.replace('Numpad', ''));
+                if (np >= 1 && np <= 6) num = np;
+            }
+
+            if (num >= 1 && num <= optionCount) {
+                const buttons = document.querySelectorAll('#quiz-options .option-btn');
+                if (buttons && buttons[num - 1] && !buttons[num - 1].disabled) {
+                    e.preventDefault();
+                    buttons[num - 1].click();
+                }
+            }
+        }
+    });
+
+    // 填空題輸入框 Enter 雙階段機制 (第 1 下送出，第 2 下跳下一題)
     document.getElementById('fill-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') window.submitFillAnswer();
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn && nextBtn.style.display !== 'none') {
+                window.nextQuestion();
+            } else {
+                window.submitFillAnswer();
+            }
+        }
     });
 
     document.getElementById('folder-input').addEventListener('change', function(e) {
         const files = e.target.files;
         const selector = document.getElementById('image-selector');
         selector.innerHTML = '';
-        
         let loaded = 0;
         for (let file of files) {
             if (file.type.startsWith('image/')) {
@@ -527,7 +606,6 @@
         
         try {
             await setDoc(doc(db, "quiz_data", docId), newQuiz);
-            
             const existingIdx = quizDatabase.findIndex(q => q.id === docId);
             if (existingIdx >= 0) quizDatabase[existingIdx] = { id: docId, ...newQuiz };
             else quizDatabase.push({ id: docId, ...newQuiz });
@@ -537,7 +615,8 @@
             selectedImages.add(currentImage);
             buildCategoryTree();
             updateCategorySuggestions();
-            alert(`✅ 成功儲存！Firestore ID 為: \n${docId}`);
+            updateScopeSummary();
+            alert(`✅ 成功儲存！ID: ${docId}`);
         } catch (e) {
             alert("上傳失敗: " + e.message);
         }
@@ -618,15 +697,12 @@
 
     window.nextQuestion = () => {
         let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
-
-        if (weakDrillPool && weakDrillPool.length > 0) {
-            activePool = weakDrillPool;
-        }
+        if (weakDrillPool && weakDrillPool.length > 0) activePool = weakDrillPool;
 
         if (activePool.length === 0) {
             document.getElementById('srs-status').innerText = `⚠️ 範圍為空`;
             qCtx.clearRect(0, 0, quizCanvas.width, quizCanvas.height);
-            document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請勾選左側的分類圖片以開始出題！</span>';
+            document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span>';
             document.getElementById('quiz-options').innerHTML = '';
             return;
         }
@@ -651,7 +727,7 @@
 
     function renderQuestion(q) {
         if(!imagesData[q.image]) {
-            alert("找不到這題的圖片，請確認您載入的資料夾包含 " + q.image);
+            alert("找不到這題的圖片，請確認載入資料夾包含 " + q.image);
             return;
         }
 
@@ -676,13 +752,14 @@
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
         
+        // 渲染選項 (加上鍵盤數字標籤)
         const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
         const optionsGrid = document.getElementById('quiz-options');
         optionsGrid.innerHTML = '';
-        options.forEach(opt => {
+        options.forEach((opt, idx) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn'; 
-            btn.innerText = opt;
+            btn.innerHTML = `<span class="key-badge">${idx + 1}</span>${opt}`;
             btn.onclick = () => window.checkAnswer(opt, q.term);
             optionsGrid.appendChild(btn);
         });
@@ -708,9 +785,9 @@
         const feedback = document.getElementById('feedback');
         
         if (isCorrect) {
-            feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】<br><small style="color:#555;">(已為您延後下次複習時間)</small></span>`;
+            feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】<br><small style="color:#555;">(已延後複習 · 敲 Enter 鍵下一題)</small></span>`;
         } else {
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您選擇/輸入: ${selected || '未填寫'}，將盡快再次複習)</small></span>`;
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您選擇: ${selected || '未填寫'} · 敲 Enter 鍵下一題)</small></span>`;
         }
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
@@ -718,12 +795,8 @@
 
         const quizId = currentQuestion.id;
         let prog = userProgress[quizId] || { 
-            repetitions: 0, 
-            interval: 0, 
-            easeFactor: 2.5,
-            totalAnswered: 0,
-            correctCount: 0,
-            wrongCount: 0
+            repetitions: 0, interval: 0, easeFactor: 2.5,
+            totalAnswered: 0, correctCount: 0, wrongCount: 0
         };
         
         prog.totalAnswered = (prog.totalAnswered || 0) + 1;
@@ -754,7 +827,6 @@
         }
     };
 
-    // --- 【優化 2】：學習分析儀表板 (舊紀錄完美回推相容) ---
     function renderAnalytics() {
         const tbody = document.getElementById('category-stats-body');
         tbody.innerHTML = '';
@@ -762,25 +834,19 @@
         const catStats = {};
         quizDatabase.forEach(q => {
             const cat = q.category || "head_skull";
-            if (!catStats[cat]) {
-                catStats[cat] = { total: 0, answered: 0, correct: 0, wrong: 0 };
-            }
+            if (!catStats[cat]) catStats[cat] = { total: 0, answered: 0, correct: 0, wrong: 0 };
             catStats[cat].total += 1;
 
             const p = userProgress[q.id];
             if (p) {
-                // 向下相容演算法：若舊紀錄無計數器，由 repetitions / 熟練度回推認列
                 let total = p.totalAnswered;
                 let corr = p.correctCount;
                 let wrg = p.wrongCount || 0;
-
                 if (total === undefined || total === null) {
                     const reps = p.repetitions || 0;
                     total = reps > 0 ? reps : (p.nextReviewDate ? 1 : 0);
-                    corr = total;
-                    wrg = 0;
+                    corr = total; wrg = 0;
                 }
-
                 catStats[cat].answered += total;
                 catStats[cat].correct += corr;
                 catStats[cat].wrong += wrg;
@@ -804,25 +870,16 @@
             tbody.appendChild(tr);
         }
 
-        // Top 10 弱點單字排行榜 (相容舊紀錄)
         const weakList = document.getElementById('weak-terms-list');
         weakList.innerHTML = '';
 
         const scoredTerms = quizDatabase.map(q => {
             const p = userProgress[q.id] || { wrongCount: 0, totalAnswered: 0, easeFactor: 2.5 };
-            let total = p.totalAnswered;
+            let total = p.totalAnswered ?? p.repetitions ?? 0;
             let wrg = p.wrongCount || 0;
-            if (total === undefined || total === null) {
-                total = p.repetitions || 0;
-            }
             const ef = p.easeFactor || 2.5;
             const weaknessScore = (wrg * 4) + Math.max(0, (2.5 - ef) * 5) + (p.interval === 1 && total > 0 ? 3 : 0);
-            return {
-                quiz: q,
-                wrongCount: wrg,
-                totalAnswered: total,
-                weaknessScore: weaknessScore
-            };
+            return { quiz: q, wrongCount: wrg, totalAnswered: total, weaknessScore: weaknessScore };
         });
 
         scoredTerms.sort((a, b) => b.weaknessScore - a.weaknessScore);
