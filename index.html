@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V6 極速版)</title>
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V6.2 極速多視角版)</title>
     <style>
         :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --bg: #f5f6fa; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: #333; -webkit-tap-highlight-color: transparent; }
@@ -65,8 +65,11 @@
         .acc-high { background: #d4edda; color: #155724; }
         .acc-med { background: #fff3cd; color: #856404; }
         .acc-low { background: #f8d7da; color: #721c24; }
+        
+        /* 弱點單字排行榜清單樣式 */
         .weak-list { list-style: none; padding: 0; margin-top: 0.6rem; }
-        .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.7rem; border-radius: 4px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.4rem; font-size: 0.85rem; }
+        .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0.75rem; border-radius: 6px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.45rem; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; border-top: 1px solid #fee2e2; border-right: 1px solid #fee2e2; border-bottom: 1px solid #fee2e2; }
+        .weak-item:hover { background: #fee2e2; transform: translateX(3px); }
 
         @media (max-width: 900px) {
             header { padding: 0.5rem 0.8rem; }
@@ -88,7 +91,7 @@
 <body>
 
 <header>
-    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V6 極速版</span></h2>
+    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V6.2 多視角版</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem;"></span>
@@ -103,8 +106,8 @@
 
 <div class="container">
     <div id="login-zone" class="card">
-        <h3>歡迎使用解剖學專業記憶系統 (V6)</h3>
-        <p style="font-size: 0.9rem; color: #555;">支援電腦端數字熱鍵、秒進下一題與手機平板同屏操作。<br>請登入 Google 帳號以載入雲端題庫。</p>
+        <h3>歡迎使用解剖學專業記憶系統</h3>
+        <p style="font-size: 0.9rem; color: #555;">支援單字多角度聚合特訓、電腦端熱鍵與手機同屏。<br>請登入 Google 帳號以載入雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
@@ -146,7 +149,7 @@
         </div>
         <div class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                <span style="font-weight: bold; color: var(--primary); font-size: 0.95rem;">🎯 測驗進行中</span>
+                <span id="quiz-title-tag" style="font-weight: bold; color: var(--primary); font-size: 0.95rem;">🎯 測驗進行中</span>
                 <span id="srs-status" class="badge">計算中...</span>
             </div>
 
@@ -195,6 +198,7 @@
         </div>
     </div>
 
+    <!-- 3. 學習分析模式 (含多視角單字聚合) -->
     <div id="mode-analytics" class="card" style="display: none;">
         <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
         <div class="analytics-grid">
@@ -215,9 +219,13 @@
             </div>
 
             <div>
-                <h4 style="margin: 0.4rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <h4 style="margin: 0.4rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
+                    <span style="font-size: 0.75rem; color: #64748b;">(依單字聚合多角度)</span>
+                </div>
+                <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
                 <ul class="weak-list" id="weak-terms-list"></ul>
-                <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 啟動弱點專項特訓</button>
+                <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
             </div>
         </div>
     </div>
@@ -252,6 +260,7 @@
     let quizType = "mcq";
     let optionCount = 4;
     let weakDrillPool = null;
+    let drillModeName = "";
     let isDrawerOpen = false;
     
     const canvas = document.getElementById('editor-canvas');
@@ -361,6 +370,7 @@
 
             catCheckbox.addEventListener('click', (e) => {
                 e.stopPropagation();
+                weakDrillPool = null; // 更改範圍自動解除特定特訓
                 catImages.forEach(img => {
                     if (e.target.checked) selectedImages.add(img);
                     else selectedImages.delete(img);
@@ -399,6 +409,7 @@
                 imgCheckbox.checked = selectedImages.has(imgName);
 
                 imgCheckbox.addEventListener('change', (e) => {
+                    weakDrillPool = null;
                     if (e.target.checked) selectedImages.add(imgName);
                     else selectedImages.delete(imgName);
                     catCheckbox.checked = catImages.every(img => selectedImages.has(img));
@@ -418,6 +429,7 @@
     }
 
     window.toggleAllScopes = (selectAll) => {
+        weakDrillPool = null;
         selectedImages.clear();
         if (selectAll) quizDatabase.forEach(q => selectedImages.add(q.image));
         buildCategoryTree();
@@ -674,7 +686,15 @@
 
     window.nextQuestion = () => {
         let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
-        if (weakDrillPool && weakDrillPool.length > 0) activePool = weakDrillPool;
+        
+        // 標題顯示當前模式
+        const titleTag = document.getElementById('quiz-title-tag');
+        if (weakDrillPool && weakDrillPool.length > 0) {
+            activePool = weakDrillPool;
+            titleTag.innerHTML = `⚡ <span style="color:#e67e22;">${drillModeName || '弱點特訓中'}</span>`;
+        } else {
+            titleTag.innerText = "🎯 測驗進行中";
+        }
 
         if (activePool.length === 0) {
             document.getElementById('srs-status').innerText = `⚠️ 範圍為空`;
@@ -775,7 +795,6 @@
             totalAnswered: 0, correctCount: 0, wrongCount: 0
         };
         
-        // 【修復核心】：保證數值永不為 undefined，防止 NaN
         prog.totalAnswered = (prog.totalAnswered || 0) + 1;
         prog.correctCount = (prog.correctCount || 0) + (isCorrect ? 1 : 0);
         prog.wrongCount = (prog.wrongCount || 0) + (isCorrect ? 0 : 1);
@@ -805,7 +824,7 @@
         }
     };
 
-    // --- 學習分析儀表板 (終結 NaN 完美修復版) ---
+    // --- 學習分析儀表板 (以單字為核心聚合 + 多角度弱點分析) ---
     function renderAnalytics() {
         const tbody = document.getElementById('category-stats-body');
         tbody.innerHTML = '';
@@ -820,10 +839,7 @@
             if (p) {
                 const total = p.totalAnswered ?? (p.repetitions || (p.nextReviewDate ? 1 : 0)) ?? 0;
                 const wrg = p.wrongCount || 0;
-                // 自動補全防呆：若無明確 correctCount，自動由 (total - wrg) 推算，保證為實體數字
-                const corr = (p.correctCount !== undefined && p.correctCount !== null) 
-                    ? p.correctCount 
-                    : Math.max(0, total - wrg);
+                const corr = (p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg);
 
                 catStats[cat].answered += (total || 0);
                 catStats[cat].correct += (corr || 0);
@@ -832,11 +848,7 @@
         });
 
         for (const [catName, s] of Object.entries(catStats)) {
-            // 安全除法計算正確率，永不出現 NaN%
-            const rate = (s.answered > 0 && !isNaN(s.correct)) 
-                ? Math.round((s.correct / s.answered) * 100) 
-                : 0;
-
+            const rate = (s.answered > 0 && !isNaN(s.correct)) ? Math.round((s.correct / s.answered) * 100) : 0;
             let pillClass = 'acc-high';
             if (rate < 60) pillClass = 'acc-low';
             else if (rate < 80) pillClass = 'acc-med';
@@ -852,21 +864,51 @@
             tbody.appendChild(tr);
         }
 
+        // --- 核心升級：以「單詞」聚合跨多張圖片的弱點排行 ---
         const weakList = document.getElementById('weak-terms-list');
         weakList.innerHTML = '';
 
-        const scoredTerms = quizDatabase.map(q => {
-            const p = userProgress[q.id] || {};
-            const total = p.totalAnswered ?? p.repetitions ?? 0;
-            const wrg = p.wrongCount || 0;
-            const corr = (p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg);
-            const ef = p.easeFactor || 2.5;
-            const weaknessScore = (wrg * 4) + Math.max(0, (2.5 - ef) * 5) + (p.interval === 1 && total > 0 ? 3 : 0);
-            return { quiz: q, wrongCount: wrg, correctCount: corr, totalAnswered: total, weaknessScore: weaknessScore };
+        const termMap = {};
+        quizDatabase.forEach(q => {
+            const tKey = q.term.trim().toLowerCase();
+            if (!termMap[tKey]) {
+                termMap[tKey] = {
+                    displayTerm: q.term.trim(),
+                    images: new Set(),
+                    categories: new Set(),
+                    totalAnswered: 0,
+                    wrongCount: 0,
+                    correctCount: 0,
+                    minEaseFactor: 2.5,
+                    questions: []
+                };
+            }
+            termMap[tKey].images.add(q.image);
+            termMap[tKey].categories.add(q.category || "head_skull");
+            termMap[tKey].questions.push(q);
+
+            const p = userProgress[q.id];
+            if (p) {
+                const total = p.totalAnswered ?? p.repetitions ?? 0;
+                const wrg = p.wrongCount || 0;
+                const corr = (p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg);
+                termMap[tKey].totalAnswered += total;
+                termMap[tKey].wrongCount += wrg;
+                termMap[tKey].correctCount += corr;
+                if (p.easeFactor && p.easeFactor < termMap[tKey].minEaseFactor) {
+                    termMap[tKey].minEaseFactor = p.easeFactor;
+                }
+            }
         });
 
-        scoredTerms.sort((a, b) => b.weaknessScore - a.weaknessScore);
-        const topWeak = scoredTerms.slice(0, 10).filter(item => item.totalAnswered > 0 || item.wrongCount > 0);
+        // 依單詞弱點分數排序：總錯題數 + 低熟練度加權
+        const termList = Object.values(termMap).map(t => {
+            const weaknessScore = (t.wrongCount * 4) + Math.max(0, (2.5 - t.minEaseFactor) * 5) + (t.images.size > 1 ? 2 : 0);
+            return { ...t, weaknessScore };
+        });
+
+        termList.sort((a, b) => b.weaknessScore - a.weaknessScore);
+        const topWeak = termList.slice(0, 10).filter(item => item.totalAnswered > 0 || item.wrongCount > 0);
 
         if (topWeak.length === 0) {
             weakList.innerHTML = '<li style="color:#64748b; font-size:0.85rem; padding:0.5rem;">🎉 尚無明顯弱點單字，請多進行幾輪測驗！</li>';
@@ -879,31 +921,51 @@
             const rate = (item.totalAnswered > 0 && !isNaN(item.correctCount)) 
                 ? Math.round((item.correctCount / item.totalAnswered) * 100) 
                 : 0;
+            const imgList = Array.from(item.images).join(', ');
+
+            li.title = `點擊啟動【${item.displayTerm}】的 ${item.images.size} 個多視角專項特訓！`;
+            li.onclick = () => window.startSingleTermDrill(item.displayTerm);
 
             li.innerHTML = `
                 <div>
-                    <strong>#${index + 1} ${item.quiz.term}</strong>
-                    <br><small style="color:#64748b;">分類: ${item.quiz.category} | 圖片: ${item.quiz.image}</small>
+                    <strong style="color:#1e293b; font-size:0.92rem;">#${index + 1} ${item.displayTerm}</strong>
+                    <br><small style="color:#64748b;">跨 ${item.images.size} 個視角 (${imgList})</small>
                 </div>
                 <div style="text-align:right;">
-                    <span style="color:var(--danger); font-weight:bold;">錯 ${item.wrongCount} 次</span>
+                    <span style="color:var(--danger); font-weight:bold;">累計錯 ${item.wrongCount} 次</span>
                     <br><small style="color:#64748b;">勝率 ${rate}%</small>
                 </div>
             `;
             weakList.appendChild(li);
         });
+
+        window.cachedTopWeakTerms = topWeak;
     }
 
-    window.startWeakDrill = () => {
-        const scoredTerms = quizDatabase.map(q => {
-            const p = userProgress[q.id] || { wrongCount: 0, easeFactor: 2.5 };
-            return { quiz: q, score: (p.wrongCount * 4) + Math.max(0, (2.5 - (p.easeFactor || 2.5)) * 5) };
-        });
-        scoredTerms.sort((a, b) => b.score - a.score);
-        weakDrillPool = scoredTerms.slice(0, 10).map(item => item.quiz);
+    // 模式 A：單一單字全視角專項特訓 (點擊排行榜任一項目)
+    window.startSingleTermDrill = (termName) => {
+        const tLower = termName.trim().toLowerCase();
+        weakDrillPool = quizDatabase.filter(q => q.term.trim().toLowerCase() === tLower);
+        if (weakDrillPool.length === 0) return alert("找不到此單字的對應題目！");
 
-        if (weakDrillPool.length === 0) return alert("目前還沒有產生足夠的答題數據！");
-        alert(`⚡ 已啟動 Top ${weakDrillPool.length} 弱點專項特訓！`);
+        const imgCount = new Set(weakDrillPool.map(q => q.image)).size;
+        drillModeName = `【${termName}】跨 ${imgCount} 視角特訓`;
+        alert(`⚡ 已啟動【${termName}】專項特訓！\n將由 ${imgCount} 張不同視角的圖片輪流出題，考驗您的立體特徵辨識！`);
+        window.switchMode('quiz');
+    };
+
+    // 模式 B：Top 10 弱點單字多角度綜合特訓 (點擊橘色大按鈕)
+    window.startWeakDrill = () => {
+        if (!window.cachedTopWeakTerms || window.cachedTopWeakTerms.length === 0) {
+            return alert("目前還沒有產生足夠的答題數據！");
+        }
+        
+        const targetTerms = new Set(window.cachedTopWeakTerms.map(t => t.displayTerm.trim().toLowerCase()));
+        weakDrillPool = quizDatabase.filter(q => targetTerms.has(q.term.trim().toLowerCase()));
+
+        if (weakDrillPool.length === 0) return alert("題目池為空！");
+        drillModeName = `Top ${window.cachedTopWeakTerms.length} 弱點多視角特訓`;
+        alert(`⚡ 已啟動 Top ${window.cachedTopWeakTerms.length} 弱點多視角綜合特訓！\n共匯入 ${weakDrillPool.length} 道跨角度題目進行高強度轟炸！`);
         window.switchMode('quiz');
     };
 </script>
