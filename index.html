@@ -628,6 +628,11 @@
         const isEditingOtherInput = activeTag === 'input' && document.activeElement.id !== 'fill-input';
         if (isEditingOtherInput) return;
 
+        // 若焦點就在 fill-input 上，由 fill-input 自身監聽處理，防止重複響應
+        if (document.activeElement && document.activeElement.id === 'fill-input' && e.key === 'Enter') {
+            return;
+        }
+
         const nextBtn = document.getElementById('next-btn');
 
         if (nextBtn && nextBtn.style.display !== 'none') {
@@ -659,6 +664,7 @@
     document.getElementById('fill-input').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
+            e.stopPropagation(); // 阻止冒泡至 window，確保一次 Enter 只做一步
             const nextBtn = document.getElementById('next-btn');
             if (nextBtn && nextBtn.style.display !== 'none') {
                 window.nextQuestion();
@@ -859,6 +865,11 @@
                 return;
             }
 
+            // 若當前題目已解答完成，推進題目索引
+            if (currentQuestion && sheetResolved.has(currentQuestion.id)) {
+                sheetIndex++;
+            }
+
             // 若尚未選圖，或當前圖片已經全數攻克完畢，挑選新的一張圖
             if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length) {
                 const availableImages = Array.from(new Set(activePool.map(q => q.image)));
@@ -909,8 +920,9 @@
         renderQuestion(currentQuestion);
     };
 
-    // 專門繪製畫布（支援全圖地毯的「即刻揭露答案」）
+    // 專門繪製畫布（保證當前題目 100% 呈現醒目紅框）
     function drawCanvasForQuestion(q, revealCurrent = false) {
+        if (!q || !imagesData[q.image]) return;
         const img = new Image();
         img.onload = () => {
             quizCanvas.width = img.width; quizCanvas.height = img.height;
@@ -919,14 +931,17 @@
             quizDatabase.forEach(item => {
                 if (item.image === q.image) {
                     if (quizType === 'sheet') {
-                        // 若已解開或剛回答完畢，移除遮罩直接露出教科書底層答案
-                        if (sheetResolved.has(item.id) || (revealCurrent && item.id === q.id)) {
-                            // 保持完全透明
+                        if (revealCurrent && item.id === q.id) {
+                            // 剛回答完畢觸發揭開：完全透明，露出底圖原字！
                         } else if (item.id === q.id) {
-                            qCtx.fillStyle = "#e74c3c"; // 當前題目為實心紅框
+                            // 當前待答題目：絕對優先繪製實心紅框！
+                            qCtx.fillStyle = "#e74c3c";
                             qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                        } else if (sheetResolved.has(item.id)) {
+                            // 已經解開的歷史構造：透明露出底圖
                         } else {
-                            qCtx.fillStyle = "black"; // 未輪到的部位依然為黑底
+                            // 未輪到的其他構造：黑色遮罩
+                            qCtx.fillStyle = "black";
                             qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
                         }
                     } else {
@@ -1004,10 +1019,13 @@
             feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 敲 Enter 鍵下一題)</small></span>`;
         }
 
-        // 🌟【地毯模式亮點】：回答完後，立刻揭開紅框，露出原圖名詞！
+        // 🌟【地毯模式亮點】：回答完後立刻移除當前遮罩，露出底圖原字
         if (quizType === 'sheet') {
             sheetResolved.add(currentQuestion.id);
             drawCanvasForQuestion(currentQuestion, true);
+            if (sheetIndex + 1 >= sheetQuestions.length) {
+                feedback.innerHTML += `<br><span style="color:#d97706; font-size:1.05rem;">🎉 恭喜！本張圖片的所有構造已全數解開！</span>`;
+            }
         }
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
@@ -1047,13 +1065,6 @@
             await setDoc(doc(db, "user_progress", `${currentUser.uid}_${quizId}`), prog);
         } catch(e) {
             console.error("進度儲存失敗:", e);
-        }
-
-        if (quizType === 'sheet') {
-            sheetIndex++;
-            if (sheetIndex >= sheetQuestions.length) {
-                feedback.innerHTML += `<br><span style="color:#d97706; font-size:1.05rem;">🎉 恭喜！本張圖片的所有構造已全數解開！</span>`;
-            }
         }
     };
 
