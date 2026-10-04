@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V6.2 極速多視角版)</title>
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V7 燃燒連擊版)</title>
     <style>
         :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --bg: #f5f6fa; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: #333; -webkit-tap-highlight-color: transparent; }
@@ -40,10 +40,42 @@
 
         .user-info { display: flex; align-items: center; gap: 0.8rem; }
         .user-info img { width: 30px; height: 30px; border-radius: 50%; }
-        .badge { background: var(--danger); color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
 
-        .mode-toggle-group { display: flex; gap: 0.6rem; background: #f1f5f9; padding: 0.45rem 0.7rem; border-radius: 6px; margin-bottom: 0.6rem; align-items: center; white-space: nowrap; }
-        .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem; margin: 0; }
+        /* 🔥 浮誇火焰 Combo 特效 CSS Keyframes 🔥 */
+        @keyframes flamePulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #ff5722); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 14px #ff9800); }
+        }
+        @keyframes godlikeFlicker {
+            0%, 100% { transform: scale(1.06); filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 18px #ff5722); }
+            25% { transform: scale(1.1) rotate(-1.5deg); }
+            75% { transform: scale(1.1) rotate(1.5deg); }
+        }
+        @keyframes comboShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .combo-badge {
+            display: inline-flex;
+            align-items: center;
+            font-weight: 900;
+            padding: 0.28rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.88rem;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+        .combo-tier-0 { background: #e2e8f0; color: #94a3b8; filter: none; }
+        .combo-tier-1 { background: linear-gradient(135deg, #ff9800, #ff5722); color: white; animation: flamePulse 1.4s infinite; }
+        .combo-tier-2 { background: linear-gradient(135deg, #f44336, #e91e63, #ff9800); color: #fff; animation: flamePulse 0.85s infinite; box-shadow: 0 0 14px rgba(255, 87, 34, 0.7); }
+        .combo-tier-3 { background: linear-gradient(135deg, #ffd700, #ff5722, #9c27b0); color: #fff; animation: godlikeFlicker 0.55s infinite; box-shadow: 0 0 22px rgba(255, 215, 0, 0.95); }
+        .combo-shake { animation: comboShake 0.4s ease-in-out !important; background: #64748b !important; color: #cbd5e1 !important; }
+
+        .mode-toggle-group { display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.45rem 0.65rem; border-radius: 6px; margin-bottom: 0.6rem; align-items: center; white-space: nowrap; }
+        .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.84rem; display: flex; align-items: center; gap: 0.25rem; margin: 0; }
 
         .scope-drawer { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 0.7rem; padding: 0.5rem 0.7rem; }
         .scope-drawer-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
@@ -57,6 +89,12 @@
         .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #475569; cursor: pointer; }
         .checkbox-item input { width: auto; margin: 0; }
 
+        /* 學習分析頂層榮譽大看板 */
+        .hero-banner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.2rem; }
+        .hero-card { background: linear-gradient(135deg, #ffffff, #f8fafc); border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .hero-label { font-size: 0.82rem; font-weight: bold; color: #64748b; }
+        .hero-val { font-size: 1.6rem; font-weight: 900; margin-top: 0.25rem; color: #1e293b; }
+
         .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; text-align: left; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.88rem; }
         .stats-table th, .stats-table td { padding: 0.65rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
@@ -66,7 +104,6 @@
         .acc-med { background: #fff3cd; color: #856404; }
         .acc-low { background: #f8d7da; color: #721c24; }
         
-        /* 弱點單字排行榜清單樣式 */
         .weak-list { list-style: none; padding: 0; margin-top: 0.6rem; }
         .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0.75rem; border-radius: 6px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.45rem; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; border-top: 1px solid #fee2e2; border-right: 1px solid #fee2e2; border-bottom: 1px solid #fee2e2; }
         .weak-item:hover { background: #fee2e2; transform: translateX(3px); }
@@ -84,6 +121,7 @@
             .option-btn { padding: 0.7rem 0.5rem; font-size: 0.88rem; }
             .key-badge { display: none; }
             .btn-primary { padding: 0.65rem 1rem; font-size: 0.95rem; }
+            .hero-banner { grid-template-columns: 1fr; gap: 0.6rem; }
             .analytics-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -91,7 +129,7 @@
 <body>
 
 <header>
-    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V6.2 多視角版</span></h2>
+    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V7 燃燒連擊版</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem;"></span>
@@ -107,7 +145,7 @@
 <div class="container">
     <div id="login-zone" class="card">
         <h3>歡迎使用解剖學專業記憶系統</h3>
-        <p style="font-size: 0.9rem; color: #555;">支援單字多角度聚合特訓、電腦端熱鍵與手機同屏。<br>請登入 Google 帳號以載入雲端題庫。</p>
+        <p style="font-size: 0.9rem; color: #555;">支援全圖地毯連續填空、浮誇火焰 Combo 連擊與個人弱點雷達。<br>請登入 Google 帳號以連線雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
@@ -119,6 +157,7 @@
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
     </div>
 
+    <!-- 1. 編輯器模式 -->
     <div id="mode-editor" class="workspace">
         <div class="canvas-container">
             <canvas id="editor-canvas"></canvas>
@@ -143,6 +182,7 @@
         </div>
     </div>
 
+    <!-- 2. 測驗模式 (含火焰 Combo 顯示器 & 全圖地毯填空) -->
     <div id="mode-quiz" class="workspace">
         <div class="canvas-container">
             <canvas id="quiz-canvas"></canvas>
@@ -150,9 +190,12 @@
         <div class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                 <span id="quiz-title-tag" style="font-weight: bold; color: var(--primary); font-size: 0.95rem;">🎯 測驗進行中</span>
-                <span id="srs-status" class="badge">計算中...</span>
+                
+                <!-- 🔥 浮誇火焰 Combo 連擊顯示器 🔥 -->
+                <div id="combo-hud" class="combo-badge combo-tier-0">🔥 COMBO <span id="combo-count" style="margin-left:4px;">0</span></div>
             </div>
 
+            <!-- 出題範圍抽屜 -->
             <div class="scope-drawer">
                 <div class="scope-drawer-header" onclick="toggleScopeDrawer()">
                     <span style="font-size: 0.82rem; font-weight: bold; color: #1e293b;">
@@ -169,10 +212,12 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 0.5rem; justify-content: space-between; margin-bottom: 0.5rem;">
+            <!-- 模式切換 (選擇題 vs 單題填空 vs 全圖地毯填空) -->
+            <div style="display: flex; gap: 0.4rem; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap;">
                 <div class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
                     <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
-                    <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 填空題</label>
+                    <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 單題填空</label>
+                    <label><input type="radio" name="quiz-type" value="sheet" onchange="onQuizTypeChanged()"> 🗺️ 全圖地毯</label>
                 </div>
                 <div id="option-count-bar" class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
                     <label><input type="radio" name="option-count" value="4" checked onchange="onOptionCountChanged()"> 4 選 1</label>
@@ -182,13 +227,15 @@
 
             <p style="margin: 0.2rem 0; font-size: 0.9rem;">請回答<strong style="color:var(--danger);">紅色區塊</strong>構造名稱：</p>
 
+            <!-- 選擇題區 -->
             <div id="mcq-container">
                 <div class="options-grid grid-4" id="quiz-options"></div>
             </div>
 
+            <!-- 填空題區 (單題與全圖地毯共用) -->
             <div id="fill-container" style="display: none; margin-top: 0.5rem;">
                 <div class="form-group" style="margin-bottom: 0.4rem;">
-                    <input type="text" id="fill-input" placeholder="輸入名稱 (Enter 送出 / 答對再按 Enter 下一題)..." autocomplete="off">
+                    <input type="text" id="fill-input" placeholder="輸入名稱 (Enter 送出 / 答完再敲 Enter 下一題)..." autocomplete="off">
                 </div>
                 <button class="btn-primary" id="fill-submit-btn" onclick="submitFillAnswer()">提交答案</button>
             </div>
@@ -198,9 +245,26 @@
         </div>
     </div>
 
-    <!-- 3. 學習分析模式 (含多視角單字聚合) -->
+    <!-- 3. 學習分析模式 (含頂層最高連擊看板) -->
     <div id="mode-analytics" class="card" style="display: none;">
         <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
+        
+        <!-- 🏆 最上排：歷史最高連續答對與連擊榮譽看板 -->
+        <div class="hero-banner">
+            <div class="hero-card">
+                <div class="hero-label">🏆 歷史最高連續答對 (Max Streak)</div>
+                <div class="hero-val" id="stat-max-combo" style="color: #d97706;">0 題</div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-label">🔥 當前燃燒連擊 (Current Streak)</div>
+                <div class="hero-val" id="stat-current-combo" style="color: #ea580c;">0 題</div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-label">📈 歷史累積答題量</div>
+                <div class="hero-val" id="stat-total-answered" style="color: var(--primary);">0 次</div>
+            </div>
+        </div>
+
         <div class="analytics-grid">
             <div>
                 <h4 style="margin: 0.4rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
@@ -235,7 +299,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAwObWPvCT4yBHcW6NiXLvPIEn4r96Wq8s",
@@ -262,6 +326,16 @@
     let weakDrillPool = null;
     let drillModeName = "";
     let isDrawerOpen = false;
+
+    // 🔥 Combo 連擊系統狀態
+    let currentCombo = 0;
+    let maxCombo = 0;
+
+    // 🗺️ 全圖地毯式填空模式狀態
+    let sheetQuestions = [];
+    let sheetIndex = 0;
+    let sheetResolved = new Set(); // 本張圖已解開並移除遮罩的題目 ID
+    let sheetCurrentImg = null;
     
     const canvas = document.getElementById('editor-canvas');
     const ctx = canvas.getContext('2d');
@@ -313,6 +387,17 @@
             userProgress = {};
             pSnap.forEach(d => { userProgress[d.data().quizId] = d.data(); });
 
+            // 讀取個人的 Combo 歷史最高統計
+            try {
+                const statsSnap = await getDoc(doc(db, "user_stats", currentUser.uid));
+                if (statsSnap.exists()) {
+                    const s = statsSnap.data();
+                    maxCombo = s.maxCombo || 0;
+                    currentCombo = s.currentCombo || 0;
+                }
+            } catch(e) { console.warn("讀取連勝紀錄略過", e); }
+            updateComboHUD();
+
             quizDatabase.forEach(q => selectedImages.add(q.image));
             buildCategoryTree();
             updateCategorySuggestions();
@@ -320,6 +405,40 @@
         } catch (error) {
             console.error("讀取資料庫失敗", error);
         }
+    }
+
+    // --- 🔥 更新浮誇火焰 Combo HUD 視覺 ---
+    function updateComboHUD(shake = false) {
+        const hud = document.getElementById('combo-hud');
+        const countSpan = document.getElementById('combo-count');
+        countSpan.innerText = currentCombo;
+
+        hud.className = 'combo-badge';
+        if (shake) {
+            hud.classList.add('combo-shake');
+            setTimeout(() => hud.classList.remove('combo-shake'), 450);
+            return;
+        }
+
+        if (currentCombo === 0) {
+            hud.classList.add('combo-tier-0');
+        } else if (currentCombo < 5) {
+            hud.classList.add('combo-tier-1');
+        } else if (currentCombo < 10) {
+            hud.classList.add('combo-tier-2');
+        } else {
+            hud.classList.add('combo-tier-3'); // 神威爆氣火焰
+        }
+    }
+
+    async function saveUserStats() {
+        try {
+            await setDoc(doc(db, "user_stats", currentUser.uid), {
+                maxCombo: maxCombo,
+                currentCombo: currentCombo,
+                lastUpdated: Date.now()
+            }, { merge: true });
+        } catch(e) { console.error("連擊紀錄存檔失敗", e); }
     }
 
     window.toggleScopeDrawer = () => {
@@ -370,7 +489,8 @@
 
             catCheckbox.addEventListener('click', (e) => {
                 e.stopPropagation();
-                weakDrillPool = null; // 更改範圍自動解除特定特訓
+                weakDrillPool = null;
+                resetSheetState();
                 catImages.forEach(img => {
                     if (e.target.checked) selectedImages.add(img);
                     else selectedImages.delete(img);
@@ -410,6 +530,7 @@
 
                 imgCheckbox.addEventListener('change', (e) => {
                     weakDrillPool = null;
+                    resetSheetState();
                     if (e.target.checked) selectedImages.add(imgName);
                     else selectedImages.delete(imgName);
                     catCheckbox.checked = catImages.every(img => selectedImages.has(img));
@@ -428,8 +549,16 @@
         }
     }
 
+    function resetSheetState() {
+        sheetQuestions = [];
+        sheetIndex = 0;
+        sheetResolved.clear();
+        sheetCurrentImg = null;
+    }
+
     window.toggleAllScopes = (selectAll) => {
         weakDrillPool = null;
+        resetSheetState();
         selectedImages.clear();
         if (selectAll) quizDatabase.forEach(q => selectedImages.add(q.image));
         buildCategoryTree();
@@ -441,16 +570,20 @@
         const radios = document.getElementsByName('quiz-type');
         for (const r of radios) if (r.checked) quizType = r.value;
         
+        resetSheetState();
+
         if (quizType === 'mcq') {
             document.getElementById('mcq-container').style.display = 'block';
             document.getElementById('fill-container').style.display = 'none';
             document.getElementById('option-count-bar').style.display = 'flex';
         } else {
+            // 單題填空 與 全圖地毯填空 皆使用輸入框
             document.getElementById('mcq-container').style.display = 'none';
             document.getElementById('fill-container').style.display = 'block';
             document.getElementById('option-count-bar').style.display = 'none';
             setTimeout(() => document.getElementById('fill-input').focus(), 100);
         }
+        window.nextQuestion();
     };
 
     window.onOptionCountChanged = () => {
@@ -458,7 +591,7 @@
         for (const r of radios) if (r.checked) optionCount = parseInt(r.value);
         const grid = document.getElementById('quiz-options');
         grid.className = `options-grid grid-${optionCount}`;
-        if (currentQuestion) renderQuestion(currentQuestion);
+        if (currentQuestion && quizType === 'mcq') renderQuestion(currentQuestion);
     };
 
     window.addEventListener('keydown', (e) => {
@@ -684,11 +817,36 @@
         return options.sort(() => Math.random() - 0.5);
     }
 
+    // --- 🎯 出題控制中樞 (支援地毯模式、隨機模式、特訓模式) ---
     window.nextQuestion = () => {
         let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
-        
-        // 標題顯示當前模式
         const titleTag = document.getElementById('quiz-title-tag');
+
+        // 1. 全圖地毯填空模式 (Sheet Mode)
+        if (quizType === 'sheet') {
+            if (activePool.length === 0) {
+                titleTag.innerText = "🗺️ 全圖地毯模式 (請選範圍)";
+                document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請先展開「出題範圍」並勾選至少一張圖片！</span>';
+                return;
+            }
+
+            // 若尚未選圖，或當前圖片已經全數攻克完畢，挑選新的一張圖
+            if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length) {
+                // 優先挑選一張包含題目的圖片
+                const availableImages = Array.from(new Set(activePool.map(q => q.image)));
+                sheetCurrentImg = availableImages[Math.floor(Math.random() * availableImages.length)];
+                sheetQuestions = quizDatabase.filter(q => q.image === sheetCurrentImg);
+                sheetIndex = 0;
+                sheetResolved.clear();
+            }
+
+            currentQuestion = sheetQuestions[sheetIndex];
+            titleTag.innerHTML = `🗺️ 全圖地毯填空 <small style="color:#64748b;">(進度: ${sheetIndex + 1}/${sheetQuestions.length} · ${sheetCurrentImg})</small>`;
+            renderQuestion(currentQuestion);
+            return;
+        }
+
+        // 2. 弱點特訓模式
         if (weakDrillPool && weakDrillPool.length > 0) {
             activePool = weakDrillPool;
             titleTag.innerHTML = `⚡ <span style="color:#e67e22;">${drillModeName || '弱點特訓中'}</span>`;
@@ -697,7 +855,7 @@
         }
 
         if (activePool.length === 0) {
-            document.getElementById('srs-status').innerText = `⚠️ 範圍為空`;
+            titleTag.innerText = "⚠️ 範圍為空";
             qCtx.clearRect(0, 0, quizCanvas.width, quizCanvas.height);
             document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span>';
             document.getElementById('quiz-options').innerHTML = '';
@@ -712,22 +870,16 @@
         });
 
         if (dueCards.length > 0) {
-            document.getElementById('srs-status').innerText = `🔥 待複習: ${dueCards.length} 題`;
             currentQuestion = dueCards[Math.floor(Math.random() * dueCards.length)];
         } else {
-            document.getElementById('srs-status').innerText = `🏆 今日已完成 | 額外刷題中`;
             currentQuestion = activePool[Math.floor(Math.random() * activePool.length)];
         }
 
         renderQuestion(currentQuestion);
     };
 
-    function renderQuestion(q) {
-        if(!imagesData[q.image]) {
-            alert("找不到這題的圖片，請確認載入資料夾包含 " + q.image);
-            return;
-        }
-
+    // 專門繪製畫布（支援全圖地毯的「揭露已解名詞」神技）
+    function drawCanvasForQuestion(q, revealCurrent = false) {
         const img = new Image();
         img.onload = () => {
             quizCanvas.width = img.width; quizCanvas.height = img.height;
@@ -735,36 +887,62 @@
             
             quizDatabase.forEach(item => {
                 if (item.image === q.image) {
-                    if (item.id === q.id) {
-                        qCtx.fillStyle = "#e74c3c";
+                    if (quizType === 'sheet') {
+                        // 如果該部位已經解開（或剛回答完畢觸發揭開），不畫遮罩！直接露出教科書底層答案！
+                        if (sheetResolved.has(item.id) || (revealCurrent && item.id === q.id)) {
+                            // 保持完全透明，露出底圖原字！
+                        } else if (item.id === q.id) {
+                            qCtx.fillStyle = "#e74c3c"; // 當前題目為實心紅框
+                            qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                        } else {
+                            qCtx.fillStyle = "black"; // 未輪到的部位依然為黑底
+                            qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                        }
                     } else {
-                        qCtx.fillStyle = "black";
+                        // 一般選擇題或單題填空模式
+                        if (item.id === q.id) {
+                            qCtx.fillStyle = "#e74c3c";
+                        } else {
+                            qCtx.fillStyle = "black";
+                        }
+                        qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
                     }
-                    qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
                 }
             });
         };
         img.src = imagesData[q.image];
+    }
+
+    function renderQuestion(q) {
+        if(!imagesData[q.image]) {
+            alert("找不到這題的圖片，請確認載入資料夾包含 " + q.image);
+            return;
+        }
+
+        drawCanvasForQuestion(q, false);
         
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
         
-        const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
-        const optionsGrid = document.getElementById('quiz-options');
-        optionsGrid.innerHTML = '';
-        options.forEach((opt, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn'; 
-            btn.innerHTML = `<span class="key-badge">${idx + 1}</span>${opt}`;
-            btn.onclick = () => window.checkAnswer(opt, q.term);
-            optionsGrid.appendChild(btn);
-        });
+        if (quizType === 'mcq') {
+            const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
+            const optionsGrid = document.getElementById('quiz-options');
+            optionsGrid.innerHTML = '';
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn'; 
+                btn.innerHTML = `<span class="key-badge">${idx + 1}</span>${opt}`;
+                btn.onclick = () => window.checkAnswer(opt, q.term);
+                optionsGrid.appendChild(btn);
+            });
+        }
 
+        // 填空題輸入框重置
         const fillInput = document.getElementById('fill-input');
         fillInput.value = '';
         fillInput.disabled = false;
         document.getElementById('fill-submit-btn').disabled = false;
-        if (quizType === 'fill') setTimeout(() => fillInput.focus(), 50);
+        if (quizType !== 'mcq') setTimeout(() => fillInput.focus(), 50);
     }
 
     window.submitFillAnswer = () => {
@@ -780,15 +958,32 @@
         const isCorrect = (selected.trim().toLowerCase() === correct.trim().toLowerCase());
         const feedback = document.getElementById('feedback');
         
+        // --- 🔥 Combo 燃燒計數與音畫回饋 ---
         if (isCorrect) {
+            currentCombo++;
+            if (currentCombo > maxCombo) {
+                maxCombo = currentCombo;
+                saveUserStats();
+            }
+            updateComboHUD(false);
             feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】<br><small style="color:#555;">(已延後複習 · 敲 Enter 鍵下一題)</small></span>`;
         } else {
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您選擇: ${selected || '未填寫'} · 敲 Enter 鍵下一題)</small></span>`;
+            currentCombo = 0;
+            updateComboHUD(true); // 觸發火焰熄滅震動動畫
+            saveUserStats();
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 敲 Enter 鍵下一題)</small></span>`;
+        }
+
+        // 🌟【地毯模式核心亮點】：回答完後，立刻揭開紅框，露出原圖名詞！
+        if (quizType === 'sheet') {
+            sheetResolved.add(currentQuestion.id);
+            drawCanvasForQuestion(currentQuestion, true); // 移除遮罩重繪
         }
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         document.getElementById('next-btn').style.display = 'block';
 
+        // 艾賓豪斯進度計算
         const quizId = currentQuestion.id;
         let prog = userProgress[quizId] || { 
             repetitions: 0, interval: 0, easeFactor: 2.5,
@@ -822,14 +1017,24 @@
         } catch(e) {
             console.error("進度儲存失敗:", e);
         }
+
+        // 若為全圖地毯模式，當使用者敲擊下一題時推進 index
+        if (quizType === 'sheet') {
+            sheetIndex++;
+            if (sheetIndex >= sheetQuestions.length) {
+                feedback.innerHTML += `<br><span style="color:#d97706; font-size:1.05rem;">🎉 恭喜！本張圖片的所有構造已全數解開！</span>`;
+            }
+        }
     };
 
-    // --- 學習分析儀表板 (以單字為核心聚合 + 多角度弱點分析) ---
+    // --- 學習分析儀表板 (含頂部榮譽看板) ---
     function renderAnalytics() {
         const tbody = document.getElementById('category-stats-body');
         tbody.innerHTML = '';
 
+        let grandTotalAnswered = 0;
         const catStats = {};
+
         quizDatabase.forEach(q => {
             const cat = q.category || "head_skull";
             if (!catStats[cat]) catStats[cat] = { total: 0, answered: 0, correct: 0, wrong: 0 };
@@ -844,8 +1049,14 @@
                 catStats[cat].answered += (total || 0);
                 catStats[cat].correct += (corr || 0);
                 catStats[cat].wrong += (wrg || 0);
+                grandTotalAnswered += (total || 0);
             }
         });
+
+        // 🏆 渲染頂層榮譽大看板
+        document.getElementById('stat-max-combo').innerText = `${maxCombo} 題`;
+        document.getElementById('stat-current-combo').innerText = `${currentCombo} 題`;
+        document.getElementById('stat-total-answered').innerText = `${grandTotalAnswered} 次`;
 
         for (const [catName, s] of Object.entries(catStats)) {
             const rate = (s.answered > 0 && !isNaN(s.correct)) ? Math.round((s.correct / s.answered) * 100) : 0;
@@ -864,7 +1075,6 @@
             tbody.appendChild(tr);
         }
 
-        // --- 核心升級：以「單詞」聚合跨多張圖片的弱點排行 ---
         const weakList = document.getElementById('weak-terms-list');
         weakList.innerHTML = '';
 
@@ -901,7 +1111,6 @@
             }
         });
 
-        // 依單詞弱點分數排序：總錯題數 + 低熟練度加權
         const termList = Object.values(termMap).map(t => {
             const weaknessScore = (t.wrongCount * 4) + Math.max(0, (2.5 - t.minEaseFactor) * 5) + (t.images.size > 1 ? 2 : 0);
             return { ...t, weaknessScore };
@@ -942,7 +1151,6 @@
         window.cachedTopWeakTerms = topWeak;
     }
 
-    // 模式 A：單一單字全視角專項特訓 (點擊排行榜任一項目)
     window.startSingleTermDrill = (termName) => {
         const tLower = termName.trim().toLowerCase();
         weakDrillPool = quizDatabase.filter(q => q.term.trim().toLowerCase() === tLower);
@@ -954,7 +1162,6 @@
         window.switchMode('quiz');
     };
 
-    // 模式 B：Top 10 弱點單字多角度綜合特訓 (點擊橘色大按鈕)
     window.startWeakDrill = () => {
         if (!window.cachedTopWeakTerms || window.cachedTopWeakTerms.length === 0) {
             return alert("目前還沒有產生足夠的答題數據！");
