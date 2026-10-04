@@ -282,4 +282,949 @@
             </div>
             <div class="hero-card">
                 <div class="hero-label">🔥 當前燃燒連擊 (Current Streak)</div>
-                <div class="hero-val" id="stat-current-combo" style="color: #
+                <div class="hero-val" id="stat-current-combo" style="color: #ea580c;">0 題</div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-label">📈 歷史累積答題量</div>
+                <div class="hero-val" id="stat-total-answered" style="color: var(--primary);">0 次</div>
+            </div>
+        </div>
+
+        <div class="analytics-grid">
+            <div>
+                <h4 style="margin: 0.4rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>分類名稱</th>
+                            <th>題庫數</th>
+                            <th>答題數</th>
+                            <th>正確 / 錯誤</th>
+                            <th>正確率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="category-stats-body"></tbody>
+                </table>
+            </div>
+
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <h4 style="margin: 0.4rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
+                    <span style="font-size: 0.75rem; color: #64748b;">(依單字聚合多角度)</span>
+                </div>
+                <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
+                <ul class="weak-list" id="weak-terms-list"></ul>
+                <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAwObWPvCT4yBHcW6NiXLvPIEn4r96Wq8s",
+      authDomain: "anatomy-quiz-7cb36.firebaseapp.com",
+      projectId: "anatomy-quiz-7cb36",
+      storageBucket: "anatomy-quiz-7cb36.firebasestorage.app",
+      messagingSenderId: "111035488873",
+      appId: "1:111035488873:web:8b4cbac3f7c56eefd5a0f8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let imagesData = {};
+    let currentImage = null;
+    let quizDatabase = [];
+    let userProgress = {};
+    let currentQuestion = null;
+    let selectedImages = new Set();
+    let quizType = "mcq";
+    let optionCount = 4;
+    let weakDrillPool = null;
+    let drillModeName = "";
+    let isDrawerOpen = false;
+
+    // 🔥 Combo 連擊系統狀態
+    let currentCombo = 0;
+    let maxCombo = 0;
+
+    // 🗺️ 全圖地毯式填空模式狀態
+    let sheetQuestions = [];
+    let sheetIndex = 0;
+    let sheetResolved = new Set(); // 本張圖已解開並移除遮罩的題目 ID
+    let sheetCurrentImg = null;
+    
+    const canvas = document.getElementById('editor-canvas');
+    const ctx = canvas.getContext('2d');
+    const quizCanvas = document.getElementById('quiz-canvas');
+    const qCtx = quizCanvas.getContext('2d');
+    let isDrawing = false;
+    let startX, startY, currentX, currentY;
+
+    const ANATOMICAL_AFFIXES = [
+        'foramen', 'fossa', 'process', 'crest', 'canal', 'tubercle', 'tuberosity',
+        'condyle', 'epicondyle', 'fissure', 'notch', 'sulcus', 'trochlea', 'spine',
+        'sinus', 'meatus', 'bulla', 'linea', 'ramus', 'arch', 'head', 'neck', 'facet'
+    ];
+
+    window.login = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("登入失敗: " + err.message));
+    window.logout = () => signOut(auth).then(() => location.reload());
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-zone').style.display = 'none';
+            document.getElementById('setup-zone').style.display = 'block';
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('user-avatar').src = user.photoURL;
+            document.querySelectorAll('.nav-btns button').forEach(b => b.style.display = 'inline-block');
+            await fetchCloudData();
+        } else {
+            document.getElementById('login-zone').style.display = 'block';
+            document.getElementById('setup-zone').style.display = 'none';
+            document.getElementById('user-info').style.display = 'none';
+            document.querySelectorAll('.workspace').forEach(w => w.classList.remove('active'));
+            document.getElementById('mode-analytics').style.display = 'none';
+        }
+    });
+
+    async function fetchCloudData() {
+        try {
+            const qSnap = await getDocs(collection(db, "quiz_data"));
+            quizDatabase = qSnap.docs.map(d => {
+                const data = d.data();
+                let cat = data.category;
+                if (!cat || cat === "未分類" || cat === "未分類 (General)") cat = "head_skull";
+                return { id: d.id, ...data, category: cat };
+            });
+            
+            const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
+            const pSnap = await getDocs(pQuery);
+            userProgress = {};
+            pSnap.forEach(d => {
+                const data = d.data();
+                const qId = data.quizId || d.id.replace(`${currentUser.uid}_`, '');
+                userProgress[qId] = { ...data, quizId: qId };
+            });
+
+            // 讀取個人的 Combo 歷史最高統計 (舊資料預設 0)
+            try {
+                const statsSnap = await getDoc(doc(db, "user_stats", currentUser.uid));
+                if (statsSnap.exists()) {
+                    const s = statsSnap.data();
+                    maxCombo = s.maxCombo || 0;
+                    currentCombo = s.currentCombo || 0;
+                }
+            } catch(e) { console.warn("讀取連勝紀錄略過", e); }
+            updateComboHUD();
+
+            quizDatabase.forEach(q => selectedImages.add(q.image));
+            buildCategoryTree();
+            updateCategorySuggestions();
+            updateScopeSummary();
+        } catch (error) {
+            console.error("讀取資料庫失敗", error);
+        }
+    }
+
+    // --- 🔥 更新浮誇火焰 Combo HUD 視覺 -- ---
+    function updateComboHUD(shake = false) {
+        const hud = document.getElementById('combo-hud');
+        const countSpan = document.getElementById('combo-count');
+        countSpan.innerText = currentCombo;
+
+        hud.className = 'combo-badge';
+        if (shake) {
+            hud.classList.add('combo-shake');
+            setTimeout(() => hud.classList.remove('combo-shake'), 450);
+            return;
+        }
+
+        if (currentCombo === 0) {
+            hud.classList.add('combo-tier-0');
+        } else if (currentCombo < 5) {
+            hud.classList.add('combo-tier-1');
+        } else if (currentCombo < 10) {
+            hud.classList.add('combo-tier-2');
+        } else {
+            hud.classList.add('combo-tier-3'); // 神威爆氣火焰
+        }
+    }
+
+    async function saveUserStats() {
+        try {
+            await setDoc(doc(db, "user_stats", currentUser.uid), {
+                maxCombo: maxCombo,
+                currentCombo: currentCombo,
+                lastUpdated: Date.now()
+            }, { merge: true });
+        } catch(e) { console.error("連擊紀錄存檔失敗", e); }
+    }
+
+    window.toggleScopeDrawer = () => {
+        isDrawerOpen = !isDrawerOpen;
+        document.getElementById('scope-drawer-body').style.display = isDrawerOpen ? 'block' : 'none';
+        document.getElementById('drawer-arrow-icon').innerText = isDrawerOpen ? '▴ 收合設定' : '▸ 展開範圍設定';
+    };
+
+    function updateScopeSummary() {
+        const totalImages = selectedImages.size;
+        const totalQuestions = quizDatabase.filter(q => selectedImages.has(q.image)).length;
+        document.getElementById('scope-summary').innerText = `(已選 ${totalImages} 張圖 · ${totalQuestions} 題)`;
+    }
+
+    function updateCategorySuggestions() {
+        const datalist = document.getElementById('category-suggestions');
+        datalist.innerHTML = '';
+        const cats = Array.from(new Set(quizDatabase.map(q => q.category))).filter(Boolean);
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c; datalist.appendChild(opt);
+        });
+    }
+
+    function buildCategoryTree() {
+        const container = document.getElementById('category-tree');
+        container.innerHTML = '';
+
+        const grouped = {};
+        quizDatabase.forEach(q => {
+            const cat = q.category || "head_skull";
+            if (!grouped[cat]) grouped[cat] = {};
+            grouped[cat][q.image] = (grouped[cat][q.image] || 0) + 1;
+        });
+
+        for (const [catName, images] of Object.entries(grouped)) {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'cat-group';
+
+            const header = document.createElement('div');
+            header.className = 'cat-header';
+            
+            const catCheckbox = document.createElement('input');
+            catCheckbox.type = 'checkbox';
+            catCheckbox.style.marginRight = '5px';
+            const catImages = Object.keys(images);
+            catCheckbox.checked = catImages.every(img => selectedImages.has(img));
+
+            catCheckbox.addEventListener('click', (e) => {
+                e.stopPropagation();
+                weakDrillPool = null;
+                resetSheetState();
+                catImages.forEach(img => {
+                    if (e.target.checked) selectedImages.add(img);
+                    else selectedImages.delete(img);
+                });
+                buildCategoryTree();
+                updateScopeSummary();
+                window.nextQuestion();
+            });
+
+            const titleSpan = document.createElement('span');
+            titleSpan.innerHTML = `📁 <strong>${catName}</strong> <small style="color:#64748b;">(${Object.values(images).reduce((a,b)=>a+b, 0)} 題)</small>`;
+
+            const toggleIcon = document.createElement('span');
+            toggleIcon.innerText = '▾';
+            toggleIcon.style.fontSize = '0.75rem';
+
+            header.appendChild(catCheckbox);
+            header.appendChild(titleSpan);
+            header.appendChild(toggleIcon);
+
+            const childrenDiv = document.createElement('div');
+            childrenDiv.className = 'cat-children';
+
+            header.addEventListener('click', () => {
+                childrenDiv.classList.toggle('collapsed');
+                toggleIcon.innerText = childrenDiv.classList.contains('collapsed') ? '▸' : '▾';
+            });
+
+            for (const [imgName, count] of Object.entries(images)) {
+                const label = document.createElement('label');
+                label.className = 'checkbox-item';
+                
+                const imgCheckbox = document.createElement('input');
+                imgCheckbox.type = 'checkbox';
+                imgCheckbox.value = imgName;
+                imgCheckbox.checked = selectedImages.has(imgName);
+
+                imgCheckbox.addEventListener('change', (e) => {
+                    weakDrillPool = null;
+                    resetSheetState();
+                    if (e.target.checked) selectedImages.add(imgName);
+                    else selectedImages.delete(imgName);
+                    catCheckbox.checked = catImages.every(img => selectedImages.has(img));
+                    updateScopeSummary();
+                    window.nextQuestion();
+                });
+
+                label.appendChild(imgCheckbox);
+                label.appendChild(document.createTextNode(`📖 ${imgName} (${count} 題)`));
+                childrenDiv.appendChild(label);
+            }
+
+            groupDiv.appendChild(header);
+            groupDiv.appendChild(childrenDiv);
+            container.appendChild(groupDiv);
+        }
+    }
+
+    function resetSheetState() {
+        sheetQuestions = [];
+        sheetIndex = 0;
+        sheetResolved.clear();
+        sheetCurrentImg = null;
+    }
+
+    window.toggleAllScopes = (selectAll) => {
+        weakDrillPool = null;
+        resetSheetState();
+        selectedImages.clear();
+        if (selectAll) quizDatabase.forEach(q => selectedImages.add(q.image));
+        buildCategoryTree();
+        updateScopeSummary();
+        window.nextQuestion();
+    };
+
+    window.onQuizTypeChanged = () => {
+        const radios = document.getElementsByName('quiz-type');
+        for (const r of radios) if (r.checked) quizType = r.value;
+        
+        resetSheetState();
+
+        if (quizType === 'mcq') {
+            document.getElementById('mcq-container').style.display = 'block';
+            document.getElementById('fill-container').style.display = 'none';
+            document.getElementById('option-count-bar').style.display = 'flex';
+        } else {
+            document.getElementById('mcq-container').style.display = 'none';
+            document.getElementById('fill-container').style.display = 'block';
+            document.getElementById('option-count-bar').style.display = 'none';
+            setTimeout(() => document.getElementById('fill-input').focus(), 100);
+        }
+        window.nextQuestion();
+    };
+
+    window.onOptionCountChanged = () => {
+        const radios = document.getElementsByName('option-count');
+        for (const r of radios) if (r.checked) optionCount = parseInt(r.value);
+        const grid = document.getElementById('quiz-options');
+        grid.className = `options-grid grid-${optionCount}`;
+        if (currentQuestion && quizType === 'mcq') renderQuestion(currentQuestion);
+    };
+
+    // 鍵盤監聽：數字鍵 1~6、Enter 提交與切換下一題
+    window.addEventListener('keydown', (e) => {
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        const isEditingOtherInput = activeTag === 'input' && document.activeElement.id !== 'fill-input';
+        if (isEditingOtherInput) return;
+
+        const nextBtn = document.getElementById('next-btn');
+
+        if (nextBtn && nextBtn.style.display !== 'none') {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                window.nextQuestion();
+                return;
+            }
+        }
+
+        if (quizType === 'mcq') {
+            let num = -1;
+            if (e.key >= '1' && e.key <= '6') num = parseInt(e.key);
+            if (e.code && e.code.startsWith('Numpad')) {
+                const np = parseInt(e.code.replace('Numpad', ''));
+                if (np >= 1 && np <= 6) num = np;
+            }
+
+            if (num >= 1 && num <= optionCount) {
+                const buttons = document.querySelectorAll('#quiz-options .option-btn');
+                if (buttons && buttons[num - 1] && !buttons[num - 1].disabled) {
+                    e.preventDefault();
+                    buttons[num - 1].click();
+                }
+            }
+        }
+    });
+
+    document.getElementById('fill-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn && nextBtn.style.display !== 'none') {
+                window.nextQuestion();
+            } else {
+                window.submitFillAnswer();
+            }
+        }
+    });
+
+    document.getElementById('folder-input').addEventListener('change', function(e) {
+        const files = e.target.files;
+        const selector = document.getElementById('image-selector');
+        selector.innerHTML = '';
+        let loaded = 0;
+        for (let file of files) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imagesData[file.name] = event.target.result;
+                    const option = document.createElement('option');
+                    option.value = file.name; option.text = file.name;
+                    selector.appendChild(option);
+                    if(loaded === 0) loadEditorImage(file.name);
+                    loaded++;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+
+    window.finishSetup = () => {
+        if (Object.keys(imagesData).length === 0) return alert("請先選擇包含圖片的資料夾！");
+        document.getElementById('setup-zone').style.display = 'none';
+        window.switchMode('quiz');
+    };
+
+    document.getElementById('image-selector').addEventListener('change', (e) => loadEditorImage(e.target.value));
+
+    function loadEditorImage(filename) {
+        currentImage = filename;
+        const img = new Image();
+        img.onload = () => {
+            canvas.width = img.width; canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            drawExistingMasks();
+        };
+        img.src = imagesData[filename];
+    }
+
+    canvas.addEventListener('mousedown', e => {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        startX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        startY = (e.clientY - rect.top) * (canvas.height / rect.height);
+    });
+
+    canvas.addEventListener('mousemove', e => {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        currentX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        currentY = (e.clientY - rect.top) * (canvas.height / rect.height);
+        
+        const img = new Image();
+        img.src = imagesData[currentImage];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        drawExistingMasks();
+        
+        ctx.fillStyle = "rgba(231, 76, 60, 0.5)"; 
+        ctx.fillRect(startX, startY, currentX - startX, currentY - startY);
+        ctx.strokeStyle = "red";
+        ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+    });
+
+    canvas.addEventListener('mouseup', () => { isDrawing = false; });
+
+    function sanitizeId(str) {
+        return (str || '').trim().replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
+    }
+
+    window.saveMaskRegion = async () => {
+        const term = document.getElementById('term-input').value.trim();
+        const category = document.getElementById('category-input').value.trim() || "head_skull";
+        if (!term) return alert("請輸入專有名詞！");
+        
+        const docId = `${sanitizeId(category)}_${sanitizeId(currentImage)}_${sanitizeId(term)}`;
+        
+        const newQuiz = {
+            category: category,
+            image: currentImage, 
+            term: term,
+            mask: { x: startX, y: startY, w: currentX - startX, h: currentY - startY },
+            creatorId: currentUser.uid, 
+            createdAt: Date.now()
+        };
+        
+        try {
+            await setDoc(doc(db, "quiz_data", docId), newQuiz);
+            const existingIdx = quizDatabase.findIndex(q => q.id === docId);
+            if (existingIdx >= 0) quizDatabase[existingIdx] = { id: docId, ...newQuiz };
+            else quizDatabase.push({ id: docId, ...newQuiz });
+
+            document.getElementById('term-input').value = "";
+            loadEditorImage(currentImage);
+            selectedImages.add(currentImage);
+            buildCategoryTree();
+            updateCategorySuggestions();
+            updateScopeSummary();
+            alert(`✅ 成功儲存！ID: ${docId}`);
+        } catch (e) {
+            alert("上傳失敗: " + e.message);
+        }
+    };
+
+    function drawExistingMasks() {
+        quizDatabase.forEach(item => {
+            if (item.image === currentImage) {
+                ctx.fillStyle = "black";
+                ctx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+            }
+        });
+    }
+
+    window.switchMode = (mode) => {
+        document.querySelectorAll('.workspace').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btns button').forEach(el => el.classList.remove('active'));
+        document.getElementById('mode-analytics').style.display = 'none';
+
+        document.getElementById(`nav-${mode}`).classList.add('active');
+        
+        if (mode === 'analytics') {
+            document.getElementById('mode-analytics').style.display = 'block';
+            renderAnalytics();
+        } else {
+            document.getElementById(`mode-${mode}`).classList.add('active');
+            if (mode === 'quiz') window.nextQuestion();
+        }
+    };
+
+    function generateSmartDistractors(targetTerm, pool, targetCount) {
+        const targetLower = targetTerm.toLowerCase();
+        const targetKeywords = ANATOMICAL_AFFIXES.filter(affix => targetLower.includes(affix));
+
+        const candidates = pool
+            .filter(q => q.term.trim().toLowerCase() !== targetLower)
+            .map(q => {
+                const termLower = q.term.toLowerCase();
+                let score = 0;
+                for (const kw of targetKeywords) {
+                    if (termLower.includes(kw)) score += 10;
+                }
+                const lenDiff = Math.abs(q.term.length - targetTerm.length);
+                if (lenDiff <= 3) score += 3;
+                if (termLower[0] === targetLower[0]) score += 2;
+                return { term: q.term, score: score };
+            });
+
+        candidates.sort((a, b) => b.score - a.score);
+
+        const distractors = [];
+        const usedTerms = new Set([targetLower]);
+
+        for (const item of candidates) {
+            const tLower = item.term.trim().toLowerCase();
+            if (!usedTerms.has(tLower)) {
+                distractors.push(item.term);
+                usedTerms.add(tLower);
+                if (distractors.length >= targetCount - 1) break;
+            }
+        }
+
+        if (distractors.length < targetCount - 1) {
+            const allTerms = quizDatabase.map(q => q.term);
+            for (const t of allTerms) {
+                const tLower = t.trim().toLowerCase();
+                if (!usedTerms.has(tLower)) {
+                    distractors.push(t);
+                    usedTerms.add(tLower);
+                    if (distractors.length >= targetCount - 1) break;
+                }
+            }
+        }
+
+        const options = [targetTerm, ...distractors];
+        return options.sort(() => Math.random() - 0.5);
+    }
+
+    // --- 🎯 出題控制中樞 (支援地毯模式、隨機模式、特訓模式) -- ---
+    window.nextQuestion = () => {
+        let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
+        const titleTag = document.getElementById('quiz-title-tag');
+
+        // 1. 全圖地毯填空模式 (Sheet Mode)
+        if (quizType === 'sheet') {
+            if (activePool.length === 0) {
+                titleTag.innerText = "🗺️ 全圖地毯模式 (請選範圍)";
+                document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請先展開「出題範圍」並勾選至少一張圖片！</span>';
+                return;
+            }
+
+            // 若尚未選圖，或當前圖片已經全數攻克完畢，挑選新的一張圖
+            if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length) {
+                const availableImages = Array.from(new Set(activePool.map(q => q.image)));
+                sheetCurrentImg = availableImages[Math.floor(Math.random() * availableImages.length)];
+                sheetQuestions = quizDatabase.filter(q => q.image === sheetCurrentImg);
+                sheetIndex = 0;
+                sheetResolved.clear();
+            }
+
+            currentQuestion = sheetQuestions[sheetIndex];
+            titleTag.title = sheetCurrentImg; // 滑鼠懸停顯示完整檔名
+            titleTag.innerHTML = `🗺️ 全圖地毯 <small style="color:#64748b;">(進度: ${sheetIndex + 1}/${sheetQuestions.length})</small>`;
+            renderQuestion(currentQuestion);
+            return;
+        }
+
+        // 2. 弱點特訓模式
+        if (weakDrillPool && weakDrillPool.length > 0) {
+            activePool = weakDrillPool;
+            titleTag.title = "";
+            titleTag.innerHTML = `⚡ <span style="color:#e67e22;">${drillModeName || '弱點特訓中'}</span>`;
+        } else {
+            titleTag.title = "";
+            titleTag.innerText = "🎯 測驗進行中";
+        }
+
+        if (activePool.length === 0) {
+            titleTag.innerText = "⚠️ 範圍為空";
+            qCtx.clearRect(0, 0, quizCanvas.width, quizCanvas.height);
+            document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span>';
+            document.getElementById('quiz-options').innerHTML = '';
+            return;
+        }
+
+        const now = Date.now();
+        let dueCards = activePool.filter(q => {
+            const prog = userProgress[q.id];
+            if (!prog) return true;
+            return prog.nextReviewDate <= now;
+        });
+
+        if (dueCards.length > 0) {
+            currentQuestion = dueCards[Math.floor(Math.random() * dueCards.length)];
+        } else {
+            currentQuestion = activePool[Math.floor(Math.random() * activePool.length)];
+        }
+
+        renderQuestion(currentQuestion);
+    };
+
+    // 專門繪製畫布（支援全圖地毯的「即刻揭露答案」）
+    function drawCanvasForQuestion(q, revealCurrent = false) {
+        const img = new Image();
+        img.onload = () => {
+            quizCanvas.width = img.width; quizCanvas.height = img.height;
+            qCtx.drawImage(img, 0, 0);
+            
+            quizDatabase.forEach(item => {
+                if (item.image === q.image) {
+                    if (quizType === 'sheet') {
+                        // 若已解開或剛回答完畢，移除遮罩直接露出教科書底層答案
+                        if (sheetResolved.has(item.id) || (revealCurrent && item.id === q.id)) {
+                            // 保持完全透明
+                        } else if (item.id === q.id) {
+                            qCtx.fillStyle = "#e74c3c"; // 當前題目為實心紅框
+                            qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                        } else {
+                            qCtx.fillStyle = "black"; // 未輪到的部位依然為黑底
+                            qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                        }
+                    } else {
+                        if (item.id === q.id) {
+                            qCtx.fillStyle = "#e74c3c";
+                        } else {
+                            qCtx.fillStyle = "black";
+                        }
+                        qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                    }
+                }
+            });
+        };
+        img.src = imagesData[q.image];
+    }
+
+    function renderQuestion(q) {
+        if(!imagesData[q.image]) {
+            alert("找不到這題的圖片，請確認載入資料夾包含 " + q.image);
+            return;
+        }
+
+        drawCanvasForQuestion(q, false);
+        
+        document.getElementById('feedback').innerHTML = '';
+        document.getElementById('next-btn').style.display = 'none';
+        
+        if (quizType === 'mcq') {
+            const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
+            const optionsGrid = document.getElementById('quiz-options');
+            optionsGrid.innerHTML = '';
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn'; 
+                btn.innerHTML = `<span class=\"key-badge\">${idx + 1}</span>${opt}`;
+                btn.onclick = () => window.checkAnswer(opt, q.term);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        // 填空題輸入框重置
+        const fillInput = document.getElementById('fill-input');
+        fillInput.value = '';
+        fillInput.disabled = false;
+        document.getElementById('fill-submit-btn').disabled = false;
+        if (quizType !== 'mcq') setTimeout(() => fillInput.focus(), 50);
+    }
+
+    window.submitFillAnswer = () => {
+        const fillInput = document.getElementById('fill-input');
+        const userTyped = fillInput.value.trim();
+        if (!userTyped) return;
+        fillInput.disabled = true;
+        document.getElementById('fill-submit-btn').disabled = true;
+        window.checkAnswer(userTyped, currentQuestion.term);
+    };
+
+    window.checkAnswer = async (selected, correct) => {
+        const isCorrect = (selected.trim().toLowerCase() === correct.trim().toLowerCase());
+        const feedback = document.getElementById('feedback');
+        
+        // --- 🔥 Combo 燃燒計數與回饋 -- ---
+        if (isCorrect) {
+            currentCombo++;
+            if (currentCombo > maxCombo) {
+                maxCombo = currentCombo;
+                saveUserStats();
+            }
+            updateComboHUD(false);
+            feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】<br><small style="color:#555;">(已延後複習 · 敲 Enter 鍵下一題)</small></span>`;
+        } else {
+            currentCombo = 0;
+            updateComboHUD(true); // 觸發火焰熄滅震動
+            saveUserStats();
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 敲 Enter 鍵下一題)</small></span>`;
+        }
+
+        // 🌟【地毯模式亮點】：回答完後，立刻揭開紅框，露出原圖名詞！
+        if (quizType === 'sheet') {
+            sheetResolved.add(currentQuestion.id);
+            drawCanvasForQuestion(currentQuestion, true);
+        }
+        
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+        document.getElementById('next-btn').style.display = 'block';
+
+        // 艾賓豪斯進度計算（無縫升級舊紀錄）
+        const quizId = currentQuestion.id;
+        let prog = userProgress[quizId] || { 
+            repetitions: 0, interval: 0, easeFactor: 2.5,
+            totalAnswered: 0, correctCount: 0, wrongCount: 0
+        };
+        
+        prog.totalAnswered = (prog.totalAnswered || 0) + 1;
+        prog.correctCount = (prog.correctCount || 0) + (isCorrect ? 1 : 0);
+        prog.wrongCount = (prog.wrongCount || 0) + (isCorrect ? 0 : 1);
+
+        if (isCorrect) {
+            if (prog.repetitions === 0) prog.interval = 1;
+            else if (prog.repetitions === 1) prog.interval = 6;
+            else prog.interval = Math.round(prog.interval * prog.easeFactor);
+            prog.repetitions += 1;
+            prog.easeFactor = Math.max(1.3, prog.easeFactor + 0.1);
+        } else {
+            prog.repetitions = 0;
+            prog.interval = 1;
+            prog.easeFactor = Math.max(1.3, prog.easeFactor - 0.2);
+        }
+        
+        prog.nextReviewDate = Date.now() + (prog.interval * 24 * 60 * 60 * 1000);
+        prog.userId = currentUser.uid;
+        prog.quizId = quizId;
+        prog.category = currentQuestion.category || "head_skull";
+        prog.lastAnsweredAt = Date.now();
+
+        userProgress[quizId] = prog; 
+        try {
+            await setDoc(doc(db, "user_progress", `${currentUser.uid}_${quizId}`), prog);
+        } catch(e) {
+            console.error("進度儲存失敗:", e);
+        }
+
+        if (quizType === 'sheet') {
+            sheetIndex++;
+            if (sheetIndex >= sheetQuestions.length) {
+                feedback.innerHTML += `<br><span style="color:#d97706; font-size:1.05rem;">🎉 恭喜！本張圖片的所有構造已全數解開！</span>`;
+            }
+        }
+    };
+
+    // --- 📊 學習分析儀表板 (含頂部榮譽看板 & 100% 舊資料相容) -- ---
+    function renderAnalytics() {
+        const tbody = document.getElementById('category-stats-body');
+        tbody.innerHTML = '';
+
+        let grandTotalAnswered = 0;
+        const catStats = {};
+        const countedQuizIds = new Set();
+
+        quizDatabase.forEach(q => {
+            countedQuizIds.add(q.id);
+            const cat = q.category || "head_skull";
+            if (!catStats[cat]) catStats[cat] = { total: 0, answered: 0, correct: 0, wrong: 0 };
+            catStats[cat].total += 1;
+
+            const p = userProgress[q.id];
+            if (p) {
+                const total = p.totalAnswered ?? (p.repetitions || (p.nextReviewDate ? 1 : 0)) ?? 0;
+                const wrg = p.wrongCount || 0;
+                const corr = (p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg);
+
+                catStats[cat].answered += (total || 0);
+                catStats[cat].correct += (corr || 0);
+                catStats[cat].wrong += (wrg || 0);
+                grandTotalAnswered += (total || 0);
+            }
+        });
+
+        // 舊進度保全：若有歷史作答文檔未匹配到現存題庫 ID，仍全數計入總歷史分析中
+        Object.entries(userProgress).forEach(([qId, p]) => {
+            if (!countedQuizIds.has(qId) && p) {
+                const cat = p.category || "head_skull";
+                if (!catStats[cat]) catStats[cat] = { total: 0, answered: 0, correct: 0, wrong: 0 };
+                const total = p.totalAnswered ?? (p.repetitions || (p.nextReviewDate ? 1 : 0)) ?? 0;
+                const wrg = p.wrongCount || 0;
+                const corr = (p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg);
+
+                catStats[cat].answered += (total || 0);
+                catStats[cat].correct += (corr || 0);
+                catStats[cat].wrong += (wrg || 0);
+                grandTotalAnswered += (total || 0);
+            }
+        });
+
+        // 🏆 頂層榮譽大看板更新
+        document.getElementById('stat-max-combo').innerText = `${maxCombo} 題`;
+        document.getElementById('stat-current-combo').innerText = `${currentCombo} 題`;
+        document.getElementById('stat-total-answered').innerText = `${grandTotalAnswered} 次`;
+
+        for (const [catName, s] of Object.entries(catStats)) {
+            const rate = (s.answered > 0 && !isNaN(s.correct)) ? Math.round((s.correct / s.answered) * 100) : 0;
+            let pillClass = 'acc-high';
+            if (rate < 60) pillClass = 'acc-low';
+            else if (rate < 80) pillClass = 'acc-med';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${catName}</strong></td>
+                <td>${s.total} 題</td>
+                <td>${s.answered} 次</td>
+                <td><span style="color:var(--success); font-weight:bold;">${s.correct}</span> / <span style="color:var(--danger); font-weight:bold;">${s.wrong}</span></td>
+                <td><span class="accuracy-pill ${pillClass}">${s.answered > 0 ? rate + '%' : '未測驗'}</span></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Top 10 弱點單字聚合
+        const weakList = document.getElementById('weak-terms-list');
+        weakList.innerHTML = '';
+
+        const termMap = {};
+        quizDatabase.forEach(q => {
+            const tKey = q.term.trim().toLowerCase();
+            if (!termMap[tKey]) {
+                termMap[tKey] = {
+                    displayTerm: q.term.trim(),
+                    images: new Set(),
+                    categories: new Set(),
+                    totalAnswered: 0,
+                    wrongCount: 0,
+                    correctCount: 0,
+                    minEaseFactor: 2.5,
+                    questions: []
+                };
+            }
+            termMap[tKey].images.add(q.image);
+            termMap[tKey].categories.add(q.category || "head_skull");
+            termMap[tKey].questions.push(q);
+
+            const p = userProgress[q.id];
+            if (p) {
+                const total = p.totalAnswered ?? p.repetitions ?? 0;
+                const wrg = p.wrongCount || 0;
+                const corr = (p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg);
+                termMap[tKey].totalAnswered += total;
+                termMap[tKey].wrongCount += wrg;
+                termMap[tKey].correctCount += corr;
+                if (p.easeFactor && p.easeFactor < termMap[tKey].minEaseFactor) {
+                    termMap[tKey].minEaseFactor = p.easeFactor;
+                }
+            }
+        });
+
+        const termList = Object.values(termMap).map(t => {
+            const weaknessScore = (t.wrongCount * 4) + Math.max(0, (2.5 - t.minEaseFactor) * 5) + (t.images.size > 1 ? 2 : 0);
+            return { ...t, weaknessScore };
+        });
+
+        termList.sort((a, b) => b.weaknessScore - a.weaknessScore);
+        const topWeak = termList.slice(0, 10).filter(item => item.totalAnswered > 0 || item.wrongCount > 0);
+
+        if (topWeak.length === 0) {
+            weakList.innerHTML = '<li style="color:#64748b; font-size:0.85rem; padding:0.5rem;">🎉 尚無明顯弱點單字，請多進行幾輪測驗！</li>';
+            return;
+        }
+
+        topWeak.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'weak-item';
+            const rate = (item.totalAnswered > 0 && !isNaN(item.correctCount)) 
+                ? Math.round((item.correctCount / item.totalAnswered) * 100) 
+                : 0;
+            const imgList = Array.from(item.images).join(', ');
+
+            li.title = `點擊啟動【${item.displayTerm}】的 ${item.images.size} 個多視角專項特訓！`;
+            li.onclick = () => window.startSingleTermDrill(item.displayTerm);
+
+            li.innerHTML = `
+                <div>
+                    <strong style="color:#1e293b; font-size:0.92rem;">#${index + 1} ${item.displayTerm}</strong>
+                    <br><small style="color:#64748b;">跨 ${item.images.size} 個視角 (${imgList})</small>
+                </div>
+                <div style="text-align:right;">
+                    <span style="color:var(--danger); font-weight:bold;">累計錯 ${item.wrongCount} 次</span>
+                    <br><small style="color:#64748b;">勝率 ${rate}%</small>
+                </div>
+            `;
+            weakList.appendChild(li);
+        });
+
+        window.cachedTopWeakTerms = topWeak;
+    }
+
+    window.startSingleTermDrill = (termName) => {
+        const tLower = termName.trim().toLowerCase();
+        weakDrillPool = quizDatabase.filter(q => q.term.trim().toLowerCase() === tLower);
+        if (weakDrillPool.length === 0) return alert("找不到此單字的對應題目！");
+
+        const imgCount = new Set(weakDrillPool.map(q => q.image)).size;
+        drillModeName = `【${termName}】跨 ${imgCount} 視角特訓`;
+        alert(`⚡ 已啟動【${termName}】專項特訓！\n將由 ${imgCount} 張不同視角的圖片輪流出題，考驗您的立體特徵辨識！`);
+        window.switchMode('quiz');
+    };
+
+    window.startWeakDrill = () => {
+        if (!window.cachedTopWeakTerms || window.cachedTopWeakTerms.length === 0) {
+            return alert("目前還沒有產生足夠的答題數據！");
+        }
+        
+        const targetTerms = new Set(window.cachedTopWeakTerms.map(t => t.displayTerm.trim().toLowerCase()));
+        weakDrillPool = quizDatabase.filter(q => targetTerms.has(q.term.trim().toLowerCase()));
+
+        if (weakDrillPool.length === 0) return alert("題目池為空！");
+        drillModeName = `Top ${window.cachedTopWeakTerms.length} 弱點多視角特訓`;
+        alert(`⚡ 已啟動 Top ${window.cachedTopWeakTerms.length} 弱點多視角綜合特訓！\n共匯入 ${weakDrillPool.length} 道跨角度題目進行高強度轟炸！`);
+        window.switchMode('quiz');
+    };
+</script>
+
+</body>
+</html>
