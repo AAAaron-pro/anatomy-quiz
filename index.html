@@ -1,47 +1,215 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
-<head>
+<html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V7 燃燒連擊版)</title>
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V8 旗艦修復重構版)</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --bg: #f5f6fa; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: var(--bg); color: #333; -webkit-tap-highlight-color: transparent; }
-        header { background: var(--primary); color: white; padding: 0.7rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-        .nav-btns button { background: transparent; border: 1px solid rgba(255,255,255,0.7); color: white; padding: 0.45rem 0.8rem; cursor: pointer; border-radius: 4px; margin-left: 0.4rem; transition: all 0.2s; font-size: 0.9rem; }
-        .nav-btns button.active, .nav-btns button:hover { background: white; color: var(--primary); font-weight: bold; }
-        .container { max-width: 1280px; margin: 1rem auto; padding: 0 0.8rem; }
-        
-        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 1.2rem; text-align: center; }
-        .workspace { display: none; gap: 1.2rem; grid-template-columns: 2.2fr 1fr; }
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --bg: #f5f6fa;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --relearn: #8e44ad;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg);
+            color: #333;
+            -webkit-tap-highlight-color: transparent;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .nav-btns button {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.7);
+            color: white;
+            padding: 0.45rem 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 0.4rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .nav-btns button.active, .nav-btns button:hover {
+            background: white;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1320px;
+            margin: 1rem auto;
+            padding: 0 0.8rem;
+        }
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+        .workspace {
+            display: none;
+            gap: 1.2rem;
+            grid-template-columns: 2.2fr 1fr;
+        }
         .workspace.active { display: grid; }
         
-        .canvas-container { background: #1a1a1a; border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden; position: relative; display: flex; justify-content: center; align-items: center; min-height: 250px; }
-        canvas { display: block; max-width: 100%; height: auto; cursor: crosshair; }
-        
-        .panel { background: white; padding: 1.2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: fit-content; text-align: left; }
+        .canvas-container {
+            background: #111827;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+        }
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            cursor: crosshair;
+        }
+        .panel {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            height: fit-content;
+            text-align: left;
+        }
         .form-group { margin-bottom: 0.8rem; }
-        .form-group label { display: block; margin-bottom: 0.3rem; font-weight: bold; color: var(--secondary); font-size: 0.88rem; }
-        .form-group input, .form-group select { width: 100%; padding: 0.55rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.95rem; box-sizing: border-box; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 0.75rem 1.2rem; border-radius: 6px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; transition: background 0.2s; }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: bold;
+            color: var(--secondary);
+            font-size: 0.88rem;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.55rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
         .btn-primary:hover { background: #2980b9; }
+        .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-weight: 600;
+        }
+        .btn-sm:hover { background: #f1f5f9; }
+        .btn-sm.active-mode {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
 
-        .options-grid { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+        .options-grid {
+            display: grid;
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+        }
         .grid-4 { grid-template-columns: 1fr 1fr; }
         .grid-6 { grid-template-columns: 1fr 1fr 1fr; }
-        .option-btn { padding: 0.8rem 0.6rem; border: 2px solid #cbd5e1; background: white; color: #1e293b; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.15s; text-align: left; position: relative; }
-        .option-btn:hover { border-color: var(--accent); color: var(--accent); background: #ebf5fb; }
+        .option-btn {
+            padding: 0.8rem 0.6rem;
+            border: 2px solid #cbd5e1;
+            background: white;
+            color: #1e293b;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.15s;
+            text-align: left;
+            position: relative;
+        }
+        .option-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #ebf5fb;
+        }
         
-        .key-badge { display: inline-block; background: #e2e8f0; color: #475569; font-size: 0.75rem; padding: 1px 5px; border-radius: 3px; margin-right: 6px; font-family: monospace; vertical-align: middle; border: 1px solid #cbd5e1; }
+        .key-badge {
+            display: inline-block;
+            background: #e2e8f0;
+            color: #475569;
+            font-size: 0.75rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-right: 6px;
+            font-family: monospace;
+            vertical-align: middle;
+            border: 1px solid #cbd5e1;
+        }
         
-        #feedback { margin-top: 0.8rem; font-weight: bold; text-align: center; font-size: 1.1rem; line-height: 1.4; }
+        #feedback {
+            margin-top: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.05rem;
+            line-height: 1.45;
+        }
         .correct { color: var(--success); }
         .incorrect { color: var(--danger); }
+        .synonym-tag {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-top: 3px;
+        }
+        .typo-tag {
+            display: inline-block;
+            background: #fff8e1;
+            color: #f57f17;
+            border: 1px solid #ffe082;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-top: 3px;
+        }
 
         .user-info { display: flex; align-items: center; gap: 0.8rem; }
         .user-info img { width: 30px; height: 30px; border-radius: 50%; }
 
-        /* 🔥 浮誇火焰 Combo 特效 CSS Keyframes 🔥 */
+        /* 🔥 火焰 Combo 特效 🔥 */
         @keyframes flamePulse {
             0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #ff5722); }
             50% { transform: scale(1.08); filter: drop-shadow(0 0 14px #ff9800); }
@@ -62,7 +230,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.4rem;
-            gap: 0.5rem;
+            gap: 0.4rem;
             flex-wrap: nowrap;
             min-width: 0;
         }
@@ -76,6 +244,36 @@
             text-overflow: ellipsis;
             min-width: 0;
             flex: 1;
+        }
+
+        .daily-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            padding: 0.28rem 0.65rem;
+            font-size: 0.82rem;
+            color: #334155;
+            font-weight: 600;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            line-height: 1.2;
+        }
+
+        .relearn-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f3e8ff;
+            border: 1px solid #d8b4fe;
+            border-radius: 20px;
+            padding: 0.28rem 0.6rem;
+            font-size: 0.8rem;
+            color: #7e22ce;
+            font-weight: bold;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            line-height: 1.2;
         }
 
         .combo-badge {
@@ -99,26 +297,65 @@
         .combo-tier-3 { background: linear-gradient(135deg, #ffd700, #ff5722, #9c27b0); color: #fff; animation: godlikeFlicker 0.55s infinite; box-shadow: 0 0 22px rgba(255, 215, 0, 0.95); }
         .combo-shake { animation: comboShake 0.4s ease-in-out !important; background: #64748b !important; color: #cbd5e1 !important; }
 
-        .mode-toggle-group { display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.45rem 0.65rem; border-radius: 6px; margin-bottom: 0.6rem; align-items: center; white-space: nowrap; }
-        .mode-toggle-group label { cursor: pointer; font-weight: 600; color: #334155; font-size: 0.84rem; display: flex; align-items: center; gap: 0.25rem; margin: 0; }
+        .mode-toggle-group {
+            display: flex; gap: 0.5rem;
+            background: #f1f5f9; padding: 0.45rem 0.65rem;
+            border-radius: 6px; margin-bottom: 0.6rem;
+            align-items: center; white-space: nowrap;
+        }
+        .mode-toggle-group label {
+            cursor: pointer; font-weight: 600;
+            color: #334155; font-size: 0.84rem;
+            display: flex; align-items: center; gap: 0.25rem; margin: 0;
+        }
 
-        .scope-drawer { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 0.7rem; padding: 0.5rem 0.7rem; }
-        .scope-drawer-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .scope-drawer {
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 6px; margin-bottom: 0.7rem; padding: 0.5rem 0.7rem;
+        }
+        .scope-drawer-header {
+            display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; user-select: none;
+        }
         .scope-drawer-header:hover { opacity: 0.85; }
-        .category-tree { max-height: 170px; overflow-y: auto; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; margin-top: 0.4rem; }
-        .cat-group { margin-bottom: 0.35rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.25rem; }
-        .cat-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: #1e293b; padding: 0.2rem 0.3rem; border-radius: 4px; }
+        .category-tree {
+            max-height: 170px; overflow-y: auto;
+            background: white; border: 1px solid #cbd5e1;
+            border-radius: 6px; padding: 0.4rem; margin-top: 0.4rem;
+        }
+        .cat-group {
+            margin-bottom: 0.35rem; border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.25rem;
+        }
+        .cat-header {
+            display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; font-weight: bold;
+            font-size: 0.85rem; color: #1e293b; padding: 0.2rem 0.3rem; border-radius: 4px;
+        }
         .cat-header:hover { background: #f8fafc; }
-        .cat-children { padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.25rem; }
+        .cat-children {
+            padding-left: 1.1rem; display: flex; flex-direction: column;
+            gap: 0.2rem; margin-top: 0.25rem;
+        }
         .cat-children.collapsed { display: none; }
-        .checkbox-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #475569; cursor: pointer; }
+        .checkbox-item {
+            display: flex; align-items: center; gap: 0.4rem;
+            font-size: 0.8rem; color: #475569; cursor: pointer;
+        }
         .checkbox-item input { width: auto; margin: 0; }
 
-        /* 學習分析頂層榮譽大看板 */
-        .hero-banner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.2rem; }
-        .hero-card { background: linear-gradient(135deg, #ffffff, #f8fafc); border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .hero-label { font-size: 0.82rem; font-weight: bold; color: #64748b; }
-        .hero-val { font-size: 1.6rem; font-weight: 900; margin-top: 0.25rem; color: #1e293b; }
+        /* 榮譽大看板 */
+        .hero-banner {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem; margin-bottom: 1.2rem;
+        }
+        .hero-card {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 0.9rem; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .hero-label { font-size: 0.8rem; font-weight: bold; color: #64748b; }
+        .hero-val { font-size: 1.45rem; font-weight: 900; margin-top: 0.25rem; color: #1e293b; }
 
         .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; text-align: left; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.88rem; }
@@ -130,8 +367,25 @@
         .acc-low { background: #f8d7da; color: #721c24; }
         
         .weak-list { list-style: none; padding: 0; margin-top: 0.6rem; }
-        .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0.75rem; border-radius: 6px; background: #fff5f5; border-left: 4px solid var(--danger); margin-bottom: 0.45rem; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; border-top: 1px solid #fee2e2; border-right: 1px solid #fee2e2; border-bottom: 1px solid #fee2e2; }
+        .weak-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.55rem 0.75rem; border-radius: 6px; background: #fff5f5;
+            border-left: 4px solid var(--danger); margin-bottom: 0.45rem;
+            font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+            border-top: 1px solid #fee2e2; border-right: 1px solid #fee2e2; border-bottom: 1px solid #fee2e2;
+        }
         .weak-item:hover { background: #fee2e2; transform: translateX(3px); }
+
+        .editor-tree-box {
+            max-height: 200px; overflow-y: auto; background: #fff;
+            border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; margin-top: 0.3rem;
+        }
+        .editor-tree-item {
+            padding: 0.3rem 0.5rem; border-radius: 4px; font-size: 0.82rem;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
+        }
+        .editor-tree-item:hover { background: #e0f2fe; }
+        .editor-tree-item.active-img { background: #bae6fd; font-weight: bold; border-left: 3px solid var(--accent); }
 
         @media (max-width: 900px) {
             header { padding: 0.5rem 0.8rem; }
@@ -146,39 +400,44 @@
             .option-btn { padding: 0.7rem 0.5rem; font-size: 0.88rem; }
             .key-badge { display: none; }
             .btn-primary { padding: 0.65rem 1rem; font-size: 0.95rem; }
-            .hero-banner { grid-template-columns: 1fr; gap: 0.6rem; }
+            .hero-banner { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
             .analytics-grid { grid-template-columns: 1fr; }
+            .daily-badge, .relearn-badge { font-size: 0.75rem; padding: 0.2rem 0.45rem; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🦴 解剖學記憶與分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V7 燃燒連擊版</span></h2>
+    <h2>🦴 解剖學記憶分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V8-PRO 審查補正版</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem;"></span>
         <div class="nav-btns">
-            <button id="nav-editor" onclick="switchMode('editor')">🛠️ 編輯器</button>
-            <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗</button>
-            <button id="nav-analytics" onclick="switchMode('analytics')">📊 分析</button>
+            <button id="nav-editor" onclick="switchMode('editor')" class="">🛠️ 編輯器</button>
+            <button id="nav-quiz" class="" onclick="switchMode('quiz')">📝 測驗</button>
+            <button id="nav-analytics" onclick="switchMode('analytics')" class="active">📊 分析</button>
             <button onclick="logout()" style="border-color: #e74c3c; color: #e74c3c;">登出</button>
         </div>
     </div>
 </header>
 
 <div class="container">
-    <div id="login-zone" class="card">
-        <h3>歡迎使用解剖學專業記憶系統</h3>
-        <p style="font-size: 0.9rem; color: #555;">支援全圖地毯連續填空、浮誇火焰 Combo 連擊與個人弱點雷達。<br>請登入 Google 帳號以連線雲端題庫。</p>
+    <div id="login-zone" class="card" style="display: block;">
+        <h3>歡迎使用解剖學專業記憶系統 (V8-PRO)</h3>
+        <p style="font-size: 0.9rem; color: #555;">嚴格遵循 NAV 解剖命名規範、真實 SM-2 間隔重複、錯題即刻強化、IndexedDB 本機持久化與 Firestore 批次安全防禦。<br>請登入 Google 帳號以連線雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
     <div id="setup-zone" class="card" style="display: none;">
         <h3>準備階段：載入圖片資料夾</h3>
-        <p style="color: #666; font-size: 0.85em;">(選取本機包含解剖圖的「參考資料」資料夾)</p>
-        <input type="file" id="folder-input" webkitdirectory directory multiple accept="image/*" style="margin: 0.8rem 0;">
-        <br>
+        <p style="color: #666; font-size: 0.85em;">(選取本機包含解剖圖的「參考資料」資料夾。圖片將自動快取至 IndexedDB，日後免重複選取！)</p>
+        <div style="margin: 0.6rem 0;">
+            <input type="file" id="folder-input" webkitdirectory="" directory="" multiple="" accept="image/*">
+        </div>
+        <div id="idb-cache-status" style="font-size: 0.82rem; color: #27ae60; margin-bottom: 0.6rem; font-weight: bold;">
+            💾 本機快取狀態：檢查中...
+        </div>
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
     </div>
 
@@ -188,35 +447,112 @@
             <canvas id="editor-canvas"></canvas>
         </div>
         <div class="panel">
-            <h3 style="margin-top: 0;">🛠️ 題庫編輯器</h3>
-            <div class="form-group">
-                <label>📁 檔案分類 (預設: head_skull):</label>
-                <input type="text" id="category-input" list="category-suggestions" placeholder="例如: head_skull" value="head_skull">
-                <datalist id="category-suggestions"></datalist>
+            <h3 style="margin-top: 0; display:flex; justify-content:space-between; align-items:center;">
+                <span>🛠️ 題庫編輯器</span>
+                <span id="editor-current-img-badge" style="font-size:0.75rem; color:#64748b; font-weight:normal;"></span>
+            </h3>
+
+            <!-- 智慧分類選取與防呆提示 -->
+            <div class="form-group" style="background: #f8fafc; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <label style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>📁 儲存分類資料夾：</span>
+                    <span id="active-cat-name" style="color: var(--accent); font-weight: bold;">head_skull</span>
+                </label>
+                <div style="display: flex; gap: 0.4rem; margin-top: 0.3rem;">
+                    <select id="editor-category-select" onchange="onCategorySelectChange()" style="flex: 1;"></select>
+                    <button type="button" class="btn-sm" style="background:#27ae60; color:white; border-color:#27ae60;" onclick="promptCreateNewCategory()">➕ 新分類</button>
+                    <button type="button" class="btn-sm" style="background:#e67e22; color:white; border-color:#e67e22;" onclick="promptBatchRenameCategorySafe()">✏️ 批次更名</button>
+                </div>
             </div>
+
+            <!-- 圖片檔案分類樹狀檢視 -->
             <div class="form-group">
-                <label>🖼️ 目前編輯圖片:</label>
-                <select id="image-selector"></select>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="margin: 0;">🖼️ 選擇編輯圖片：</label>
+                    <input type="text" id="editor-tree-search" placeholder="🔍 搜尋圖名..." style="width: 140px; padding: 0.2rem 0.4rem; font-size: 0.78rem;" oninput="renderEditorImageTree()">
+                </div>
+                <div id="editor-image-tree" class="editor-tree-box"></div>
             </div>
-            <p style="font-size: 0.85em; color: #666; margin: 0.4rem 0;">拖曳紅框遮蔽專有名詞：</p>
+
+            <!-- 遮蓋模式切換 -->
+            <div style="margin: 0.6rem 0; padding: 0.55rem; background: #f1f5f9; border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <span style="font-size: 0.85rem; font-weight: bold; color: #1e293b;">📐 遮蓋模式：</span>
+                    <div style="display: flex; gap: 0.3rem;">
+                        <button type="button" id="mask-mode-single" class="btn-sm active-mode" onclick="setEditorMaskMode('single')">🔘 單個遮蓋</button>
+                        <button type="button" id="mask-mode-multi" class="btn-sm" onclick="setEditorMaskMode('multi')">🔲 多個遮蓋</button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #64748b;">
+                    <span>已拉取：<strong id="pending-mask-count" style="color: var(--danger); font-size:0.95rem;">0</strong> 個區塊</span>
+                    <div style="display: flex; gap: 0.3rem;">
+                        <button type="button" class="btn-sm" style="padding:1px 6px;" onclick="undoLastMask()">↩️ 撤銷最後一個</button>
+                        <button type="button" class="btn-sm" style="padding:1px 6px;" onclick="clearPendingMasks()">🗑️ 全部清除</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
-                <label>🔤 專有名詞 (正解):</label>
-                <input type="text" id="term-input" placeholder="例如: Jugular foramen">
+                <label>🔤 專有名詞 (正解/英/拉):</label>
+                <input type="text" id="term-input" placeholder="例如: Trochlea of humerus 或 Trochlea humeri">
             </div>
-            <button class="btn-primary" onclick="saveMaskRegion()">儲存上傳至雲端</button>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem;">
+                <div>
+                    <label style="font-size:0.8rem; font-weight:bold; color:#475569;">左右側性 (Sidedness):</label>
+                    <select id="sidedness-input" style="padding:0.4rem; font-size:0.85rem; border:1px solid #cbd5e1; border-radius:4px; width:100%;">
+                        <option value="unpaired">中央 / 非成對 (Unpaired)</option>
+                        <option value="left">左側 (Left)</option>
+                        <option value="right">右側 (Right)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem; font-weight:bold; color:#475569;">解剖視角 (View):</label>
+                    <select id="view-angle-input" style="padding:0.4rem; font-size:0.85rem; border:1px solid #cbd5e1; border-radius:4px; width:100%;">
+                        <option value="general">一般視角 (General)</option>
+                        <option value="dorsal">背側觀 (Dorsal)</option>
+                        <option value="ventral">腹側觀 (Ventral)</option>
+                        <option value="lateral">外側觀 (Lateral)</option>
+                        <option value="medial">內側觀 (Medial)</option>
+                        <option value="rostral">吻側觀 (Rostral - 頭部專用)</option>
+                        <option value="cranial">顱側觀 (Cranial - 軀幹四肢)</option>
+                        <option value="caudal">尾側觀 (Caudal)</option>
+                        <option value="palmar">掌側觀 (Palmar - 前肢爪部)</option>
+                        <option value="plantar">蹠側觀 (Plantar - 後肢爪部)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="saveMaskRegion()">💾 儲存並同步至雲端目錄</button>
+
+            <!-- 本圖片已標註名詞管理 -->
+            <div style="margin-top: 0.8rem; border-top: 1px dashed #cbd5e1; padding-top: 0.5rem;">
+                <span style="font-size: 0.82rem; font-weight: bold; color: #475569;">📋 本圖已標註名詞：</span>
+                <div id="image-terms-list" style="max-height: 120px; overflow-y: auto; margin-top: 0.3rem; font-size: 0.8rem;"></div>
+            </div>
         </div>
     </div>
 
-    <!-- 2. 測驗模式 (含火焰 Combo 顯示器 & 全圖地毯填空) -->
+    <!-- 2. 測驗模式 -->
     <div id="mode-quiz" class="workspace">
         <div class="canvas-container">
             <canvas id="quiz-canvas"></canvas>
         </div>
         <div class="panel">
             <div class="quiz-header-bar">
-                <span id="quiz-title-tag">🎯 測驗進行中</span>
+                <span id="quiz-title-tag" title="">⚠️ 範圍為空</span>
                 
-                <!-- 🔥 浮誇火焰 Combo 連擊顯示器 🔥 -->
+                <!-- 錯題即刻強化指示器 -->
+                <div id="relearn-hud" class="relearn-badge" style="display: none;" title="當次錯題強化">
+                    🔁 錯題強化: <span id="relearn-count" style="margin-left:2px;">0</span> 題
+                </div>
+
+                <!-- 每日目標與待複習指示器 -->
+                <div id="daily-hud" class="daily-badge" title="今日進度 (SM-2 到期計算)">
+                    📅 待複習: <span id="daily-due-count" style="color:var(--danger); font-weight:900; margin:0 2px;">0</span> 題 · 已做: <span id="daily-done-count" style="color:var(--success); font-weight:900; margin:0 2px;">0</span> 題
+                </div>
+
+                <!-- 浮誇火焰 Combo 連擊顯示器 -->
                 <div id="combo-hud" class="combo-badge combo-tier-0">🔥 COMBO <span id="combo-count" style="margin-left:4px;">0</span></div>
             </div>
 
@@ -237,20 +573,23 @@
                 </div>
             </div>
 
-            <!-- 模式切換 (選擇題 vs 單題填空 vs 全圖地毯填空) -->
+            <!-- 模式切換 -->
             <div style="display: flex; gap: 0.4rem; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap;">
                 <div class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
-                    <label><input type="radio" name="quiz-type" value="mcq" checked onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
+                    <label><input type="radio" name="quiz-type" value="mcq" checked="" onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
                     <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 單題填空</label>
                     <label><input type="radio" name="quiz-type" value="sheet" onchange="onQuizTypeChanged()"> 🗺️ 全圖地毯</label>
                 </div>
                 <div id="option-count-bar" class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
-                    <label><input type="radio" name="option-count" value="4" checked onchange="onOptionCountChanged()"> 4 選 1</label>
+                    <label><input type="radio" name="option-count" value="4" checked="" onchange="onOptionCountChanged()"> 4 選 1</label>
                     <label><input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()"> 6 選 1</label>
                 </div>
             </div>
 
-            <p style="margin: 0.2rem 0; font-size: 0.9rem;">請回答<strong style="color:var(--danger);">紅色區塊</strong>構造名稱：</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin: 0.2rem 0;">
+                <p style="margin: 0; font-size: 0.9rem;">請回答<strong style="color:var(--danger);">紅色區塊</strong>構造名稱：</p>
+                <span id="question-meta-badge" style="font-size: 0.75rem; color:#64748b; font-weight:600;"></span>
+            </div>
 
             <!-- 選擇題區 -->
             <div id="mcq-container">
@@ -260,21 +599,21 @@
             <!-- 填空題區 (單題與全圖地毯共用) -->
             <div id="fill-container" style="display: none; margin-top: 0.5rem;">
                 <div class="form-group" style="margin-bottom: 0.4rem;">
-                    <input type="text" id="fill-input" placeholder="輸入名稱 (Enter 送出 / 答完再敲 Enter 下一題)..." autocomplete="off">
+                    <input type="text" id="fill-input" placeholder="輸入名稱 (支援 NAV 拉丁文/英文/容許輕微筆誤，Enter 送出)..." autocomplete="off">
                 </div>
                 <button class="btn-primary" id="fill-submit-btn" onclick="submitFillAnswer()">提交答案</button>
             </div>
             
-            <div id="feedback"></div>
+            <div id="feedback"><span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span></div>
             <button class="btn-primary" id="next-btn" style="display: none; margin-top: 0.7rem; background: #27ae60;" onclick="nextQuestion()">下一題 (或敲 Enter 鍵)</button>
         </div>
     </div>
 
-    <!-- 3. 學習分析模式 (含頂層最高連擊看板) -->
-    <div id="mode-analytics" class="card" style="display: none;">
+    <!-- 3. 學習分析模式 -->
+    <div id="mode-analytics" class="card" style="display: block;">
         <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
         
-        <!-- 🏆 最上排：歷史最高連續答對與連擊榮譽看板 -->
+        <!-- 最上排 4 欄榮譽大看板 -->
         <div class="hero-banner">
             <div class="hero-card">
                 <div class="hero-label">🏆 歷史最高連續答對 (Max Streak)</div>
@@ -285,14 +624,21 @@
                 <div class="hero-val" id="stat-current-combo" style="color: #ea580c;">0 題</div>
             </div>
             <div class="hero-card">
-                <div class="hero-label">📈 歷史累積答題量</div>
+                <div class="hero-label">🎯 今日進度 (已做 / 待複習)</div>
+                <div class="hero-val" id="stat-daily-progress" style="color: #16a085;">0 <small style="font-size:0.85rem; color:#64748b;">(待複習: 0)</small></div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-label">📈 歷史累積總答題量</div>
                 <div class="hero-val" id="stat-total-answered" style="color: var(--primary);">0 次</div>
             </div>
         </div>
 
         <div class="analytics-grid">
             <div>
-                <h4 style="margin: 0.4rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="margin: 0.4rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
+                    <button class="btn-sm" style="background:#3b82f6; color:white; border-color:#3b82f6;" onclick="migrateToHierarchySafe()">🚀 安全升級至 Firestore 3層目錄 (防500限制)</button>
+                </div>
                 <table class="stats-table">
                     <thead>
                         <tr>
@@ -313,7 +659,7 @@
                     <span style="font-size: 0.75rem; color: #64748b;">(依單字聚合多角度)</span>
                 </div>
                 <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
-                <ul class="weak-list" id="weak-terms-list"></ul>
+                <ul class="weak-list" id="weak-terms-list"><li style="color:#64748b; font-size:0.85rem; padding:0.5rem;">🎉 尚無明顯弱點單字，請多進行幾輪測驗！</li></ul>
                 <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
             </div>
         </div>
@@ -324,7 +670,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+    import { getFirestore, collection, collectionGroup, getDocs, doc, getDoc, setDoc, deleteDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAwObWPvCT4yBHcW6NiXLvPIEn4r96Wq8s",
@@ -339,6 +685,144 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // --- IndexedDB 圖片持久化模組 ---
+    const IDB_NAME = "AnatomyImageStore";
+    const STORE_NAME = "images";
+
+    function openImageDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(IDB_NAME, 1);
+            req.onupgradeneeded = (e) => {
+                const idb = e.target.result;
+                if (!idb.objectStoreNames.contains(STORE_NAME)) {
+                    idb.createObjectStore(STORE_NAME, { keyPath: "name" });
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    async function cacheImage(name, dataUrl) {
+        try {
+            const idb = await openImageDB();
+            return new Promise((resolve, reject) => {
+                const tx = idb.transaction(STORE_NAME, "readwrite");
+                tx.objectStore(STORE_NAME).put({ name, dataUrl, cachedAt: Date.now() });
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => reject(tx.error);
+            });
+        } catch(e) { console.warn("快取圖片失敗:", e); }
+    }
+
+    async function loadCachedImages() {
+        try {
+            const idb = await openImageDB();
+            return new Promise((resolve, reject) => {
+                const tx = idb.transaction(STORE_NAME, "readonly");
+                const req = tx.objectStore(STORE_NAME).getAll();
+                req.onsuccess = () => {
+                    const map = {};
+                    (req.result || []).forEach(item => { map[item.name] = item.dataUrl; });
+                    resolve(map);
+                };
+                req.onerror = () => reject(req.error);
+            });
+        } catch(e) {
+            console.warn("載入快取圖片失敗:", e);
+            return {};
+        }
+    }
+
+    // --- 解剖學同義詞庫 (NAV 拉丁文 vs 英語標記) ---
+    const ANATOMICAL_SYNONYMS = {
+        "trochlea of humerus": ["trochlea humeri", "humeral trochlea"],
+        "trochlea humeri": ["trochlea of humerus", "humeral trochlea"],
+        "foramen magnum": ["great foramen", "occipital foramen", "foramen occipitale magnum"],
+        "greater trochanter": ["trochanter major"],
+        "trochanter major": ["greater trochanter"],
+        "lesser trochanter": ["trochanter minor"],
+        "trochanter minor": ["lesser trochanter"],
+        "supratrochlear foramen": ["foramen supratrochleare"],
+        "spine of scapula": ["spina scapulae", "scapular spine"],
+        "spina scapulae": ["spine of scapula", "scapular spine"],
+        "carotid canal": ["canalis caroticus"],
+        "canalis caroticus": ["carotid canal"],
+        "infraorbital foramen": ["foramen infraorbitale"],
+        "foramen infraorbitale": ["infraorbital foramen"],
+        "jugular foramen": ["foramen jugulare", "tympano-occipital fissure"],
+        "foramen jugulare": ["jugular foramen"],
+        "stylomastoid foramen": ["foramen stylomastoideum"],
+        "hypoglossal canal": ["canalis hypoglossi"],
+        "alar canal": ["canalis alaris"],
+        "oval foramen": ["foramen ovale"],
+        "foramen ovale": ["oval foramen"],
+        "tympanic bulla": ["bulla tympanica"],
+        "external sagittal crest": ["crista sagittalis externa"],
+        "nuchal crest": ["crista nuchae"],
+        "external occipital protuberance": ["protuberantia occipitalis externa"],
+        "palatine fissure": ["fissura palatina"],
+        "mandibular foramen": ["foramen mandibulae"],
+        "mental foramen": ["foramen mentale"],
+        "head of femur": ["caput femoris"],
+        "acetabulum": ["cotyloid cavity"],
+        "lateral condyle": ["condylus lateralis"],
+        "medial condyle": ["condylus medialis"],
+        "lateral epicondyle": ["epicondylus lateralis"],
+        "medial epicondyle": ["epicondylus medialis"],
+        "tibial tuberosity": ["tuberositas tibiae"],
+        "calcaneal tuber": ["tuber calcanei"],
+        "extensor groove": ["sulcus extensorius"]
+    };
+
+    function normalizeAnatomyTerm(str) {
+        return (str || '')
+            .trim()
+            .toLowerCase()
+            .replace(/^(the|a|an)\s+/i, '')       // 正確轉義 \s
+            .replace(/\s+of\s+the\s+/g, ' of ')  // 正確轉義 \s
+            .replace(/[-_]/g, ' ')
+            .replace(/\s+/g, ' ');               // 修正：必須是 \s+，不可為 s+
+    }
+
+    function levenshteinDistance(s1, s2) {
+        const m = s1.length, n = s2.length;
+        const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+        for (let i = 0; i <= m; i++) dp[i][0] = i;
+        for (let j = 0; j <= n; j++) dp[0][j] = j;
+        for (let i = 1; i <= m; i++) {
+            for (let j = 1; j <= n; j++) {
+                if (s1[i - 1] === s2[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+                else dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+            }
+        }
+        return dp[m][n];
+    }
+
+    function verifyAnatomyAnswer(userTyped, correctTerm) {
+        const cleanUser = normalizeAnatomyTerm(userTyped);
+        const cleanCorrect = normalizeAnatomyTerm(correctTerm);
+
+        if (!cleanUser) return { passed: false };
+        if (cleanUser === cleanCorrect) return { passed: true, reason: "exact" };
+
+        // 同義詞匹配
+        const syns = ANATOMICAL_SYNONYMS[cleanCorrect] || [];
+        if (syns.some(s => normalizeAnatomyTerm(s) === cleanUser)) {
+            return { passed: true, reason: "synonym" };
+        }
+
+        // 容錯 Levenshtein 編輯距離
+        const dist = levenshteinDistance(cleanUser, cleanCorrect);
+        const maxAllowedDist = cleanCorrect.length > 8 ? 2 : (cleanCorrect.length > 4 ? 1 : 0);
+        if (dist <= maxAllowedDist) {
+            return { passed: true, reason: "typo_tolerated", dist };
+        }
+
+        return { passed: false, dist };
+    }
+
+    // --- 全域變數 ---
     let currentUser = null;
     let imagesData = {};
     let currentImage = null;
@@ -352,14 +836,25 @@
     let drillModeName = "";
     let isDrawerOpen = false;
 
-    // 🔥 Combo 連擊系統狀態
+    // 🔥 Combo 與當日統計
     let currentCombo = 0;
     let maxCombo = 0;
+    let userDailyStats = { date: '', count: 0 };
+    let sessionAnswerCount = 0;
 
-    // 🗺️ 全圖地毯式填空模式狀態
+    // 🔁 當次錯題重測佇列 (Intra-session Relearning Queue)
+    let relearnQueue = [];
+
+    // 📐 編輯器多遮蓋與圖片快取
+    let editorMaskMode = 'single';
+    let editorPendingMasks = [];
+    let editorActiveCategory = 'head_skull';
+    let cachedEditorImg = null;
+
+    // 🗺️ 全圖地毯模式
     let sheetQuestions = [];
     let sheetIndex = 0;
-    let sheetResolved = new Set(); // 本張圖已解開並移除遮罩的題目 ID
+    let sheetResolved = new Set();
     let sheetCurrentImg = null;
     
     const canvas = document.getElementById('editor-canvas');
@@ -369,11 +864,19 @@
     let isDrawing = false;
     let startX, startY, currentX, currentY;
 
+    // 擴充獸醫骨骼學標記字綴
     const ANATOMICAL_AFFIXES = [
         'foramen', 'fossa', 'process', 'crest', 'canal', 'tubercle', 'tuberosity',
         'condyle', 'epicondyle', 'fissure', 'notch', 'sulcus', 'trochlea', 'spine',
-        'sinus', 'meatus', 'bulla', 'linea', 'ramus', 'arch', 'head', 'neck', 'facet'
+        'sinus', 'meatus', 'bulla', 'linea', 'ramus', 'arch', 'head', 'neck', 'facet',
+        'trochanter', 'malleolus', 'acetabulum', 'protuberance', 'patella', 'fabella',
+        'calcaneus', 'talus', 'sesamoid'
     ];
+
+    function getTodayString() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
 
     window.login = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("登入失敗: " + err.message));
     window.logout = () => signOut(auth).then(() => location.reload());
@@ -387,6 +890,20 @@
             document.getElementById('user-name').innerText = user.displayName;
             document.getElementById('user-avatar').src = user.photoURL;
             document.querySelectorAll('.nav-btns button').forEach(b => b.style.display = 'inline-block');
+
+            // 自動從 IndexedDB 載入已快取圖片
+            const cached = await loadCachedImages();
+            const cachedCount = Object.keys(cached).length;
+            const statusEl = document.getElementById('idb-cache-status');
+            if (cachedCount > 0) {
+                imagesData = cached;
+                statusEl.innerHTML = `💾 已從本機快取成功載入 <strong>${cachedCount}</strong> 張解剖圖 (無需重複上傳！)`;
+                statusEl.style.color = "#27ae60";
+            } else {
+                statusEl.innerHTML = `💾 本機尚未快取圖片，請選取您的參考資料資料夾。`;
+                statusEl.style.color = "#d97706";
+            }
+
             await fetchCloudData();
         } else {
             document.getElementById('login-zone').style.display = 'block';
@@ -397,16 +914,36 @@
         }
     });
 
+    // --- 雲端數據雙向讀取 ---
     async function fetchCloudData() {
         try {
-            const qSnap = await getDocs(collection(db, "quiz_data"));
-            quizDatabase = qSnap.docs.map(d => {
-                const data = d.data();
-                let cat = data.category;
-                if (!cat || cat === "未分類" || cat === "未分類 (General)") cat = "head_skull";
-                return { id: d.id, ...data, category: cat };
-            });
+            const loadedMap = new Map();
+
+            // 1. 讀取 legacy 扁平題庫
+            try {
+                const qSnap = await getDocs(collection(db, "quiz_data"));
+                qSnap.docs.forEach(d => {
+                    const data = d.data();
+                    let cat = data.category;
+                    if (!cat || cat === "未分類" || cat === "未分類 (General)") cat = "head_skull";
+                    loadedMap.set(d.id, { id: d.id, ...data, category: cat });
+                });
+            } catch(e) { console.warn("讀取 legacy 題庫略過:", e); }
+
+            // 2. 讀取階層化第 3 層 terms
+            try {
+                const termsSnap = await getDocs(collectionGroup(db, "terms"));
+                termsSnap.docs.forEach(d => {
+                    const data = d.data();
+                    let cat = data.category;
+                    if (!cat || cat === "未分類" || cat === "未分類 (General)") cat = "head_skull";
+                    loadedMap.set(d.id, { id: d.id, ...data, category: cat });
+                });
+            } catch(e) { console.warn("collectionGroup 讀取略過:", e); }
+
+            quizDatabase = Array.from(loadedMap.values());
             
+            // 讀取作答進度
             const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
             const pSnap = await getDocs(pQuery);
             userProgress = {};
@@ -416,30 +953,91 @@
                 userProgress[qId] = { ...data, quizId: qId };
             });
 
-            // 讀取個人的 Combo 歷史最高統計 (舊資料預設 0)
+            // 讀取個人統計
             try {
                 const statsSnap = await getDoc(doc(db, "user_stats", currentUser.uid));
                 if (statsSnap.exists()) {
                     const s = statsSnap.data();
                     maxCombo = s.maxCombo || 0;
                     currentCombo = s.currentCombo || 0;
+                    if (s.dailyStats && s.dailyStats.date === getTodayString()) {
+                        userDailyStats = s.dailyStats;
+                    } else {
+                        userDailyStats = { date: getTodayString(), count: 0 };
+                    }
+                } else {
+                    userDailyStats = { date: getTodayString(), count: 0 };
                 }
-            } catch(e) { console.warn("讀取連勝紀錄略過", e); }
+            } catch(e) { console.warn("讀取連勝紀錄略過:", e); }
+
             updateComboHUD();
+            updateDailyHUD();
+            updateRelearnHUD();
 
             quizDatabase.forEach(q => selectedImages.add(q.image));
             buildCategoryTree();
             updateCategorySuggestions();
+            renderEditorImageTree();
             updateScopeSummary();
         } catch (error) {
-            console.error("讀取資料庫失敗", error);
+            console.error("讀取雲端資料庫失敗:", error);
         }
     }
 
-    // --- 🔥 更新浮誇火焰 Combo HUD 視覺 -- ---
+    // --- 標準 SM-2 記憶間隔演算法 ---
+    function calculateSM2(prog, grade) {
+        if (grade >= 3) {
+            if (prog.repetitions === 0) prog.interval = 1;
+            else if (prog.repetitions === 1) prog.interval = 6;
+            else prog.interval = Math.round(prog.interval * prog.easeFactor);
+            prog.repetitions += 1;
+        } else {
+            prog.repetitions = 0;
+            prog.interval = 1;
+        }
+
+        prog.easeFactor = Math.max(1.3, prog.easeFactor + (0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02)));
+        prog.nextReviewDate = Date.now() + Math.round(prog.interval * 24 * 60 * 60 * 1000);
+        return prog;
+    }
+
+    function updateRelearnHUD() {
+        const hud = document.getElementById('relearn-hud');
+        const count = document.getElementById('relearn-count');
+        if (!hud || !count) return;
+        if (relearnQueue.length > 0) {
+            hud.style.display = 'inline-flex';
+            count.innerText = relearnQueue.length;
+        } else {
+            hud.style.display = 'none';
+        }
+    }
+
+    function updateDailyHUD() {
+        const now = Date.now();
+        let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
+        if (activePool.length === 0) activePool = quizDatabase;
+
+        const dueCount = activePool.filter(q => {
+            const prog = userProgress[q.id];
+            return !prog || prog.nextReviewDate <= now;
+        }).length;
+
+        const dueSpan = document.getElementById('daily-due-count');
+        const doneSpan = document.getElementById('daily-done-count');
+        if (dueSpan) dueSpan.innerText = dueCount;
+        if (doneSpan) doneSpan.innerText = userDailyStats.count;
+
+        const statDaily = document.getElementById('stat-daily-progress');
+        if (statDaily) {
+            statDaily.innerHTML = `${userDailyStats.count} <small style="font-size:0.85rem; color:#64748b;">(待複習: ${dueCount})</small>`;
+        }
+    }
+
     function updateComboHUD(shake = false) {
         const hud = document.getElementById('combo-hud');
         const countSpan = document.getElementById('combo-count');
+        if (!hud || !countSpan) return;
         countSpan.innerText = currentCombo;
 
         hud.className = 'combo-badge';
@@ -449,15 +1047,10 @@
             return;
         }
 
-        if (currentCombo === 0) {
-            hud.classList.add('combo-tier-0');
-        } else if (currentCombo < 5) {
-            hud.classList.add('combo-tier-1');
-        } else if (currentCombo < 10) {
-            hud.classList.add('combo-tier-2');
-        } else {
-            hud.classList.add('combo-tier-3'); // 神威爆氣火焰
-        }
+        if (currentCombo === 0) hud.classList.add('combo-tier-0');
+        else if (currentCombo < 5) hud.classList.add('combo-tier-1');
+        else if (currentCombo < 10) hud.classList.add('combo-tier-2');
+        else hud.classList.add('combo-tier-3');
     }
 
     async function saveUserStats() {
@@ -465,11 +1058,292 @@
             await setDoc(doc(db, "user_stats", currentUser.uid), {
                 maxCombo: maxCombo,
                 currentCombo: currentCombo,
+                dailyStats: userDailyStats,
                 lastUpdated: Date.now()
             }, { merge: true });
-        } catch(e) { console.error("連擊紀錄存檔失敗", e); }
+        } catch(e) { console.error("統計紀錄儲存失敗:", e); }
     }
 
+    // --- 編輯器遮蓋模式 ---
+    window.setEditorMaskMode = (mode) => {
+        editorMaskMode = mode;
+        document.getElementById('mask-mode-single').className = (mode === 'single') ? 'btn-sm active-mode' : 'btn-sm';
+        document.getElementById('mask-mode-multi').className = (mode === 'multi') ? 'btn-sm active-mode' : 'btn-sm';
+    };
+
+    window.undoLastMask = () => {
+        if (editorPendingMasks.length > 0) {
+            editorPendingMasks.pop();
+            renderEditorCanvas();
+        }
+    };
+
+    window.clearPendingMasks = () => {
+        editorPendingMasks = [];
+        renderEditorCanvas();
+    };
+
+    function updateCategorySuggestions() {
+        const select = document.getElementById('editor-category-select');
+        select.innerHTML = '';
+        
+        const catMap = {};
+        quizDatabase.forEach(q => {
+            const c = q.category || 'head_skull';
+            catMap[c] = (catMap[c] || 0) + 1;
+        });
+        if (!catMap['head_skull']) catMap['head_skull'] = 0;
+
+        for (const [c, count] of Object.entries(catMap)) {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.innerText = `📁 ${c} (${count} 題)`;
+            if (c === editorActiveCategory) opt.selected = true;
+            select.appendChild(opt);
+        }
+        document.getElementById('active-cat-name').innerText = editorActiveCategory;
+    }
+
+    window.onCategorySelectChange = () => {
+        editorActiveCategory = document.getElementById('editor-category-select').value;
+        document.getElementById('active-cat-name').innerText = editorActiveCategory;
+    };
+
+    window.promptCreateNewCategory = () => {
+        const name = prompt("請輸入新分類資料夾名稱 (英數或底線，例如: pelvic_limb):");
+        if (!name || !name.trim()) return;
+        const clean = sanitizeId(name.trim());
+        editorActiveCategory = clean;
+        updateCategorySuggestions();
+        alert(`✅ 已切換至新分類：【${clean}】`);
+    };
+
+    // --- 批次安全更名 (解決 500 上限與 user_progress 脫鉤) ---
+    window.promptBatchRenameCategorySafe = async () => {
+        const oldCat = editorActiveCategory;
+        const targetQuestions = quizDatabase.filter(q => q.category === oldCat);
+        const newCatInput = prompt(`確定要將分類【${oldCat}】（共包含 ${targetQuestions.length} 個構造）重新命名嗎？\n請輸入新名稱：`, oldCat);
+        if (!newCatInput || !newCatInput.trim()) return;
+        const newCat = sanitizeId(newCatInput.trim());
+        if (newCat === oldCat) return;
+
+        if (!confirm(`即將安全分批將【${oldCat}】旗下的 ${targetQuestions.length} 道題目與【所有作答紀錄】全數同步更名為【${newCat}】。是否繼續？`)) return;
+
+        try {
+            const BATCH_SIZE = 100;
+            let processed = 0;
+
+            for (let i = 0; i < targetQuestions.length; i += BATCH_SIZE) {
+                const batch = writeBatch(db);
+                const chunk = targetQuestions.slice(i, i + BATCH_SIZE);
+
+                chunk.forEach(q => {
+                    q.category = newCat;
+                    batch.set(doc(db, "quiz_data", q.id), { category: newCat }, { merge: true });
+
+                    const newTermRef = doc(db, "categories", newCat, "images", sanitizeId(q.image), "terms", q.id);
+                    batch.set(newTermRef, { ...q, category: newCat }, { merge: true });
+
+                    const oldTermRef = doc(db, "categories", oldCat, "images", sanitizeId(q.image), "terms", q.id);
+                    batch.delete(oldTermRef);
+
+                    const progDocId = `${currentUser.uid}_${q.id}`;
+                    if (userProgress[q.id]) {
+                        userProgress[q.id].category = newCat;
+                        batch.set(doc(db, "user_progress", progDocId), { category: newCat }, { merge: true });
+                    }
+                });
+
+                await batch.commit();
+                processed += chunk.length;
+            }
+
+            editorActiveCategory = newCat;
+            updateCategorySuggestions();
+            buildCategoryTree();
+            renderEditorImageTree();
+            updateScopeSummary();
+            alert(`🎉 安全更名成功！共計 ${processed} 筆題目與作答歷史已同步完成！`);
+        } catch(e) {
+            alert("批次更名失敗: " + e.message);
+        }
+    };
+
+    // --- 安全分批遷移至 3 層結構 (防 500 上限) ---
+    window.migrateToHierarchySafe = async () => {
+        if (quizDatabase.length === 0) return alert("題庫為空！");
+        if (!confirm(`即將把雲端現有的 ${quizDatabase.length} 題，以每批 100 筆 (300 操作) 安全寫入 Firestore 3 層目錄。是否繼續？`)) return;
+
+        try {
+            const BATCH_SIZE = 100;
+            let processed = 0;
+
+            for (let i = 0; i < quizDatabase.length; i += BATCH_SIZE) {
+                const batch = writeBatch(db);
+                const chunk = quizDatabase.slice(i, i + BATCH_SIZE);
+
+                chunk.forEach(q => {
+                    const cat = sanitizeId(q.category || 'head_skull');
+                    const img = sanitizeId(q.image);
+
+                    const termRef = doc(db, "categories", cat, "images", img, "terms", q.id);
+                    batch.set(termRef, q, { merge: true });
+
+                    const imgRef = doc(db, "categories", cat, "images", img);
+                    batch.set(imgRef, { filename: q.image, category: cat, lastUpdated: Date.now() }, { merge: true });
+
+                    const catRef = doc(db, "categories", cat);
+                    batch.set(catRef, { name: cat, lastUpdated: Date.now() }, { merge: true });
+                });
+
+                await batch.commit();
+                processed += chunk.length;
+            }
+            alert(`🎉 安全升級成功！共計 ${processed} 筆資料已完成 3 層目錄階層化！`);
+        } catch(e) {
+            alert("遷移失敗: " + e.message);
+        }
+    };
+
+    // --- 圖片分類樹檢視 ---
+    function renderEditorImageTree() {
+        const container = document.getElementById('editor-image-tree');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const searchKeyword = (document.getElementById('editor-tree-search').value || '').trim().toLowerCase();
+
+        const catMap = {};
+        const imageToCat = {};
+        const imageTermCount = {};
+
+        quizDatabase.forEach(q => {
+            const cat = q.category || 'head_skull';
+            if (!catMap[cat]) catMap[cat] = new Set();
+            catMap[cat].add(q.image);
+            imageToCat[q.image] = cat;
+            imageTermCount[q.image] = (imageTermCount[q.image] || 0) + 1;
+        });
+
+        const allLoadedImages = Object.keys(imagesData);
+        const uncategorizedImages = allLoadedImages.filter(img => !imageToCat[img]);
+
+        // 1. 已歸檔
+        for (const [catName, imgSet] of Object.entries(catMap)) {
+            const imgList = Array.from(imgSet).filter(img => img.toLowerCase().includes(searchKeyword));
+            if (imgList.length === 0 && searchKeyword) continue;
+
+            const groupDiv = document.createElement('div');
+            groupDiv.style.marginBottom = '4px';
+
+            const head = document.createElement('div');
+            head.style.cssText = 'font-weight:bold; font-size:0.82rem; color:#1e293b; cursor:pointer; padding:2px 4px; background:#f8fafc; border-radius:3px; display:flex; justify-content:space-between;';
+            head.innerHTML = `<span>📁 ${catName} <small style="color:#64748b;">(${imgList.length} 圖)</small></span><span>▾</span>`;
+
+            const childDiv = document.createElement('div');
+            childDiv.style.paddingLeft = '10px';
+
+            imgList.forEach(imgName => {
+                const item = document.createElement('div');
+                item.className = 'editor-tree-item' + (imgName === currentImage ? ' active-img' : '');
+                item.innerHTML = `<span>🖼️ ${imgName}</span><span style="color:#64748b; font-size:0.75rem;">${imageTermCount[imgName] || 0} 個詞</span>`;
+                item.onclick = () => {
+                    loadEditorImage(imgName);
+                    editorActiveCategory = catName;
+                    updateCategorySuggestions();
+                };
+                childDiv.appendChild(item);
+            });
+
+            groupDiv.appendChild(head);
+            groupDiv.appendChild(childDiv);
+            container.appendChild(groupDiv);
+        }
+
+        // 2. 未歸檔專區
+        const filteredUncat = uncategorizedImages.filter(img => img.toLowerCase().includes(searchKeyword));
+        if (filteredUncat.length > 0 || uncategorizedImages.length > 0) {
+            const uncatDiv = document.createElement('div');
+            uncatDiv.style.marginTop = '6px';
+            uncatDiv.style.borderTop = '1px dashed #f59e0b';
+            uncatDiv.style.paddingTop = '4px';
+
+            const uncatHead = document.createElement('div');
+            uncatHead.style.cssText = 'font-weight:bold; font-size:0.82rem; color:#d97706; cursor:pointer; padding:2px 4px; display:flex; justify-content:space-between;';
+            uncatHead.innerHTML = `<span>⚠️ 未歸檔圖片專區 <small style="color:#92400e;">(${filteredUncat.length} 張未標註)</small></span><span>▾</span>`;
+
+            const uncatChildren = document.createElement('div');
+            uncatChildren.style.paddingLeft = '10px';
+
+            filteredUncat.forEach(imgName => {
+                const item = document.createElement('div');
+                item.className = 'editor-tree-item' + (imgName === currentImage ? ' active-img' : '');
+                item.style.color = '#b45309';
+                item.innerHTML = `<span>📄 ${imgName}</span><span style="font-size:0.72rem; color:#b45309;">待編輯</span>`;
+                item.onclick = () => loadEditorImage(imgName);
+                uncatChildren.appendChild(item);
+            });
+
+            uncatDiv.appendChild(uncatHead);
+            uncatDiv.appendChild(uncatChildren);
+            container.appendChild(uncatDiv);
+        }
+    }
+
+    function renderImageTermsList() {
+        const listDiv = document.getElementById('image-terms-list');
+        listDiv.innerHTML = '';
+        if (!currentImage) return;
+
+        const termsOnImg = quizDatabase.filter(q => q.image === currentImage);
+        if (termsOnImg.length === 0) {
+            listDiv.innerHTML = '<span style="color:#94a3b8;">此圖尚未標註任何構造</span>';
+            return;
+        }
+
+        termsOnImg.forEach((q, idx) => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:3px 6px; background:#f8fafc; border-radius:4px; margin-bottom:3px;';
+            const mCount = (q.masks && q.masks.length) ? q.masks.length : 1;
+            const sideTxt = q.sidedness && q.sidedness !== 'unpaired' ? `[${q.sidedness}]` : '';
+            row.innerHTML = `
+                <span><strong>${idx + 1}. ${q.term}</strong> <small style="color:#64748b;">(${mCount > 1 ? mCount + ' 遮蓋' : '單遮蓋'} ${sideTxt})</small></span>
+                <button type="button" class="btn-sm" style="color:var(--danger); padding:1px 5px;" onclick="deleteQuestion('${q.id}')">🗑️ 刪除</button>
+            `;
+            listDiv.appendChild(row);
+        });
+    }
+
+    window.deleteQuestion = async (qId) => {
+        if (!confirm("確定要刪除此構造標註嗎？")) return;
+        try {
+            const q = quizDatabase.find(item => item.id === qId);
+            const batch = writeBatch(db);
+            batch.delete(doc(db, "quiz_data", qId));
+            if (q) {
+                batch.delete(doc(db, "categories", sanitizeId(q.category || "head_skull"), "images", sanitizeId(q.image), "terms", qId));
+            }
+            if (currentUser) {
+                batch.delete(doc(db, "user_progress", `${currentUser.uid}_${qId}`));
+            }
+            await batch.commit();
+
+            quizDatabase = quizDatabase.filter(item => item.id !== qId);
+            delete userProgress[qId];
+
+            renderEditorCanvas();
+            renderImageTermsList();
+            renderEditorImageTree();
+            buildCategoryTree();
+            updateCategorySuggestions();
+            updateScopeSummary();
+            alert("✅ 已成功刪除！");
+        } catch(e) {
+            alert("刪除失敗: " + e.message);
+        }
+    };
+
+    // --- 出題範圍抽屜 ---
     window.toggleScopeDrawer = () => {
         isDrawerOpen = !isDrawerOpen;
         document.getElementById('scope-drawer-body').style.display = isDrawerOpen ? 'block' : 'none';
@@ -480,16 +1354,7 @@
         const totalImages = selectedImages.size;
         const totalQuestions = quizDatabase.filter(q => selectedImages.has(q.image)).length;
         document.getElementById('scope-summary').innerText = `(已選 ${totalImages} 張圖 · ${totalQuestions} 題)`;
-    }
-
-    function updateCategorySuggestions() {
-        const datalist = document.getElementById('category-suggestions');
-        datalist.innerHTML = '';
-        const cats = Array.from(new Set(quizDatabase.map(q => q.category))).filter(Boolean);
-        cats.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c; datalist.appendChild(opt);
-        });
+        updateDailyHUD();
     }
 
     function buildCategoryTree() {
@@ -622,19 +1487,16 @@
         if (currentQuestion && quizType === 'mcq') renderQuestion(currentQuestion);
     };
 
-    // 鍵盤監聽：數字鍵 1~6、Enter 提交與切換下一題
     window.addEventListener('keydown', (e) => {
         const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
         const isEditingOtherInput = activeTag === 'input' && document.activeElement.id !== 'fill-input';
         if (isEditingOtherInput) return;
 
-        // 若焦點就在 fill-input 上，由 fill-input 自身監聽處理，防止重複響應
         if (document.activeElement && document.activeElement.id === 'fill-input' && e.key === 'Enter') {
             return;
         }
 
         const nextBtn = document.getElementById('next-btn');
-
         if (nextBtn && nextBtn.style.display !== 'none') {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -664,7 +1526,7 @@
     document.getElementById('fill-input').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            e.stopPropagation(); // 阻止冒泡至 window，確保一次 Enter 只做一步
+            e.stopPropagation();
             const nextBtn = document.getElementById('next-btn');
             if (nextBtn && nextBtn.style.display !== 'none') {
                 window.nextQuestion();
@@ -674,21 +1536,24 @@
         }
     });
 
-    document.getElementById('folder-input').addEventListener('change', function(e) {
+    // 檔案載入與本機 IndexedDB 快取
+    document.getElementById('folder-input').addEventListener('change', async function(e) {
         const files = e.target.files;
-        const selector = document.getElementById('image-selector');
-        selector.innerHTML = '';
         let loaded = 0;
         for (let file of files) {
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    imagesData[file.name] = event.target.result;
-                    const option = document.createElement('option');
-                    option.value = file.name; option.text = file.name;
-                    selector.appendChild(option);
+                reader.onload = async (event) => {
+                    const dataUrl = event.target.result;
+                    imagesData[file.name] = dataUrl;
+                    await cacheImage(file.name, dataUrl);
                     if(loaded === 0) loadEditorImage(file.name);
                     loaded++;
+                    renderEditorImageTree();
+                    
+                    const statusEl = document.getElementById('idb-cache-status');
+                    statusEl.innerHTML = `💾 已成功持久化快取 <strong>${Object.keys(imagesData).length}</strong> 張圖片至本機！`;
+                    statusEl.style.color = "#27ae60";
                 };
                 reader.readAsDataURL(file);
             }
@@ -696,22 +1561,48 @@
     });
 
     window.finishSetup = () => {
-        if (Object.keys(imagesData).length === 0) return alert("請先選擇包含圖片的資料夾！");
+        if (Object.keys(imagesData).length === 0) return alert("請先選取圖片資料夾或確認本機快取！");
         document.getElementById('setup-zone').style.display = 'none';
         window.switchMode('quiz');
     };
 
-    document.getElementById('image-selector').addEventListener('change', (e) => loadEditorImage(e.target.value));
-
     function loadEditorImage(filename) {
         currentImage = filename;
-        const img = new Image();
-        img.onload = () => {
-            canvas.width = img.width; canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            drawExistingMasks();
+        document.getElementById('editor-current-img-badge').innerText = `(${filename})`;
+        editorPendingMasks = [];
+        document.getElementById('term-input').value = '';
+        
+        cachedEditorImg = new Image();
+        cachedEditorImg.onload = () => {
+            renderEditorCanvas();
+            renderImageTermsList();
+            renderEditorImageTree();
         };
-        img.src = imagesData[filename];
+        cachedEditorImg.src = imagesData[filename];
+    }
+
+    function renderEditorCanvas() {
+        if (!currentImage || !cachedEditorImg || !cachedEditorImg.complete) return;
+        
+        canvas.width = cachedEditorImg.width;
+        canvas.height = cachedEditorImg.height;
+        ctx.drawImage(cachedEditorImg, 0, 0);
+        drawExistingMasks();
+
+        editorPendingMasks.forEach((m, idx) => {
+            ctx.fillStyle = "rgba(231, 76, 60, 0.5)";
+            ctx.fillRect(m.x, m.y, m.w, m.h);
+            ctx.strokeStyle = "#e74c3c";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(m.x, m.y, m.w, m.h);
+
+            ctx.fillStyle = "#e74c3c";
+            ctx.fillRect(m.x, m.y - 18, 22, 18);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText(`#${idx + 1}`, m.x + 3, m.y - 4);
+        });
+        document.getElementById('pending-mask-count').innerText = editorPendingMasks.length;
     }
 
     canvas.addEventListener('mousedown', e => {
@@ -722,24 +1613,40 @@
     });
 
     canvas.addEventListener('mousemove', e => {
-        if (!isDrawing) return;
+        if (!isDrawing || !cachedEditorImg) return;
         const rect = canvas.getBoundingClientRect();
         currentX = (e.clientX - rect.left) * (canvas.width / rect.width);
         currentY = (e.clientY - rect.top) * (canvas.height / rect.height);
         
-        const img = new Image();
-        img.src = imagesData[currentImage];
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        drawExistingMasks();
-        
+        renderEditorCanvas();
+
         ctx.fillStyle = "rgba(231, 76, 60, 0.5)"; 
         ctx.fillRect(startX, startY, currentX - startX, currentY - startY);
         ctx.strokeStyle = "red";
         ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
     });
 
-    canvas.addEventListener('mouseup', () => { isDrawing = false; });
+    canvas.addEventListener('mouseup', () => {
+        if (!isDrawing) return;
+        isDrawing = false;
+        const w = currentX - startX;
+        const h = currentY - startY;
+        if (Math.abs(w) < 6 || Math.abs(h) < 6) return;
+
+        const newMask = {
+            x: w < 0 ? currentX : startX,
+            y: h < 0 ? currentY : startY,
+            w: Math.abs(w),
+            h: Math.abs(h)
+        };
+
+        if (editorMaskMode === 'single') {
+            editorPendingMasks = [newMask];
+        } else {
+            editorPendingMasks.push(newMask);
+        }
+        renderEditorCanvas();
+    });
 
     function sanitizeId(str) {
         return (str || '').trim().replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
@@ -747,8 +1654,12 @@
 
     window.saveMaskRegion = async () => {
         const term = document.getElementById('term-input').value.trim();
-        const category = document.getElementById('category-input').value.trim() || "head_skull";
+        const category = editorActiveCategory || "head_skull";
+        const sidedness = document.getElementById('sidedness-input').value;
+        const viewAngle = document.getElementById('view-angle-input').value;
+
         if (!term) return alert("請輸入專有名詞！");
+        if (editorPendingMasks.length === 0) return alert("請在畫布上框選至少一個遮蓋區域！");
         
         const docId = `${sanitizeId(category)}_${sanitizeId(currentImage)}_${sanitizeId(term)}`;
         
@@ -756,24 +1667,47 @@
             category: category,
             image: currentImage, 
             term: term,
-            mask: { x: startX, y: startY, w: currentX - startX, h: currentY - startY },
+            sidedness: sidedness,
+            viewAngle: viewAngle,
+            masks: editorPendingMasks,
+            mask: editorPendingMasks[0] || null,
             creatorId: currentUser.uid, 
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            updatedAt: Date.now()
         };
         
         try {
-            await setDoc(doc(db, "quiz_data", docId), newQuiz);
+            const batch = writeBatch(db);
+            
+            const termRef = doc(db, "categories", sanitizeId(category), "images", sanitizeId(currentImage), "terms", docId);
+            batch.set(termRef, newQuiz, { merge: true });
+
+            const imgRef = doc(db, "categories", sanitizeId(category), "images", sanitizeId(currentImage));
+            batch.set(imgRef, { filename: currentImage, category: category, lastUpdated: Date.now() }, { merge: true });
+
+            const catRef = doc(db, "categories", sanitizeId(category));
+            batch.set(catRef, { name: category, lastUpdated: Date.now() }, { merge: true });
+
+            const legacyRef = doc(db, "quiz_data", docId);
+            batch.set(legacyRef, newQuiz, { merge: true });
+
+            await batch.commit();
+
             const existingIdx = quizDatabase.findIndex(q => q.id === docId);
             if (existingIdx >= 0) quizDatabase[existingIdx] = { id: docId, ...newQuiz };
             else quizDatabase.push({ id: docId, ...newQuiz });
 
             document.getElementById('term-input').value = "";
-            loadEditorImage(currentImage);
+            editorPendingMasks = [];
             selectedImages.add(currentImage);
+
+            renderEditorCanvas();
+            renderImageTermsList();
+            renderEditorImageTree();
             buildCategoryTree();
             updateCategorySuggestions();
             updateScopeSummary();
-            alert(`✅ 成功儲存！ID: ${docId}`);
+            alert(`✅ 成功儲存！【${term}】(${newQuiz.masks.length} 個遮蓋區域)`);
         } catch (e) {
             alert("上傳失敗: " + e.message);
         }
@@ -782,10 +1716,17 @@
     function drawExistingMasks() {
         quizDatabase.forEach(item => {
             if (item.image === currentImage) {
+                const masks = getItemMasks(item);
                 ctx.fillStyle = "black";
-                ctx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                masks.forEach(m => ctx.fillRect(m.x, m.y, m.w, m.h));
             }
         });
+    }
+
+    function getItemMasks(item) {
+        if (item.masks && Array.isArray(item.masks) && item.masks.length > 0) return item.masks;
+        if (item.mask) return [item.mask];
+        return [];
     }
 
     window.switchMode = (mode) => {
@@ -801,14 +1742,21 @@
         } else {
             document.getElementById(`mode-${mode}`).classList.add('active');
             if (mode === 'quiz') window.nextQuestion();
+            if (mode === 'editor') {
+                renderEditorImageTree();
+                if (currentImage) loadEditorImage(currentImage);
+            }
         }
     };
 
-    function generateSmartDistractors(targetTerm, pool, targetCount) {
+    function generateSmartDistractors(targetTerm, pool, targetCount, targetCategory) {
         const targetLower = targetTerm.toLowerCase();
         const targetKeywords = ANATOMICAL_AFFIXES.filter(affix => targetLower.includes(affix));
 
-        const candidates = pool
+        const sameCategoryPool = pool.filter(q => (q.category || 'head_skull') === (targetCategory || 'head_skull'));
+        const poolToUse = sameCategoryPool.length >= targetCount ? sameCategoryPool : pool;
+
+        const candidates = poolToUse
             .filter(q => q.term.trim().toLowerCase() !== targetLower)
             .map(q => {
                 const termLower = q.term.toLowerCase();
@@ -837,7 +1785,7 @@
         }
 
         if (distractors.length < targetCount - 1) {
-            const allTerms = quizDatabase.map(q => q.term);
+            const allTerms = pool.map(q => q.term);
             for (const t of allTerms) {
                 const tLower = t.trim().toLowerCase();
                 if (!usedTerms.has(tLower)) {
@@ -852,12 +1800,12 @@
         return options.sort(() => Math.random() - 0.5);
     }
 
-    // --- 🎯 出題控制中樞 (支援地毯模式、隨機模式、特訓模式) -- ---
     window.nextQuestion = () => {
         let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
         const titleTag = document.getElementById('quiz-title-tag');
+        const metaBadge = document.getElementById('question-meta-badge');
+        metaBadge.innerText = '';
 
-        // 1. 全圖地毯填空模式 (Sheet Mode)
         if (quizType === 'sheet') {
             if (activePool.length === 0) {
                 titleTag.innerText = "🗺️ 全圖地毯模式 (請選範圍)";
@@ -865,12 +1813,10 @@
                 return;
             }
 
-            // 若當前題目已解答完成，推進題目索引
             if (currentQuestion && sheetResolved.has(currentQuestion.id)) {
                 sheetIndex++;
             }
 
-            // 若尚未選圖，或當前圖片已經全數攻克完畢，挑選新的一張圖
             if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length) {
                 const availableImages = Array.from(new Set(activePool.map(q => q.image)));
                 sheetCurrentImg = availableImages[Math.floor(Math.random() * availableImages.length)];
@@ -880,13 +1826,27 @@
             }
 
             currentQuestion = sheetQuestions[sheetIndex];
-            titleTag.title = sheetCurrentImg; // 滑鼠懸停顯示完整檔名
+            titleTag.title = sheetCurrentImg;
             titleTag.innerHTML = `🗺️ 全圖地毯 <small style="color:#64748b;">(進度: ${sheetIndex + 1}/${sheetQuestions.length})</small>`;
             renderQuestion(currentQuestion);
+            updateDailyHUD();
+            updateRelearnHUD();
             return;
         }
 
-        // 2. 弱點特訓模式
+        let relearnTargetIdx = relearnQueue.findIndex(item => item.targetIndex <= sessionAnswerCount);
+        if (relearnTargetIdx >= 0) {
+            const item = relearnQueue.splice(relearnTargetIdx, 1)[0];
+            currentQuestion = item.question;
+            currentQuestion._isRelearning = true;
+            currentQuestion._retryCount = item.retryCount;
+            titleTag.innerHTML = `🔁 <span style="color:var(--relearn); font-weight:bold;">錯題強化 (第 ${item.retryCount} 次重測)</span>`;
+            renderQuestion(currentQuestion);
+            updateDailyHUD();
+            updateRelearnHUD();
+            return;
+        }
+
         if (weakDrillPool && weakDrillPool.length > 0) {
             activePool = weakDrillPool;
             titleTag.title = "";
@@ -907,20 +1867,32 @@
         const now = Date.now();
         let dueCards = activePool.filter(q => {
             const prog = userProgress[q.id];
-            if (!prog) return true;
-            return prog.nextReviewDate <= now;
+            return !prog || prog.nextReviewDate <= now;
         });
 
         if (dueCards.length > 0) {
-            currentQuestion = dueCards[Math.floor(Math.random() * dueCards.length)];
+            dueCards.sort((a, b) => {
+                const dateA = (userProgress[a.id] && userProgress[a.id].nextReviewDate) || 0;
+                const dateB = (userProgress[b.id] && userProgress[b.id].nextReviewDate) || 0;
+                return dateA - dateB;
+            });
+            const pickPool = dueCards.slice(0, Math.min(3, dueCards.length));
+            currentQuestion = pickPool[Math.floor(Math.random() * pickPool.length)];
+        } else if (relearnQueue.length > 0) {
+            const item = relearnQueue.shift();
+            currentQuestion = item.question;
+            currentQuestion._isRelearning = true;
+            currentQuestion._retryCount = item.retryCount;
+            titleTag.innerHTML = `🔁 <span style="color:var(--relearn); font-weight:bold;">錯題提前強化 (第 ${item.retryCount} 次重測)</span>`;
         } else {
             currentQuestion = activePool[Math.floor(Math.random() * activePool.length)];
         }
 
         renderQuestion(currentQuestion);
+        updateDailyHUD();
+        updateRelearnHUD();
     };
 
-    // 專門繪製畫布（保證當前題目 100% 呈現醒目紅框）
     function drawCanvasForQuestion(q, revealCurrent = false) {
         if (!q || !imagesData[q.image]) return;
         const img = new Image();
@@ -930,27 +1902,22 @@
             
             quizDatabase.forEach(item => {
                 if (item.image === q.image) {
+                    const masks = getItemMasks(item);
                     if (quizType === 'sheet') {
                         if (revealCurrent && item.id === q.id) {
-                            // 剛回答完畢觸發揭開：完全透明，露出底圖原字！
+                            // 答完後完全揭開
                         } else if (item.id === q.id) {
-                            // 當前待答題目：絕對優先繪製實心紅框！
                             qCtx.fillStyle = "#e74c3c";
-                            qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                            masks.forEach(m => qCtx.fillRect(m.x, m.y, m.w, m.h));
                         } else if (sheetResolved.has(item.id)) {
-                            // 已經解開的歷史構造：透明露出底圖
+                            // 已經解開
                         } else {
-                            // 未輪到的其他構造：黑色遮罩
                             qCtx.fillStyle = "black";
-                            qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                            masks.forEach(m => qCtx.fillRect(m.x, m.y, m.w, m.h));
                         }
                     } else {
-                        if (item.id === q.id) {
-                            qCtx.fillStyle = "#e74c3c";
-                        } else {
-                            qCtx.fillStyle = "black";
-                        }
-                        qCtx.fillRect(item.mask.x, item.mask.y, item.mask.w, item.mask.h);
+                        qCtx.fillStyle = (item.id === q.id) ? "#e74c3c" : "black";
+                        masks.forEach(m => qCtx.fillRect(m.x, m.y, m.w, m.h));
                     }
                 }
             });
@@ -968,21 +1935,30 @@
         
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
+
+        const metaSpan = document.getElementById('question-meta-badge');
+        let metaParts = [];
+        if (q.sidedness && q.sidedness !== 'unpaired') {
+            metaParts.push(q.sidedness === 'left' ? '👈 左側 (Left)' : '👉 右側 (Right)');
+        }
+        if (q.viewAngle && q.viewAngle !== 'general') {
+            metaParts.push(`視角: ${q.viewAngle}`);
+        }
+        metaSpan.innerText = metaParts.length > 0 ? metaParts.join(' · ') : '';
         
         if (quizType === 'mcq') {
-            const options = generateSmartDistractors(q.term, quizDatabase, optionCount);
+            const options = generateSmartDistractors(q.term, quizDatabase, optionCount, q.category);
             const optionsGrid = document.getElementById('quiz-options');
             optionsGrid.innerHTML = '';
             options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn'; 
-                btn.innerHTML = `<span class=\"key-badge\">${idx + 1}</span>${opt}`;
+                btn.innerHTML = `<span class="key-badge">${idx + 1}</span>${opt}`;
                 btn.onclick = () => window.checkAnswer(opt, q.term);
                 optionsGrid.appendChild(btn);
             });
         }
 
-        // 填空題輸入框重置
         const fillInput = document.getElementById('fill-input');
         fillInput.value = '';
         fillInput.disabled = false;
@@ -1000,26 +1976,49 @@
     };
 
     window.checkAnswer = async (selected, correct) => {
-        const isCorrect = (selected.trim().toLowerCase() === correct.trim().toLowerCase());
+        const evaluation = verifyAnatomyAnswer(selected, correct);
+        const isCorrect = evaluation.passed;
         const feedback = document.getElementById('feedback');
         
-        // --- 🔥 Combo 燃燒計數與回饋 -- ---
+        sessionAnswerCount++;
+
+        const todayStr = getTodayString();
+        if (!userDailyStats || userDailyStats.date !== todayStr) {
+            userDailyStats = { date: todayStr, count: 1 };
+        } else {
+            userDailyStats.count++;
+        }
+        updateDailyHUD();
+
         if (isCorrect) {
             currentCombo++;
-            if (currentCombo > maxCombo) {
-                maxCombo = currentCombo;
-                saveUserStats();
-            }
+            if (currentCombo > maxCombo) maxCombo = currentCombo;
+            saveUserStats();
             updateComboHUD(false);
-            feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】<br><small style="color:#555;">(已延後複習 · 敲 Enter 鍵下一題)</small></span>`;
+
+            let feedbackDetails = '';
+            if (evaluation.reason === 'synonym') {
+                feedbackDetails = `<br><span class="synonym-tag">📖 NAV 同義詞判定通過 (您輸入拉丁/英文通用名)</span>`;
+            } else if (evaluation.reason === 'typo_tolerated') {
+                feedbackDetails = `<br><span class="typo-tag">✍️ 容許輕微筆誤 (標準拼法: ${correct})</span>`;
+            }
+
+            feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】${feedbackDetails}<br><small style="color:#555;">(敲 Enter 鍵繼續)</small></span>`;
         } else {
             currentCombo = 0;
-            updateComboHUD(true); // 觸發火焰熄滅震動
             saveUserStats();
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 敲 Enter 鍵下一題)</small></span>`;
+            updateComboHUD(true);
+            
+            relearnQueue.push({
+                question: currentQuestion,
+                targetIndex: sessionAnswerCount + 3,
+                retryCount: ((currentQuestion && currentQuestion._retryCount) || 0) + 1
+            });
+            updateRelearnHUD();
+
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 系統已將此題排入當次即刻重測佇列)</small></span>`;
         }
 
-        // 🌟【地毯模式亮點】：回答完後立刻移除當前遮罩，露出底圖原字
         if (quizType === 'sheet') {
             sheetResolved.add(currentQuestion.id);
             drawCanvasForQuestion(currentQuestion, true);
@@ -1031,7 +2030,6 @@
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         document.getElementById('next-btn').style.display = 'block';
 
-        // 艾賓豪斯進度計算（無縫升級舊紀錄）
         const quizId = currentQuestion.id;
         let prog = userProgress[quizId] || { 
             repetitions: 0, interval: 0, easeFactor: 2.5,
@@ -1042,19 +2040,12 @@
         prog.correctCount = (prog.correctCount || 0) + (isCorrect ? 1 : 0);
         prog.wrongCount = (prog.wrongCount || 0) + (isCorrect ? 0 : 1);
 
+        let grade = 1;
         if (isCorrect) {
-            if (prog.repetitions === 0) prog.interval = 1;
-            else if (prog.repetitions === 1) prog.interval = 6;
-            else prog.interval = Math.round(prog.interval * prog.easeFactor);
-            prog.repetitions += 1;
-            prog.easeFactor = Math.max(1.3, prog.easeFactor + 0.1);
-        } else {
-            prog.repetitions = 0;
-            prog.interval = 1;
-            prog.easeFactor = Math.max(1.3, prog.easeFactor - 0.2);
+            grade = (evaluation.reason === 'exact') ? 5 : 4;
         }
-        
-        prog.nextReviewDate = Date.now() + (prog.interval * 24 * 60 * 60 * 1000);
+        calculateSM2(prog, grade);
+
         prog.userId = currentUser.uid;
         prog.quizId = quizId;
         prog.category = currentQuestion.category || "head_skull";
@@ -1068,7 +2059,6 @@
         }
     };
 
-    // --- 📊 學習分析儀表板 (含頂部榮譽看板 & 100% 舊資料相容) -- ---
     function renderAnalytics() {
         const tbody = document.getElementById('category-stats-body');
         tbody.innerHTML = '';
@@ -1096,7 +2086,6 @@
             }
         });
 
-        // 舊進度保全：若有歷史作答文檔未匹配到現存題庫 ID，仍全數計入總歷史分析中
         Object.entries(userProgress).forEach(([qId, p]) => {
             if (!countedQuizIds.has(qId) && p) {
                 const cat = p.category || "head_skull";
@@ -1112,10 +2101,10 @@
             }
         });
 
-        // 🏆 頂層榮譽大看板更新
         document.getElementById('stat-max-combo').innerText = `${maxCombo} 題`;
         document.getElementById('stat-current-combo').innerText = `${currentCombo} 題`;
         document.getElementById('stat-total-answered').innerText = `${grandTotalAnswered} 次`;
+        updateDailyHUD();
 
         for (const [catName, s] of Object.entries(catStats)) {
             const rate = (s.answered > 0 && !isNaN(s.correct)) ? Math.round((s.correct / s.answered) * 100) : 0;
@@ -1134,7 +2123,6 @@
             tbody.appendChild(tr);
         }
 
-        // Top 10 弱點單字聚合
         const weakList = document.getElementById('weak-terms-list');
         weakList.innerHTML = '';
 
@@ -1237,5 +2225,5 @@
     };
 </script>
 
-</body>
-</html>
+
+</body></html>
