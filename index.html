@@ -2,7 +2,8 @@
 <html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V8 旗艦修復重構版)</title>
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V9-PRO 審查完修旗艦版)</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -387,6 +388,63 @@
         .editor-tree-item:hover { background: #e0f2fe; }
         .editor-tree-item.active-img { background: #bae6fd; font-weight: bold; border-left: 3px solid var(--accent); }
 
+
+        /* V9 新增：AI-OCR 徽章、比對高亮、Modal 與快捷列 */
+        .ocr-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.75rem; padding: 2px 8px; border-radius: 12px;
+            font-weight: bold; transition: all 0.2s;
+        }
+        .ocr-idle { background: #f1f5f9; color: #64748b; }
+        .ocr-busy { background: #dbeafe; color: #1d4ed8; animation: flamePulse 1s infinite; }
+        .ocr-ok { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .ocr-warn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .tree-action-btn {
+            border: 1px solid #cbd5e1; background: #fff; color: #334155;
+            border-radius: 3px; padding: 1px 5px; font-size: 0.72rem;
+            cursor: pointer; margin-left: 3px; transition: all 0.15s;
+        }
+        .tree-action-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
+            display: none; justify-content: center; align-items: center;
+            z-index: 9999; padding: 1rem;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-card {
+            background: #fff; border-radius: 10px; max-width: 820px; width: 100%;
+            max-height: 86vh; display: flex; flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; text-align: left;
+        }
+        .modal-header {
+            padding: 0.9rem 1.2rem; background: var(--primary); color: #fff;
+            display: flex; justify-content: space-between; align-items: center; font-weight: bold;
+        }
+        .modal-body { padding: 1rem 1.2rem; overflow-y: auto; font-size: 0.88rem; }
+        .modal-footer {
+            padding: 0.75rem 1.2rem; background: #f8fafc; border-top: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .typo-audit-row {
+            display: grid; grid-template-columns: 26px 1.25fr 1.1fr 1.25fr auto;
+            gap: 0.5rem; align-items: center; padding: 0.5rem 0.6rem;
+            border-bottom: 1px solid #f1f5f9; font-size: 0.82rem;
+        }
+        .typo-audit-row:hover { background: #f8fafc; }
+        .diff-box {
+            display: inline-block; background: #1e293b; color: #f8fafc;
+            padding: 4px 10px; border-radius: 6px; font-family: Consolas, monospace;
+            font-size: 0.92rem; letter-spacing: 0.5px; margin-top: 4px;
+        }
+        .diff-ok { color: #4ade80; }
+        .diff-err { color: #f87171; text-decoration: underline wavy #ef4444; font-weight: bold; }
+        .hint-scaffold-box {
+            background: #eff6ff; border: 1px dashed #93c5fd; color: #1e40af;
+            padding: 0.35rem 0.6rem; border-radius: 5px; font-family: Consolas, monospace;
+            font-size: 0.9rem; font-weight: bold; margin-bottom: 0.45rem; display: none;
+            letter-spacing: 1px;
+        }
+  
         @media (max-width: 900px) {
             header { padding: 0.5rem 0.8rem; }
             header h2 { font-size: 1.05rem; }
@@ -409,7 +467,7 @@
 <body>
 
 <header>
-    <h2>🦴 解剖學記憶分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V8-PRO 審查補正版</span></h2>
+    <h2>🦴 解剖學記憶分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V9-PRO 審查完修版</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem;"></span>
@@ -447,9 +505,13 @@
             <canvas id="editor-canvas"></canvas>
         </div>
         <div class="panel">
-            <h3 style="margin-top: 0; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin-top: 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
                 <span>🛠️ 題庫編輯器</span>
-                <span id="editor-current-img-badge" style="font-size:0.75rem; color:#64748b; font-weight:normal;"></span>
+                <span style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                    <span id="editor-current-img-badge" style="font-size:0.75rem; color:#64748b; font-weight:normal;"></span>
+                    <button type="button" class="btn-sm" style="padding:2px 6px; font-size:0.74rem;" onclick="promptRenameSingleImage(currentImage)" title="修改目前圖片檔案名稱 (同步更新本機快取與雲端)">✏️ 改圖名</button>
+                    <button type="button" class="btn-sm" style="padding:2px 6px; font-size:0.74rem; background:#fef3c7; border-color:#f59e0b; color:#92400e;" onclick="openTypoAuditModal()" title="檢視 OCR 比對出的 11 筆題庫拼字候選並自由挑選修正">🩺 拼字健檢 (11)</button>
+                </span>
             </h3>
 
             <!-- 智慧分類選取與防呆提示 -->
@@ -493,8 +555,20 @@
             </div>
 
             <div class="form-group">
-                <label>🔤 專有名詞 (正解/英/拉):</label>
-                <input type="text" id="term-input" placeholder="例如: Trochlea of humerus 或 Trochlea humeri">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem; flex-wrap:wrap; gap:4px;">
+                    <label style="margin:0;">🔤 專有名詞 (正解/英/拉):</label>
+                    <span id="ocr-status-badge" class="ocr-badge ocr-idle">🤖 畫框自動辨識就緒</span>
+                </div>
+                <input type="text" id="term-input" placeholder="畫紅框放開後自動辨識帶入 (不會直接寫入雲端，按 Enter 儲存)...">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.3rem; font-size:0.76rem; color:#475569; flex-wrap:wrap; gap:4px;">
+                    <label style="display:inline-flex; align-items:center; gap:4px; margin:0; font-weight:normal; cursor:pointer;">
+                        <input type="checkbox" id="ocr-auto-toggle" checked="" style="width:auto; margin:0;"> 畫框自動帶入欄位 (僅預填不直接存檔)
+                    </label>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" class="btn-sm" style="padding:1px 6px; font-size:0.72rem;" onclick="ocrLatestPendingMask()" title="重新對最新畫的紅框執行 OCR">🔄 辨識最新框</button>
+                        <button type="button" class="btn-sm" style="padding:1px 6px; font-size:0.72rem;" onclick="ocrMergeAllPendingMasks()" title="將多個紅框內的文字依上下順序合併辨識">🔗 合併多框</button>
+                    </div>
+                </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem;">
@@ -584,6 +658,12 @@
                     <label><input type="radio" name="option-count" value="4" checked="" onchange="onOptionCountChanged()"> 4 選 1</label>
                     <label><input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()"> 6 選 1</label>
                 </div>
+                <div id="sheet-order-bar" class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem; display: none;">
+                    <span style="font-size:0.78rem; color:#475569; font-weight:bold;">巡覽：</span>
+                    <label title="依解剖圖由上而下、由左而右依序出題"><input type="radio" name="sheet-order" value="topdown" checked="" onchange="onSheetOrderChanged()"> 🧭 由上而下</label>
+                    <label title="依圖片中心順時針環繞出題"><input type="radio" name="sheet-order" value="clockwise" onchange="onSheetOrderChanged()"> 🔄 順時針</label>
+                    <label title="隨機順序出題"><input type="radio" name="sheet-order" value="random" onchange="onSheetOrderChanged()"> 🎲 隨機</label>
+                </div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin: 0.2rem 0;">
@@ -598,8 +678,15 @@
 
             <!-- 填空題區 (單題與全圖地毯共用) -->
             <div id="fill-container" style="display: none; margin-top: 0.5rem;">
-                <div class="form-group" style="margin-bottom: 0.4rem;">
-                    <input type="text" id="fill-input" placeholder="輸入名稱 (支援 NAV 拉丁文/英文/容許輕微筆誤，Enter 送出)..." autocomplete="off">
+                <div id="hint-scaffold" class="hint-scaffold-box"></div>
+                <div class="form-group" style="margin-bottom: 0.35rem;">
+                    <input type="text" id="fill-input" placeholder="輸入名稱 (Enter 送出 · 按 Tab 顯示首字母提示)..." autocomplete="off">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem; font-size:0.78rem; color:#475569; flex-wrap:wrap; gap:4px;">
+                    <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer; margin:0;">
+                        <input type="checkbox" id="near-miss-retry-toggle" checked="" style="width:auto; margin:0;"> 🛡️ 差一字重試保連勝 (Near-Miss Retry)
+                    </label>
+                    <button type="button" class="btn-sm" style="padding:2px 8px; font-size:0.76rem; background:#eff6ff; border-color:#93c5fd; color:#1d4ed8;" onclick="triggerFillHint()">💡 首字母提示 (Tab)</button>
                 </div>
                 <button class="btn-primary" id="fill-submit-btn" onclick="submitFillAnswer()">提交答案</button>
             </div>
@@ -610,7 +697,7 @@
     </div>
 
     <!-- 3. 學習分析模式 -->
-    <div id="mode-analytics" class="card" style="display: block;">
+    <div id="mode-analytics" class="card" style="display: none;">
         <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
         
         <!-- 最上排 4 欄榮譽大看板 -->
@@ -666,6 +753,37 @@
     </div>
 </div>
 
+
+<!-- 🩺 題庫拼字健檢與挑選修正 Modal -->
+<div id="typo-audit-modal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <span>🩺 題庫拼字健檢清單（11 項候選 · 由您自由勾選修正）</span>
+            <button type="button" class="btn-sm" style="background:transparent; color:#fff; border-color:rgba(255,255,255,0.5);" onclick="closeTypoAuditModal()">✕ 關閉</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-top:0; color:#475569; font-size:0.83rem; line-height:1.45;">
+                以下為 AI-OCR 對比 39 張圖譜後，檢測出雲端題庫與課本印刷字存在拼字差異的 <strong>11 項候選題目</strong>。<br>
+                💡 <strong>安全機制</strong>：為避免影響您刻意建立的「無字空遮罩」或自訂命名，系統<strong>不會自動修改</strong>任何題目。您可以點擊「👁️ 看圖」在畫布上高亮檢視該紅框位置，僅勾選您確認要修正的項目！
+            </p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; padding:0.35rem 0.6rem; background:#f1f5f9; border-radius:4px; font-size:0.8rem; font-weight:bold;">
+                <label style="cursor:pointer; display:inline-flex; align-items:center; gap:5px; margin:0;">
+                    <input type="checkbox" id="typo-select-all" checked="" onchange="toggleAllTypoChecks(this.checked)" style="width:auto; margin:0;"> 全選 / 全不選
+                </label>
+                <span id="typo-audit-count-label" style="color:var(--primary);">共 11 項候選</span>
+            </div>
+            <div id="typo-audit-list"></div>
+        </div>
+        <div class="modal-footer">
+            <span style="font-size:0.78rem; color:#64748b;">同步範圍：本機記憶、quiz_data 與三層 categories/images/terms</span>
+            <div style="display:flex; gap:0.5rem;">
+                <button type="button" class="btn-sm" onclick="closeTypoAuditModal()">暫不修改</button>
+                <button type="button" class="btn-primary" style="width:auto; padding:0.45rem 1rem; font-size:0.88rem; background:#16a085;" onclick="applySelectedTypoFixes()">✅ 套用已勾選項目並同步雲端</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Firebase SDK -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
@@ -713,6 +831,19 @@
                 tx.onerror = () => reject(tx.error);
             });
         } catch(e) { console.warn("快取圖片失敗:", e); }
+    }
+
+
+    async function deleteCachedImage(name) {
+        try {
+            const idb = await openImageDB();
+            return new Promise((resolve, reject) => {
+                const tx = idb.transaction(STORE_NAME, "readwrite");
+                tx.objectStore(STORE_NAME).delete(name);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => reject(tx.error);
+            });
+        } catch(e) { console.warn("刪除快取圖片失敗:", e); }
     }
 
     async function loadCachedImages() {
@@ -772,7 +903,12 @@
         "medial epicondyle": ["epicondylus medialis"],
         "tibial tuberosity": ["tuberositas tibiae"],
         "calcaneal tuber": ["tuber calcanei"],
-        "extensor groove": ["sulcus extensorius"]
+        "extensor groove": ["sulcus extensorius"],
+        "mammillary process": ["mamillary process", "processus mamillaris"],
+        "mamillary process": ["mammillary process", "processus mamillaris"],
+        "processus mamillaris": ["mammillary process", "mamillary process"],
+        "median sacral crest": ["crista sacralis mediana"],
+        "crista sacralis mediana": ["median sacral crest"]
     };
 
     function normalizeAnatomyTerm(str) {
@@ -781,6 +917,7 @@
             .toLowerCase()
             .replace(/^(the|a|an)\s+/i, '')       // 正確轉義 \s
             .replace(/\s+of\s+the\s+/g, ' of ')  // 正確轉義 \s
+            .replace(/\bbones\b/g, 'bone')        // 支援單複數 bone / bones 互通
             .replace(/[-_]/g, ' ')
             .replace(/\s+/g, ' ');               // 修正：必須是 \s+，不可為 s+
     }
@@ -863,6 +1000,179 @@
     const qCtx = quizCanvas.getContext('2d');
     let isDrawing = false;
     let startX, startY, currentX, currentY;
+
+
+    // --- V9 新增：本地端 AI-OCR 引擎 (Stage 3 解剖最佳化管線) ---
+    let ocrWorker = null;
+    let ocrInitPromise = null;
+    let editorHighlightQuestionId = null;
+    let sheetOrderMode = 'topdown';
+    let currentHintLevel = 0;
+
+    const TYPO_AUDIT_CANDIDATES = [
+        { id: "AvP2IKn5VXNVThtw5ihz", image: "mandibles_dorsal_lateral.PNG", oldTerm: "ramus of manible", newTerm: "ramus of mandible", note: "手動輸入漏打字母 d" },
+        { id: "fore_limb_paw_dorsal_PNG_distal_cartal_bones", image: "paw_dorsal.PNG", oldTerm: "distal cartal bones", newTerm: "distal carpal bones", note: "腕骨 carpal 誤植為 cartal" },
+        { id: "fore_limb_paw_dorsal_PNG_dorsal_seasamoid_bones", image: "paw_dorsal.PNG", oldTerm: "dorsal seasamoid bones", newTerm: "dorsal sesamoid bones", note: "種子骨 sesamoid 多打 a" },
+        { id: "fore_limb_paw_palmar_PNG_proximal_seasamoid_bones", image: "paw_palmar.PNG", oldTerm: "proximal seasamoid bones", newTerm: "proximal sesamoid bones", note: "種子骨 sesamoid 多打 a" },
+        { id: "fore_limb_paw_palmar_PNG_accesory", image: "paw_palmar.PNG", oldTerm: "accesory", newTerm: "accessory", note: "漏打一個 s" },
+        { id: "head_skull_sacrum_PNG_promotory", image: "sacrum.PNG", oldTerm: "promotory", newTerm: "promontory", note: "薦骨岬 promontory 漏打 n" },
+        { id: "liTjL8lqOFm2j9q88lDe", image: "IMG_1956.PNG", oldTerm: "zygomaic (cut)", newTerm: "zygomatic (cut)", note: "顴骨 zygomatic 漏打 t" },
+        { id: "vertebral_bone_T6_T12_13_png_mammillary_process", image: "T6+T12_13.png", oldTerm: "mamillary process", newTerm: "mammillary process", note: "課本印刷為雙 m (Mammillary)" },
+        { id: "vertebral_bone_rib_ventral_PNG_intersterbabral_cartilage", image: "rib_ventral.PNG", oldTerm: "intersterbabral cartilage", newTerm: "intersternebral cartilage", note: "胸骨節間軟骨拼字修正" },
+        { id: "vertebral_bone_rib_ventral_PNG_xiphoid_carilage", image: "rib_ventral.PNG", oldTerm: "xiphoid carilage", newTerm: "xiphoid cartilage", note: "軟骨 cartilage 漏打 t" },
+        { id: "head_skull_sacrum_dorsal_PNG_medial_sacral_crest", image: "sacrum_dorsal.PNG", oldTerm: "medial sacral crest", newTerm: "median sacral crest", note: "NAV 標準命名為正中薦嵴 Median sacral crest (Crista sacralis mediana)，非內側 medial" }
+    ];
+
+    function setOcrBadge(state, text) {
+        const badge = document.getElementById('ocr-status-badge');
+        if (!badge) return;
+        badge.className = 'ocr-badge ocr-' + state;
+        badge.innerText = text;
+    }
+
+    async function ensureOcrWorker() {
+        if (ocrWorker) return ocrWorker;
+        if (ocrInitPromise) return ocrInitPromise;
+        if (!window.Tesseract) {
+            setOcrBadge('warn', '⚠️ 離線無 OCR 套件 (請手輸)');
+            return null;
+        }
+        ocrInitPromise = (async () => {
+            try {
+                setOcrBadge('busy', '⏳ 正在啟動 AI 辨識引擎...');
+                const w = await window.Tesseract.createWorker('eng');
+                await w.setParameters({
+                    tessedit_pageseg_mode: '6',
+                    tessedit_char_whitelist: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'()/,. "
+                });
+                ocrWorker = w;
+                setOcrBadge('idle', '🤖 畫框自動辨識就緒');
+                return w;
+            } catch (err) {
+                console.warn('OCR 初始化失敗:', err);
+                setOcrBadge('warn', '⚠️ OCR 未就緒');
+                ocrInitPromise = null;
+                return null;
+            }
+        })();
+        return ocrInitPromise;
+    }
+
+    function cropMaskForOcr(img, m) {
+        const scale = 2.0;
+        const pad = 16;
+        const nx = m.w < 0 ? m.x + m.w : m.x;
+        const ny = m.h < 0 ? m.y + m.h : m.y;
+        const nw = Math.abs(m.w);
+        const nh = Math.abs(m.h);
+        const w = Math.max(1, Math.round(nw * scale));
+        const h = Math.max(1, Math.round(nh * scale));
+        const c = document.createElement('canvas');
+        c.width = w + pad * 2;
+        c.height = h + pad * 2;
+        const cctx = c.getContext('2d');
+        cctx.fillStyle = '#FFFFFF';
+        cctx.fillRect(0, 0, c.width, c.height);
+        cctx.imageSmoothingEnabled = true;
+        cctx.imageSmoothingQuality = 'high';
+        cctx.drawImage(img, nx, ny, nw, nh, pad, pad, w, h);
+        return c.toDataURL('image/png');
+    }
+
+    function cleanOcrAnatomyText(txt) {
+        let lines = (txt || '').split(/\n+/).map(l => l.trim()).filter(Boolean);
+        if (lines.length > 1) {
+            lines = lines.filter(l => {
+                const alpha = l.replace(/[^a-zA-Z0-9]/g, '');
+                // 保留合法介系詞、椎骨編號與羅馬數字 I ~ XII
+                if (alpha.length <= 2 && !/^(of|in|to|or|on|at|by|c\d|t\d|l\d|i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii)$/i.test(alpha)) {
+                    return false;
+                }
+                return true;
+            });
+        }
+        let cleaned = lines.join(' ')
+            .replace(/-\s+/g, '')
+            .replace(/^[^a-zA-Z0-9(]+|[^a-zA-Z0-9)]+$/g, '')
+            .replace(/^(?:[|_—–•·.,:;!?/\\]+|\b[1Il|]\b)\s+/g, '')
+            // 字尾僅移除直線符號、數字 1 或小寫 l；若為大寫 I 則檢查前方是否為解剖學名詞，絕不誤殺羅馬數字 I
+            .replace(/\s+(?:[|_—–•·.,:;!?/\\]+|\b[1l|]\b)$/g, '')
+            .replace(/\s+[.,:;•·-]\s+/g, ' ')
+            .replace(/\bll(i[a-z]+)/gi, 'Il$1')
+            .replace(/\blium\b/gi, 'Ilium')
+            .replace(/\bomer\b/gi, 'Vomer')
+            .replace(/\bs(Internal|External|Cranial|Caudal|Dorsal|Ventral|Medial|Lateral|Rostral)\b/g, '$1')
+            .replace(/\b(Cranial|Caudal|Dorsal|Ventral|Medial|Lateral|Rostral)\s+[A-Z]\s+(vertebral|articular|alar|palatine|sacral)\b/g, '$1 $2')
+            .replace(/\bot\b/g, 'of')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        // 若字尾為孤立大寫 I，僅在前方「不是」指骨/掌骨/蹠骨/腕骨/跗骨/神經等解剖名詞時才視為邊框殘影移除
+        cleaned = cleaned.replace(/(\b\w+)\s+I$/, (full, prevWord) => {
+            if (/^(phalanx|digiti|digit|bone|bones|metacarpal|metatarsal|carpal|tarsal|nerve|cranial|pollex|hallux)$/i.test(prevWord)) {
+                return prevWord + ' I';
+            }
+            return prevWord;
+        });
+
+        return cleaned;
+    }
+
+    async function recognizeSingleMaskToInput(maskObj, forceOverwrite = true) {
+        if (!cachedEditorImg || !maskObj) return;
+        const termInput = document.getElementById('term-input');
+        if (!forceOverwrite && termInput.value.trim().length > 0) {
+            setOcrBadge('ok', '🔒 已保留現有欄位文字 (可點重新辨識)');
+            return;
+        }
+        const worker = await ensureOcrWorker();
+        if (!worker) return;
+        try {
+            setOcrBadge('busy', '⏳ AI 辨識紅框文字中...');
+            const dataUrl = cropMaskForOcr(cachedEditorImg, maskObj);
+            const res = await worker.recognize(dataUrl);
+            const cleaned = cleanOcrAnatomyText(res.data.text);
+            const conf = Math.round(res.data.confidence || 0);
+            if (cleaned && cleaned.replace(/[^a-zA-Z]/g, '').length >= 2 && conf >= 20) {
+                termInput.value = cleaned.toLowerCase();
+                setOcrBadge('ok', `✨ AI 已帶入 (${conf}% · 請確認後按儲存)`);
+                termInput.focus();
+            } else {
+                setOcrBadge('warn', '⚠️ 框內無清晰文字 (空遮罩請手輸)');
+            }
+        } catch (e) {
+            console.warn('OCR 辨識異常:', e);
+            setOcrBadge('warn', '⚠️ 辨識失敗 (請手動輸入)');
+        }
+    }
+
+    window.ocrLatestPendingMask = async () => {
+        if (editorPendingMasks.length === 0) return alert('請先在畫布上框選至少一個區域！');
+        const latest = editorPendingMasks[editorPendingMasks.length - 1];
+        await recognizeSingleMaskToInput(latest, true);
+    };
+
+    window.ocrMergeAllPendingMasks = async () => {
+        if (editorPendingMasks.length === 0) return alert('請先在畫布上框選至少一個區域！');
+        const worker = await ensureOcrWorker();
+        if (!worker) return;
+        setOcrBadge('busy', '⏳ 正在合併辨識多個紅框...');
+        const sorted = [...editorPendingMasks].sort((a, b) => (Math.abs(a.y - b.y) > 15 ? a.y - b.y : a.x - b.x));
+        const parts = [];
+        for (const m of sorted) {
+            const url = cropMaskForOcr(cachedEditorImg, m);
+            const r = await worker.recognize(url);
+            const cln = cleanOcrAnatomyText(r.data.text);
+            if (cln) parts.push(cln);
+        }
+        const merged = parts.join(' ').replace(/\s+/g, ' ').trim();
+        if (merged) {
+            document.getElementById('term-input').value = merged.toLowerCase();
+            setOcrBadge('ok', `✨ 已合併 ${sorted.length} 框文字`);
+        } else {
+            setOcrBadge('warn', '⚠️ 多框內未偵測到文字');
+        }
+    };
 
     // 擴充獸醫骨骼學標記字綴
     const ANATOMICAL_AFFIXES = [
@@ -1080,6 +1390,7 @@
 
     window.clearPendingMasks = () => {
         editorPendingMasks = [];
+        editorHighlightQuestionId = null;
         renderEditorCanvas();
     };
 
@@ -1205,6 +1516,250 @@
         }
     };
 
+
+    // --- V9 新增：修改個別圖片檔案名 (6 層資料原子同步) ---
+    window.promptRenameSingleImage = async (targetImgName) => {
+        const oldName = targetImgName || currentImage;
+        if (!oldName) return alert("請先選擇一張要改名的圖片！");
+
+        const dotIdx = oldName.lastIndexOf('.');
+        const oldBase = dotIdx > 0 ? oldName.slice(0, dotIdx) : oldName;
+        const oldExt = dotIdx > 0 ? oldName.slice(dotIdx) : '.PNG';
+
+        const relatedQs = quizDatabase.filter(q => q.image === oldName);
+        const userInput = prompt(
+            `✏️ 修改個別圖片檔案名稱\n\n目前圖片：【${oldName}】（關聯 ${relatedQs.length} 道題目）\n請輸入新的檔案名稱（若省略副檔名將自動保留 ${oldExt}）：`,
+            oldBase
+        );
+        if (!userInput || !userInput.trim()) return;
+
+        let newName = userInput.trim();
+        if (!/\.(png|jpg|jpeg|webp|gif)$/i.test(newName)) {
+            newName += oldExt;
+        }
+        if (newName === oldName) return;
+
+        const existingImgCollision = imagesData[newName] || quizDatabase.some(q => q.image === newName);
+        if (existingImgCollision) {
+            if (!confirm(`⚠️ 系統中已存在名為【${newName}】的圖片或題目！\n繼續改名將會把【${oldName}】旗下的 ${relatedQs.length} 道題目合併至【${newName}】。是否確定繼續？`)) {
+                return;
+            }
+        } else {
+            if (!confirm(`確定要將圖片【${oldName}】改名為【${newName}】嗎？\n系統將自動同步更新：本機 IndexedDB 快取、雲端 quiz_data 與三層 categories/images/terms 架構（共 ${relatedQs.length} 題）。`)) {
+                return;
+            }
+        }
+
+        try {
+            // 1. 同步本機 IndexedDB (AnatomyImageStore) 與記憶體 imagesData
+            if (imagesData[oldName]) {
+                const dataUrl = imagesData[oldName];
+                imagesData[newName] = dataUrl;
+                delete imagesData[oldName];
+                await cacheImage(newName, dataUrl);
+                await deleteCachedImage(oldName);
+            }
+
+            // 2. 更新選取狀態與當前編輯圖片指標
+            if (selectedImages.has(oldName)) {
+                selectedImages.delete(oldName);
+                selectedImages.add(newName);
+            }
+            if (currentImage === oldName) {
+                currentImage = newName;
+                document.getElementById('editor-current-img-badge').innerText = `(${newName})`;
+            }
+            if (sheetCurrentImg === oldName) {
+                sheetCurrentImg = newName;
+            }
+
+            // 3. 分批同步 Firestore (quiz_data + 三層結構 categories/{cat}/images/{img}/terms/{id})
+            const BATCH_SIZE = 80;
+            const touchedCats = new Set();
+
+            for (let i = 0; i < relatedQs.length; i += BATCH_SIZE) {
+                const batch = writeBatch(db);
+                const chunk = relatedQs.slice(i, i + BATCH_SIZE);
+
+                chunk.forEach(q => {
+                    const cat = sanitizeId(q.category || 'head_skull');
+                    touchedCats.add(cat);
+                    const oldImgId = sanitizeId(oldName);
+                    const newImgId = sanitizeId(newName);
+
+                    q.image = newName;
+                    q.updatedAt = Date.now();
+
+                    // 更新第 1 層相容集合 quiz_data
+                    batch.set(doc(db, "quiz_data", q.id), { image: newName, updatedAt: q.updatedAt }, { merge: true });
+
+                    // 寫入三層結構新圖片節點下之 terms
+                    const newTermRef = doc(db, "categories", cat, "images", newImgId, "terms", q.id);
+                    batch.set(newTermRef, { ...q, image: newName }, { merge: true });
+
+                    // 移除舊圖片節點下之 terms
+                    if (oldImgId !== newImgId) {
+                        const oldTermRef = doc(db, "categories", cat, "images", oldImgId, "terms", q.id);
+                        batch.delete(oldTermRef);
+                    }
+                });
+
+                await batch.commit();
+            }
+
+            // 更新三層結構之第二層圖片節點 metadata 並移除舊圖片節點
+            if (touchedCats.size > 0) {
+                const metaBatch = writeBatch(db);
+                touchedCats.forEach(cat => {
+                    const oldImgId = sanitizeId(oldName);
+                    const newImgId = sanitizeId(newName);
+                    metaBatch.set(doc(db, "categories", cat, "images", newImgId), {
+                        filename: newName,
+                        category: cat,
+                        lastUpdated: Date.now()
+                    }, { merge: true });
+                    if (oldImgId !== newImgId) {
+                        metaBatch.delete(doc(db, "categories", cat, "images", oldImgId));
+                    }
+                });
+                await metaBatch.commit();
+            }
+
+            renderEditorImageTree();
+            renderImageTermsList();
+            buildCategoryTree();
+            updateScopeSummary();
+            alert(`🎉 圖片改名完成！【${oldName}】已成功改名為【${newName}】，並同步更新 ${relatedQs.length} 道雲端題目與本機快取！`);
+        } catch (err) {
+            console.error("修改圖片檔名失敗:", err);
+            alert("修改圖片檔名失敗: " + err.message);
+        }
+    };
+
+    // --- V9 新增：11 項題庫拼字健檢挑選修正 Modal ---
+    function findMatchedQuestionForCandidate(cand) {
+        return quizDatabase.find(q =>
+            q.id === cand.id ||
+            (q.image === cand.image && q.term.trim().toLowerCase() === cand.oldTerm.toLowerCase()) ||
+            (q.image === cand.image && q.term.trim().toLowerCase() === cand.newTerm.toLowerCase())
+        );
+    }
+
+    window.openTypoAuditModal = () => {
+        const modal = document.getElementById('typo-audit-modal');
+        const listEl = document.getElementById('typo-audit-list');
+        if (!modal || !listEl) return;
+        listEl.innerHTML = '';
+
+        let pendingCount = 0;
+        TYPO_AUDIT_CANDIDATES.forEach((cand, idx) => {
+            const matchedQ = findMatchedQuestionForCandidate(cand);
+            const currentDbTerm = matchedQ ? matchedQ.term : cand.oldTerm;
+            const isAlreadyFixed = matchedQ && (matchedQ.term.trim().toLowerCase() === cand.newTerm.toLowerCase());
+            if (!isAlreadyFixed) pendingCount++;
+
+            const row = document.createElement('div');
+            row.className = 'typo-audit-row';
+            row.innerHTML = `
+                <div>
+                    <input type="checkbox" class="typo-check-item" data-idx="${idx}" ${(!matchedQ || isAlreadyFixed) ? '' : 'checked'} ${!matchedQ ? 'disabled' : ''} style="width:auto; margin:0;">
+                </div>
+                <div>
+                    <strong style="color:#1e293b;">#${idx + 1} ${cand.image}</strong>
+                    <br><small style="color:#64748b;">${cand.note}</small>
+                </div>
+                <div>
+                    <span style="font-size:0.75rem; color:#64748b;">目前雲端答案：</span><br>
+                    <strong style="color:${isAlreadyFixed ? '#16a085' : 'var(--danger)'};">${currentDbTerm}</strong>
+                    ${isAlreadyFixed ? '<span style="font-size:0.7rem; background:#dcfce7; color:#15803d; padding:1px 4px; border-radius:3px; margin-left:4px;">已修正</span>' : ''}
+                </div>
+                <div>
+                    <span style="font-size:0.75rem; color:#64748b;">修正後課本拼字 (可微調)：</span><br>
+                    <input type="text" id="typo-new-input-${idx}" value="${cand.newTerm}" style="padding:3px 6px; font-size:0.82rem; border:1px solid #cbd5e1; border-radius:4px; width:95%; color:#15803d; font-weight:bold;">
+                </div>
+                <div style="display:flex; gap:4px;">
+                    <button type="button" class="btn-sm" style="padding:3px 7px; font-size:0.75rem;" onclick="previewTypoCandidate(${idx})" title="在編輯器畫布上高亮檢視此紅框">👁️ 看圖</button>
+                </div>
+            `;
+            listEl.appendChild(row);
+        });
+
+        document.getElementById('typo-audit-count-label').innerText = `共 ${TYPO_AUDIT_CANDIDATES.length} 項候選 (待修正 ${pendingCount} 項)`;
+        modal.classList.add('show');
+    };
+
+    window.closeTypoAuditModal = () => {
+        const modal = document.getElementById('typo-audit-modal');
+        if (modal) modal.classList.remove('show');
+    };
+
+    window.toggleAllTypoChecks = (checked) => {
+        document.querySelectorAll('.typo-check-item:not(:disabled)').forEach(cb => {
+            cb.checked = checked;
+        });
+    };
+
+    window.previewTypoCandidate = (idx) => {
+        const cand = TYPO_AUDIT_CANDIDATES[idx];
+        if (!cand) return;
+        const matchedQ = findMatchedQuestionForCandidate(cand);
+        window.closeTypoAuditModal();
+        window.switchMode('editor');
+        if (imagesData[cand.image]) {
+            loadEditorImage(cand.image, () => {
+                if (matchedQ) {
+                    window.focusExistingQuestionInEditor(matchedQ.id);
+                    document.getElementById('term-input').value = cand.newTerm;
+                    setOcrBadge('warn', `🎯 檢視候選 #${idx + 1}：原為【${matchedQ.term}】，已帶入建議【${cand.newTerm}】(按 Enter 即可覆寫儲存)`);
+                }
+            });
+        } else {
+            alert(`請先確認本機已載入圖片【${cand.image}】！`);
+        }
+    };
+
+    window.applySelectedTypoFixes = async () => {
+        const checkboxes = Array.from(document.querySelectorAll('.typo-check-item:checked'));
+        if (checkboxes.length === 0) return alert("請至少勾選一項要修正的題目！");
+
+        const itemsToFix = [];
+        checkboxes.forEach(cb => {
+            const idx = parseInt(cb.getAttribute('data-idx'));
+            const cand = TYPO_AUDIT_CANDIDATES[idx];
+            const matchedQ = findMatchedQuestionForCandidate(cand);
+            const newTermInput = document.getElementById(`typo-new-input-${idx}`);
+            const targetTerm = newTermInput ? newTermInput.value.trim() : cand.newTerm;
+            if (matchedQ && targetTerm) {
+                itemsToFix.push({ q: matchedQ, newTerm: targetTerm });
+            }
+        });
+
+        if (itemsToFix.length === 0) return alert("找不到對應的雲端題目可修正！");
+        if (!confirm(`即將把您勾選的 ${itemsToFix.length} 道題目更新為正確拼字並同步至雲端 Firestore。是否確定執行？`)) return;
+
+        try {
+            const batch = writeBatch(db);
+            itemsToFix.forEach(({ q, newTerm }) => {
+                q.term = newTerm;
+                q.updatedAt = Date.now();
+                const cat = sanitizeId(q.category || 'head_skull');
+                const img = sanitizeId(q.image);
+
+                batch.set(doc(db, "quiz_data", q.id), { term: newTerm, updatedAt: q.updatedAt }, { merge: true });
+                batch.set(doc(db, "categories", cat, "images", img, "terms", q.id), { ...q, term: newTerm }, { merge: true });
+            });
+            await batch.commit();
+
+            renderEditorCanvas();
+            renderImageTermsList();
+            buildCategoryTree();
+            window.closeTypoAuditModal();
+            alert(`🎉 成功修正您所挑選的 ${itemsToFix.length} 道題目並已同步至雲端！`);
+        } catch (err) {
+            alert("套用修正失敗: " + err.message);
+        }
+    };
+
     // --- 圖片分類樹檢視 ---
     function renderEditorImageTree() {
         const container = document.getElementById('editor-image-tree');
@@ -1246,7 +1801,7 @@
             imgList.forEach(imgName => {
                 const item = document.createElement('div');
                 item.className = 'editor-tree-item' + (imgName === currentImage ? ' active-img' : '');
-                item.innerHTML = `<span>🖼️ ${imgName}</span><span style="color:#64748b; font-size:0.75rem;">${imageTermCount[imgName] || 0} 個詞</span>`;
+                item.innerHTML = `<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">🖼️ ${imgName}</span><span style="display:flex; align-items:center; flex-shrink:0;"><small style="color:#64748b; font-size:0.74rem; margin-right:3px;">${imageTermCount[imgName] || 0} 詞</small><button type="button" class="tree-action-btn" title="修改此圖片檔案名稱" onclick="event.stopPropagation(); promptRenameSingleImage('${imgName.replace(/'/g, "\\'")}')">✏️</button></span>`;
                 item.onclick = () => {
                     loadEditorImage(imgName);
                     editorActiveCategory = catName;
@@ -1279,7 +1834,7 @@
                 const item = document.createElement('div');
                 item.className = 'editor-tree-item' + (imgName === currentImage ? ' active-img' : '');
                 item.style.color = '#b45309';
-                item.innerHTML = `<span>📄 ${imgName}</span><span style="font-size:0.72rem; color:#b45309;">待編輯</span>`;
+                item.innerHTML = `<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${imgName}</span><span style="display:flex; align-items:center; flex-shrink:0;"><small style="font-size:0.72rem; color:#b45309; margin-right:3px;">待編輯</small><button type="button" class="tree-action-btn" title="修改此圖片檔案名稱" onclick="event.stopPropagation(); promptRenameSingleImage('${imgName.replace(/'/g, "\\'")}')">✏️</button></span>`;
                 item.onclick = () => loadEditorImage(imgName);
                 uncatChildren.appendChild(item);
             });
@@ -1307,12 +1862,30 @@
             const mCount = (q.masks && q.masks.length) ? q.masks.length : 1;
             const sideTxt = q.sidedness && q.sidedness !== 'unpaired' ? `[${q.sidedness}]` : '';
             row.innerHTML = `
-                <span><strong>${idx + 1}. ${q.term}</strong> <small style="color:#64748b;">(${mCount > 1 ? mCount + ' 遮蓋' : '單遮蓋'} ${sideTxt})</small></span>
-                <button type="button" class="btn-sm" style="color:var(--danger); padding:1px 5px;" onclick="deleteQuestion('${q.id}')">🗑️ 刪除</button>
+                <span style="cursor:pointer;" onclick="focusExistingQuestionInEditor('${q.id}')" title="點擊在畫布上透視檢視並載入此題座標"><strong>${idx + 1}. ${q.term}</strong> <small style="color:#64748b;">(${mCount > 1 ? mCount + ' 遮蓋' : '單遮蓋'} ${sideTxt})</small></span>
+                <span style="display:flex; gap:3px; flex-shrink:0;">
+                    <button type="button" class="btn-sm" style="color:var(--accent); padding:1px 5px;" onclick="focusExistingQuestionInEditor('${q.id}')" title="透視高亮紅框並載入欄位微調">🎯 微調</button>
+                    <button type="button" class="btn-sm" style="color:var(--danger); padding:1px 5px;" onclick="deleteQuestion('${q.id}')">🗑️ 刪除</button>
+                </span>
             `;
             listDiv.appendChild(row);
         });
     }
+
+
+    window.focusExistingQuestionInEditor = (qId) => {
+        const q = quizDatabase.find(item => item.id === qId);
+        if (!q) return;
+        editorHighlightQuestionId = q.id;
+        editorPendingMasks = getItemMasks(q).map(m => ({ ...m }));
+        editorMaskMode = editorPendingMasks.length > 1 ? 'multi' : 'single';
+        window.setEditorMaskMode(editorMaskMode);
+        document.getElementById('term-input').value = q.term || '';
+        if (q.sidedness) document.getElementById('sidedness-input').value = q.sidedness;
+        if (q.viewAngle) document.getElementById('view-angle-input').value = q.viewAngle;
+        renderEditorCanvas();
+        setOcrBadge('ok', `🎯 已載入【${q.term}】座標 (可重新拉框或改字後儲存)`);
+    };
 
     window.deleteQuestion = async (qId) => {
         if (!confirm("確定要刪除此構造標註嗎？")) return;
@@ -1466,6 +2039,9 @@
         
         resetSheetState();
 
+        const sheetOrderBar = document.getElementById('sheet-order-bar');
+        if (sheetOrderBar) sheetOrderBar.style.display = (quizType === 'sheet') ? 'flex' : 'none';
+
         if (quizType === 'mcq') {
             document.getElementById('mcq-container').style.display = 'block';
             document.getElementById('fill-container').style.display = 'none';
@@ -1477,6 +2053,58 @@
             setTimeout(() => document.getElementById('fill-input').focus(), 100);
         }
         window.nextQuestion();
+    };
+
+
+    function getPrimaryMaskCenter(q) {
+        const m = (q.masks && q.masks[0]) || q.mask || { x: 0, y: 0, w: 0, h: 0 };
+        const nx = m.w < 0 ? m.x + m.w : m.x;
+        const ny = m.h < 0 ? m.y + m.h : m.y;
+        return { cx: nx + Math.abs(m.w) / 2, cy: ny + Math.abs(m.h) / 2, y: ny, x: nx };
+    }
+
+    function sortSheetQuestionsByOrder(qs, mode) {
+        const list = [...qs];
+        if (mode === 'random') {
+            return list.sort(() => Math.random() - 0.5);
+        }
+        if (mode === 'clockwise') {
+            if (list.length === 0) return list;
+            const pts = list.map(q => getPrimaryMaskCenter(q));
+            const midX = pts.reduce((s, p) => s + p.cx, 0) / pts.length;
+            const midY = pts.reduce((s, p) => s + p.cy, 0) / pts.length;
+            return list.sort((a, b) => {
+                const pa = getPrimaryMaskCenter(a);
+                const pb = getPrimaryMaskCenter(b);
+                let angA = Math.atan2(pa.cy - midY, pa.cx - midX) + Math.PI / 2;
+                let angB = Math.atan2(pb.cy - midY, pb.cx - midX) + Math.PI / 2;
+                if (angA < 0) angA += Math.PI * 2;
+                if (angB < 0) angB += Math.PI * 2;
+                return angA - angB;
+            });
+        }
+        // Default: 'topdown' (35px horizontal band grouping, top-to-bottom then left-to-right)
+        return list.sort((a, b) => {
+            const pa = getPrimaryMaskCenter(a);
+            const pb = getPrimaryMaskCenter(b);
+            const bandA = Math.floor(pa.y / 35);
+            const bandB = Math.floor(pb.y / 35);
+            if (bandA !== bandB) return bandA - bandB;
+            return pa.x - pb.x;
+        });
+    }
+
+    window.onSheetOrderChanged = () => {
+        const radios = document.getElementsByName('sheet-order');
+        for (const r of radios) if (r.checked) sheetOrderMode = r.value;
+        if (quizType === 'sheet' && sheetCurrentImg) {
+            const unresolved = quizDatabase.filter(q => q.image === sheetCurrentImg && !sheetResolved.has(q.id));
+            const resolvedList = quizDatabase.filter(q => q.image === sheetCurrentImg && sheetResolved.has(q.id));
+            sheetQuestions = [...resolvedList, ...sortSheetQuestionsByOrder(unresolved, sheetOrderMode)];
+            sheetIndex = resolvedList.length;
+            currentQuestion = sheetQuestions[sheetIndex];
+            if (currentQuestion) renderQuestion(currentQuestion);
+        }
     };
 
     window.onOptionCountChanged = () => {
@@ -1523,7 +2151,21 @@
         }
     });
 
+
+    document.getElementById('term-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            window.saveMaskRegion();
+        }
+    });
+
     document.getElementById('fill-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            e.stopPropagation();
+            window.triggerFillHint();
+            return;
+        }
         if (e.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
@@ -1566,10 +2208,11 @@
         window.switchMode('quiz');
     };
 
-    function loadEditorImage(filename) {
+    function loadEditorImage(filename, onLoadedCallback = null) {
         currentImage = filename;
         document.getElementById('editor-current-img-badge').innerText = `(${filename})`;
         editorPendingMasks = [];
+        editorHighlightQuestionId = null;
         document.getElementById('term-input').value = '';
         
         cachedEditorImg = new Image();
@@ -1577,6 +2220,7 @@
             renderEditorCanvas();
             renderImageTermsList();
             renderEditorImageTree();
+            if (typeof onLoadedCallback === 'function') onLoadedCallback();
         };
         cachedEditorImg.src = imagesData[filename];
     }
@@ -1589,18 +2233,25 @@
         ctx.drawImage(cachedEditorImg, 0, 0);
         drawExistingMasks();
 
+        const isMicroEditing = !!editorHighlightQuestionId;
         editorPendingMasks.forEach((m, idx) => {
-            ctx.fillStyle = "rgba(231, 76, 60, 0.5)";
-            ctx.fillRect(m.x, m.y, m.w, m.h);
-            ctx.strokeStyle = "#e74c3c";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(m.x, m.y, m.w, m.h);
+            const nx = m.w < 0 ? m.x + m.w : m.x;
+            const ny = m.h < 0 ? m.y + m.h : m.y;
+            const nw = Math.abs(m.w);
+            const nh = Math.abs(m.h);
 
-            ctx.fillStyle = "#e74c3c";
-            ctx.fillRect(m.x, m.y - 18, 22, 18);
+            // 若處於「🎯 微調 / 👁️ 看圖」狀態，使用清爽半透明青色透視框，不疊加紅色框！
+            ctx.fillStyle = isMicroEditing ? "rgba(6, 182, 212, 0.25)" : "rgba(231, 76, 60, 0.38)";
+            ctx.fillRect(nx, ny, nw, nh);
+            ctx.strokeStyle = isMicroEditing ? "#06b6d4" : "#e74c3c";
+            ctx.lineWidth = isMicroEditing ? 3 : 2;
+            ctx.strokeRect(nx, ny, nw, nh);
+
+            ctx.fillStyle = isMicroEditing ? "#0891b2" : "#e74c3c";
+            ctx.fillRect(nx, Math.max(0, ny - 18), 26, 18);
             ctx.fillStyle = "#ffffff";
             ctx.font = "bold 12px sans-serif";
-            ctx.fillText(`#${idx + 1}`, m.x + 3, m.y - 4);
+            ctx.fillText(`#${idx + 1}`, nx + 3, Math.max(13, ny - 4));
         });
         document.getElementById('pending-mask-count').innerText = editorPendingMasks.length;
     }
@@ -1646,6 +2297,12 @@
             editorPendingMasks.push(newMask);
         }
         renderEditorCanvas();
+
+        const autoOcrEl = document.getElementById('ocr-auto-toggle');
+        if (autoOcrEl && autoOcrEl.checked) {
+            const shouldOverwrite = (editorMaskMode === 'single') || (editorPendingMasks.length === 1);
+            recognizeSingleMaskToInput(newMask, shouldOverwrite);
+        }
     });
 
     function sanitizeId(str) {
@@ -1660,27 +2317,41 @@
 
         if (!term) return alert("請輸入專有名詞！");
         if (editorPendingMasks.length === 0) return alert("請在畫布上框選至少一個遮蓋區域！");
-        
-        const docId = `${sanitizeId(category)}_${sanitizeId(currentImage)}_${sanitizeId(term)}`;
-        
+
+        // 關鍵修復：若正在微調既有題目 (editorHighlightQuestionId)，或同圖已有相同名詞，直接沿用原題 ID 原地覆寫，保留作答歷史且絕不分裂雙胞胎題目！
+        const existingEditingQ = (editorHighlightQuestionId ? quizDatabase.find(q => q.id === editorHighlightQuestionId) : null)
+            || quizDatabase.find(q => q.image === currentImage && normalizeAnatomyTerm(q.term) === normalizeAnatomyTerm(term));
+        const docId = existingEditingQ ? existingEditingQ.id : `${sanitizeId(category)}_${sanitizeId(currentImage)}_${sanitizeId(term)}`;
+        const oldCategory = existingEditingQ ? (existingEditingQ.category || "head_skull") : category;
+
         const newQuiz = {
             category: category,
-            image: currentImage, 
+            image: currentImage,
             term: term,
             sidedness: sidedness,
             viewAngle: viewAngle,
             masks: editorPendingMasks,
             mask: editorPendingMasks[0] || null,
-            creatorId: currentUser.uid, 
-            createdAt: Date.now(),
+            creatorId: currentUser.uid,
+            createdAt: existingEditingQ ? (existingEditingQ.createdAt || Date.now()) : Date.now(),
             updatedAt: Date.now()
         };
-        
+
         try {
             const batch = writeBatch(db);
-            
+
             const termRef = doc(db, "categories", sanitizeId(category), "images", sanitizeId(currentImage), "terms", docId);
             batch.set(termRef, newQuiz, { merge: true });
+
+            // 若微調時更改了分類，刪除舊分類階層下的節點並同步 user_progress
+            if (existingEditingQ && sanitizeId(oldCategory) !== sanitizeId(category)) {
+                const oldTermRef = doc(db, "categories", sanitizeId(oldCategory), "images", sanitizeId(currentImage), "terms", docId);
+                batch.delete(oldTermRef);
+                if (userProgress[docId]) {
+                    userProgress[docId].category = category;
+                    batch.set(doc(db, "user_progress", `${currentUser.uid}_${docId}`), { category: category }, { merge: true });
+                }
+            }
 
             const imgRef = doc(db, "categories", sanitizeId(category), "images", sanitizeId(currentImage));
             batch.set(imgRef, { filename: currentImage, category: category, lastUpdated: Date.now() }, { merge: true });
@@ -1699,6 +2370,7 @@
 
             document.getElementById('term-input').value = "";
             editorPendingMasks = [];
+            editorHighlightQuestionId = null; // 儲存後重置高亮狀態
             selectedImages.add(currentImage);
 
             renderEditorCanvas();
@@ -1707,6 +2379,7 @@
             buildCategoryTree();
             updateCategorySuggestions();
             updateScopeSummary();
+            setOcrBadge('idle', '🤖 畫框自動辨識就緒');
             alert(`✅ 成功儲存！【${term}】(${newQuiz.masks.length} 個遮蓋區域)`);
         } catch (e) {
             alert("上傳失敗: " + e.message);
@@ -1716,9 +2389,17 @@
     function drawExistingMasks() {
         quizDatabase.forEach(item => {
             if (item.image === currentImage) {
+                // 若此題正被載入至 editorPendingMasks 進行微調透視，由 renderEditorCanvas 負責繪製半透明青色框，避免雙重繪製疊色！
+                if (item.id === editorHighlightQuestionId) return;
                 const masks = getItemMasks(item);
                 ctx.fillStyle = "black";
-                masks.forEach(m => ctx.fillRect(m.x, m.y, m.w, m.h));
+                masks.forEach(m => {
+                    const nx = m.w < 0 ? m.x + m.w : m.x;
+                    const ny = m.h < 0 ? m.y + m.h : m.y;
+                    const nw = Math.abs(m.w);
+                    const nh = Math.abs(m.h);
+                    ctx.fillRect(nx, ny, nw, nh);
+                });
             }
         });
     }
@@ -1743,6 +2424,7 @@
             document.getElementById(`mode-${mode}`).classList.add('active');
             if (mode === 'quiz') window.nextQuestion();
             if (mode === 'editor') {
+                ensureOcrWorker();
                 renderEditorImageTree();
                 if (currentImage) loadEditorImage(currentImage);
             }
@@ -1820,7 +2502,7 @@
             if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length) {
                 const availableImages = Array.from(new Set(activePool.map(q => q.image)));
                 sheetCurrentImg = availableImages[Math.floor(Math.random() * availableImages.length)];
-                sheetQuestions = quizDatabase.filter(q => q.image === sheetCurrentImg);
+                sheetQuestions = sortSheetQuestionsByOrder(quizDatabase.filter(q => q.image === sheetCurrentImg), sheetOrderMode);
                 sheetIndex = 0;
                 sheetResolved.clear();
             }
@@ -1908,21 +2590,103 @@
                             // 答完後完全揭開
                         } else if (item.id === q.id) {
                             qCtx.fillStyle = "#e74c3c";
-                            masks.forEach(m => qCtx.fillRect(m.x, m.y, m.w, m.h));
+                            masks.forEach(m => qCtx.fillRect(m.w < 0 ? m.x + m.w : m.x, m.h < 0 ? m.y + m.h : m.y, Math.abs(m.w), Math.abs(m.h)));
                         } else if (sheetResolved.has(item.id)) {
                             // 已經解開
                         } else {
                             qCtx.fillStyle = "black";
-                            masks.forEach(m => qCtx.fillRect(m.x, m.y, m.w, m.h));
+                            masks.forEach(m => qCtx.fillRect(m.w < 0 ? m.x + m.w : m.x, m.h < 0 ? m.y + m.h : m.y, Math.abs(m.w), Math.abs(m.h)));
                         }
                     } else {
                         qCtx.fillStyle = (item.id === q.id) ? "#e74c3c" : "black";
-                        masks.forEach(m => qCtx.fillRect(m.x, m.y, m.w, m.h));
+                        masks.forEach(m => qCtx.fillRect(m.w < 0 ? m.x + m.w : m.x, m.h < 0 ? m.y + m.h : m.y, Math.abs(m.w), Math.abs(m.h)));
                     }
                 }
             });
         };
         img.src = imagesData[q.image];
+    }
+
+
+    window.triggerFillHint = () => {
+        if (!currentQuestion || !currentQuestion.term) return;
+        const box = document.getElementById('hint-scaffold');
+        if (!box) return;
+        currentHintLevel = Math.min(2, currentHintLevel + 1);
+        const words = currentQuestion.term.trim().split(/\s+/);
+        const scaffold = words.map(w => {
+            if (w.length <= 2) return w[0] + '_'.repeat(Math.max(0, w.length - 1));
+            if (currentHintLevel === 1) {
+                return w[0] + ' ' + Array(w.length - 1).fill('_').join(' ');
+            } else {
+                const mid = w.length > 3 ? Array(w.length - 3).fill('_').join(' ') : '_';
+                return w.slice(0, 2) + ' ' + mid + ' ' + w[w.length - 1];
+            }
+        }).join('   ');
+        box.style.display = 'block';
+        box.innerHTML = `💡 提示 (Lv.${currentHintLevel})：<span style="color:#0f172a;">${scaffold}</span> <small style="color:#64748b; font-weight:normal;">(共 ${words.length} 詞 · 再按 Tab 顯示字尾)</small>`;
+        const fillInput = document.getElementById('fill-input');
+        if (fillInput && !fillInput.disabled) fillInput.focus();
+    };
+
+    function buildCharDiffHtml(userStr, correctStr, maskSecret = false) {
+        const u = (userStr || '').trim();
+        const c = (correctStr || '').trim();
+        if (!u) return '';
+
+        const m = u.length, n = c.length;
+        const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+        for (let i = 0; i <= m; i++) dp[i][0] = i;
+        for (let j = 0; j <= n; j++) dp[0][j] = j;
+        for (let i = 1; i <= m; i++) {
+            for (let j = 1; j <= n; j++) {
+                if (u[i - 1].toLowerCase() === c[j - 1].toLowerCase()) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+
+        // 回溯最佳對齊路徑
+        let i = m, j = n;
+        const ops = [];
+        while (i > 0 || j > 0) {
+            if (i > 0 && j > 0 && u[i - 1].toLowerCase() === c[j - 1].toLowerCase()) {
+                ops.push({ type: 'match', uCh: u[i - 1], cCh: c[j - 1] });
+                i--; j--;
+            } else if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + 1) {
+                ops.push({ type: 'sub', uCh: u[i - 1], cCh: c[j - 1] });
+                i--; j--;
+            } else if (j > 0 && (i === 0 || dp[i][j] === dp[i][j - 1] + 1)) {
+                ops.push({ type: 'missing', uCh: '', cCh: c[j - 1] }); // 學生漏打
+                j--;
+            } else {
+                ops.push({ type: 'extra', uCh: u[i - 1], cCh: '' }); // 學生多打
+                i--;
+            }
+        }
+        ops.reverse();
+
+        let out = '';
+        for (const op of ops) {
+            if (op.type === 'match') {
+                out += `<span class="diff-ok">${maskSecret ? op.uCh : op.cCh}</span>`;
+            } else if (op.type === 'sub') {
+                // 重試防洩題：顯示學生打錯的字元而非正解字元
+                const showCh = maskSecret ? op.uCh : op.cCh;
+                out += `<span class="diff-err" title="${maskSecret ? '此字元有誤' : '您輸入: ' + op.uCh}">${showCh}</span>`;
+            } else if (op.type === 'missing') {
+                const showCh = maskSecret ? '_' : op.cCh;
+                out += `<span class="diff-err" title="此處漏打 1 個字元">${showCh}</span>`;
+            } else if (op.type === 'extra') {
+                if (maskSecret) {
+                    out += `<span class="diff-err" style="text-decoration:line-through;" title="多餘字元">${op.uCh}</span>`;
+                }
+            }
+        }
+        const label = maskSecret ? '🔍 您的輸入診斷（紅字為錯字、_ 為漏字、刪除線為多字）' : '🔍 標準拼字比對';
+        return `<div class="diff-box">${label}：${out}</div>`;
     }
 
     function renderQuestion(q) {
@@ -1935,6 +2699,10 @@
         
         document.getElementById('feedback').innerHTML = '';
         document.getElementById('next-btn').style.display = 'none';
+        currentHintLevel = 0;
+        if (q) { q._nearMissRetried = false; q._usedNearMissRetry = false; }
+        const hintBox = document.getElementById('hint-scaffold');
+        if (hintBox) { hintBox.style.display = 'none'; hintBox.innerHTML = ''; }
 
         const metaSpan = document.getElementById('question-meta-badge');
         let metaParts = [];
@@ -1990,6 +2758,26 @@
         }
         updateDailyHUD();
 
+        // V9 新增：差一字重試保連勝機制 (Near-Miss Retry)
+        const nearMissEnabled = document.getElementById('near-miss-retry-toggle')?.checked;
+        if (!isCorrect && quizType !== 'mcq' && nearMissEnabled && currentQuestion && !currentQuestion._nearMissRetried) {
+            const dist = evaluation.dist ?? levenshteinDistance(normalizeAnatomyTerm(selected), normalizeAnatomyTerm(correct));
+            if (dist > 0 && dist <= 4) {
+                currentQuestion._nearMissRetried = true;
+                currentQuestion._usedNearMissRetry = true;
+                sessionAnswerCount--; // 不計入正式答錯次數
+                userDailyStats.count = Math.max(0, userDailyStats.count - 1);
+                updateDailyHUD();
+                const fillInput = document.getElementById('fill-input');
+                fillInput.disabled = false;
+                document.getElementById('fill-submit-btn').disabled = false;
+                feedback.innerHTML = `<span style="color:#d97706;">⚡ 拼字非常接近（僅差 ${dist} 個字母）！已為您保留 🔥 COMBO ${currentCombo}，請根據診斷修正後再試一次：</span><br>${buildCharDiffHtml(selected, correct, true)}`;
+                setTimeout(() => { fillInput.focus(); fillInput.select(); }, 40);
+                return;
+            }
+        }
+        if (currentQuestion) currentQuestion._nearMissRetried = false;
+
         if (isCorrect) {
             currentCombo++;
             if (currentCombo > maxCombo) maxCombo = currentCombo;
@@ -2000,7 +2788,7 @@
             if (evaluation.reason === 'synonym') {
                 feedbackDetails = `<br><span class="synonym-tag">📖 NAV 同義詞判定通過 (您輸入拉丁/英文通用名)</span>`;
             } else if (evaluation.reason === 'typo_tolerated') {
-                feedbackDetails = `<br><span class="typo-tag">✍️ 容許輕微筆誤 (標準拼法: ${correct})</span>`;
+                feedbackDetails = `<br><span class="typo-tag">✍️ 容許輕微筆誤 (標準拼法: ${correct})</span><br>${buildCharDiffHtml(selected, correct)}`;
             }
 
             feedback.innerHTML = `<span class="correct">✅ 正確！【${correct}】${feedbackDetails}<br><small style="color:#555;">(敲 Enter 鍵繼續)</small></span>`;
@@ -2016,7 +2804,8 @@
             });
             updateRelearnHUD();
 
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span><br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 系統已將此題排入當次即刻重測佇列)</small></span>`;
+            const diffHtml = (quizType !== 'mcq' && selected) ? '<br>' + buildCharDiffHtml(selected, correct) : '';
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span>${diffHtml}<br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 系統已將此題排入當次即刻重測佇列)</small></span>`;
         }
 
         if (quizType === 'sheet') {
@@ -2040,9 +2829,16 @@
         prog.correctCount = (prog.correctCount || 0) + (isCorrect ? 1 : 0);
         prog.wrongCount = (prog.wrongCount || 0) + (isCorrect ? 0 : 1);
 
+        // 【補丁 3：真實反映記憶提取品質的 SM-2 Grade 評分】
         let grade = 1;
         if (isCorrect) {
-            grade = (evaluation.reason === 'exact') ? 5 : 4;
+            if ((currentQuestion && currentQuestion._usedNearMissRetry) || currentHintLevel >= 2) {
+                grade = 3; // 靠重試或二階提示才答對：僅給及格邊緣 Grade 3 (EF 小幅下修，縮短間隔)
+            } else if (currentHintLevel === 1 || evaluation.reason !== 'exact') {
+                grade = 4; // 靠一階首字母提示、同義詞或輕微筆誤容錯通過：給 Grade 4
+            } else {
+                grade = 5; // 零提示、零重試、精確拼出：給予滿分 Grade 5
+            }
         }
         calculateSM2(prog, grade);
 
