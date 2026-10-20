@@ -1351,6 +1351,8 @@
         "aaronhuang1205@gmail.com"
     ];
 
+    window.checkIsAdmin = checkIsAdmin;
+    window.ADMIN_EMAIL_WHITELIST = ADMIN_EMAIL_WHITELIST;
     function checkIsAdmin(user) {
         if (!user || !user.email) return false;
         const currentEmail = user.email.trim().toLowerCase();
@@ -3844,11 +3846,7 @@
 </script>
 
 
-<div id="v9-flagship-download-bar" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 100%); border: 1px solid rgb(56, 189, 248); border-radius: 10px; padding: 12px 18px; box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 30px, rgba(56, 189, 248, 0.3) 0px 0px 15px; display: flex; align-items: center; gap: 12px; font-family: system-ui, sans-serif;">
-    <div style="display:flex; flex-direction:column;">
-      <span style="color:#f8fafc; font-weight:700; font-size:0.9rem;">✨ V9-PRO 俐落高階灰藍旗艦版 已在瀏覽器生效！</span>
-      <span style="color:#94a3b8; font-size:0.75rem;">主圖亮環環繞 · 統一矩形規格 · 檔案區 ㄑ 摺疊 · 日夜模式切換</span>
-    </div>
+
     <a id="dl-flagship-file-btn" href="blob:null/74f7c04a-3801-4c9f-8be2-1ba1b0a512f6" download="index (6).html" style="background:#0284c7; hover:background:#0369a1; color:#ffffff; font-weight:700; font-size:0.85rem; padding:8px 14px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(2,132,199,0.4); cursor:pointer;">
       💾 下載檔案 (index (6).html)
     </a>
