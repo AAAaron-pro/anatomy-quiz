@@ -3224,7 +3224,7 @@
 
     window.switchMode = (mode) => {
         if (mode === 'editor' && !checkIsAdmin(currentUser)) {
-            alert("🔒 權限不足：題庫編輯器僅限授權管理員存取！\n您目前帳號（" + (currentUser?.email || '未登入') + "）僅開放進行測驗與學習分析。");
+            alert("🔒 權限限制：題庫編輯器僅限授權管理員存取！當前帳號僅開放刷題測驗與個人成效分析。");
             window.switchMode('quiz');
             return;
         }
