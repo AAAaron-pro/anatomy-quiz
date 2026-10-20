@@ -909,7 +909,77 @@
             .daily-badge, .relearn-badge { font-size: 0.75rem; padding: 0.2rem 0.45rem; }
         }
     
-    </style>
+    
+    /* === V9.1-PRO 人體工學 2px 光軌與零滾動刷題佈局 === */
+    .canvas-container {
+        position: relative !important;
+        background: #090e1a !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 10px !important;
+        overflow: hidden !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    .canvas-container::before {
+        content: '' !important;
+        position: absolute !important;
+        inset: 0 !important;
+        border-radius: 10px !important;
+        padding: 2px !important;
+        background: conic-gradient(
+            from var(--beam-angle, 0deg),
+            transparent 0deg,
+            transparent 270deg,
+            rgba(56, 189, 248, 0.3) 310deg,
+            #38bdf8 345deg,
+            #ffffff 360deg
+        ) !important;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+        -webkit-mask-composite: xor !important;
+        mask-composite: exclude !important;
+        pointer-events: none !important;
+        z-index: 3 !important;
+    }
+    .canvas-container::after {
+        display: none !important;
+        content: none !important;
+    }
+    #mode-quiz {
+        max-width: 1200px !important;
+        margin: 0.3rem auto !important;
+    }
+    #mode-quiz .canvas-container {
+        max-height: min(38vh, 360px) !important;
+        min-height: 200px !important;
+        margin-bottom: 0.4rem !important;
+    }
+    #quiz-canvas {
+        max-height: min(38vh, 360px) !important;
+        max-width: 100% !important;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain !important;
+        display: block !important;
+    }
+    #mode-quiz .panel {
+        padding: 0.75rem 1rem !important;
+        border-radius: 10px !important;
+    }
+    .options-grid {
+        gap: 0.45rem !important;
+        margin-top: 0.25rem !important;
+    }
+    .option-btn {
+        padding: 0.55rem 0.8rem !important;
+        font-size: 0.88rem !important;
+        min-height: 42px !important;
+    }
+    #live-download-bar, #v9-flagship-download-bar {
+        display: none !important;
+    }
+
+</style>
 </head>
 <body>
 
@@ -1273,6 +1343,33 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
     import { getFirestore, collection, collectionGroup, getDocs, doc, getDoc, setDoc, deleteDoc, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+    
+    // 🔐 管理員白名單系統 (Admin Whitelist)
+    const ADMIN_EMAIL_WHITELIST = [
+        "b15609014@ntu.edu.tw",
+        "aaronhuang1205@gmail.com"
+    ];
+
+    function checkIsAdmin(user) {
+        if (!user || !user.email) return false;
+        const currentEmail = user.email.trim().toLowerCase();
+        return ADMIN_EMAIL_WHITELIST.some(adminEmail => adminEmail.trim().toLowerCase() === currentEmail);
+    }
+
+    // 智慧圖檔讀取 (大小寫不拘容錯)
+    function getImageDataSmart(imgName) {
+        if (!imgName) return null;
+        if (imagesData[imgName]) return imagesData[imgName];
+        const lower = imgName.toLowerCase();
+        const upper = imgName.toUpperCase();
+        for (const k of Object.keys(imagesData)) {
+            if (k.toLowerCase() === lower || k.toUpperCase() === upper) {
+                return imagesData[k];
+            }
+        }
+        return null;
+    }
 
     const firebaseConfig = {
       apiKey: "AIzaSyAwObWPvCT4yBHcW6NiXLvPIEn4r96Wq8s",
@@ -1800,7 +1897,13 @@
             document.getElementById('user-info').style.display = 'flex';
             document.getElementById('user-name').innerText = user.displayName;
             document.getElementById('user-avatar').src = user.photoURL;
-            document.querySelectorAll('.nav-btns button').forEach(b => b.style.display = 'inline-block');
+            document.querySelectorAll('.nav-btns button').forEach(b => {
+                if (b.id === 'nav-editor') {
+                    b.style.display = checkIsAdmin(user) ? 'inline-block' : 'none';
+                } else {
+                    b.style.display = 'inline-block';
+                }
+            });
 
             // 自動從 IndexedDB 載入已快取圖片
             const cached = await loadCachedImages();
@@ -3119,6 +3222,11 @@
     }
 
     window.switchMode = (mode) => {
+        if (mode === 'editor' && !checkIsAdmin(currentUser)) {
+            alert("🔒 權限不足：題庫編輯器僅限授權管理員存取！\n您目前帳號（" + (currentUser?.email || '未登入') + "）僅開放進行測驗與學習分析。");
+            window.switchMode('quiz');
+            return;
+        }
         document.querySelectorAll('.workspace').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-btns button').forEach(el => el.classList.remove('active'));
         document.getElementById('mode-analytics').style.display = 'none';
@@ -3312,7 +3420,7 @@
                 }
             });
         };
-        img.src = imagesData[q.image];
+        img.src = getImageDataSmart(q.image) || imagesData[q.image];
     }
 
 
