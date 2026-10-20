@@ -1,0 +1,8 @@
+# Ignore oversized textbook PDF (103.5 MB exceeds GitHub 100MB limit)
+*.pdf
+参考資料/*.pdf
+參考資料/*.pdf
+
+# OS & temporary files
+.DS_Store
+Thumbs.db

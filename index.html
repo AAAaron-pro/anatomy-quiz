@@ -1,216 +1,778 @@
 <!DOCTYPE html>
-<html lang="zh-TW"><head>
+<html lang="zh-TW" data-theme="dark"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V9-PRO 審查完修旗艦版)</title>
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V9-PRO 俐落高階灰藍旗艦版)</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #34495e;
-            --accent: #3498db;
-            --bg: #f5f6fa;
-            --danger: #e74c3c;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --relearn: #8e44ad;
+        :root, [data-theme="dark"] {
+            --bg-base: #0b0f19;
+            --bg-surface: #111827;
+            --bg-surface-raised: #1e293b;
+            --bg-surface-higher: #24344d;
+            --border: #334155;
+            --border-subtle: #1e293b;
+            --border-highlight: #475569;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --accent-subtle: rgba(56, 189, 248, 0.12);
+            --canvas-bg: #090e1a;
+            --danger: #f43f5e;
+            --danger-bg: rgba(244, 63, 94, 0.15);
+            --danger-border: rgba(244, 63, 94, 0.35);
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.15);
+            --success-border: rgba(16, 185, 129, 0.35);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.15);
+            --warning-border: rgba(245, 158, 11, 0.35);
+            --relearn: #a855f7;
+            --relearn-bg: rgba(168, 85, 247, 0.15);
+            --relearn-border: rgba(168, 85, 247, 0.35);
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-elevated: 0 10px 30px rgba(0, 0, 0, 0.6);
+            --header-bg: #0f172a;
+            --primary: #1e293b;
+            --secondary: #94a3b8;
         }
+
+        [data-theme="light"] {
+            --bg-base: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-surface-raised: #f8fafc;
+            --bg-surface-higher: #e2e8f0;
+            --border: #cbd5e1;
+            --border-subtle: #e2e8f0;
+            --border-highlight: #94a3b8;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --accent-glow: rgba(2, 132, 199, 0.2);
+            --accent-subtle: rgba(2, 132, 199, 0.08);
+            --canvas-bg: #0b1120;
+            --danger: #e11d48;
+            --danger-bg: #ffe4e6;
+            --danger-border: #fecdd3;
+            --success: #059669;
+            --success-bg: #d1fae5;
+            --success-border: #a7f3d0;
+            --warning: #d97706;
+            --warning-bg: #fef3c7;
+            --warning-border: #fde68a;
+            --relearn: #7c3aed;
+            --relearn-bg: #f3e8ff;
+            --relearn-border: #e9d5ff;
+            --shadow-card: 0 2px 12px rgba(15, 23, 42, 0.08);
+            --shadow-elevated: 0 8px 24px rgba(15, 23, 42, 0.12);
+            --header-bg: #1e293b;
+            --primary: #0f172a;
+            --secondary: #475569;
+        }
+
+        @property --beam-angle {
+            syntax: '<angle>';
+            inherits: false;
+            initial-value: 0deg;
+        }
+
+        @keyframes canvasBeamRotate {
+            0% { --beam-angle: 0deg; }
+            100% { --beam-angle: 360deg; }
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
             margin: 0; padding: 0;
-            background-color: var(--bg);
-            color: #333;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
             -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
         }
+
         header {
-            background: var(--primary);
-            color: white;
-            padding: 0.7rem 1.5rem;
+            background: var(--header-bg);
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
         }
-        .nav-btns button {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.7);
-            color: white;
-            padding: 0.45rem 0.8rem;
-            cursor: pointer;
+
+        header h2 {
+            margin: 0;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .version-badge {
+            font-size: 0.72rem;
+            background: rgba(56, 189, 248, 0.18);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            padding: 2px 7px;
             border-radius: 4px;
-            margin-left: 0.4rem;
-            transition: all 0.2s;
-            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
-        .nav-btns button.active, .nav-btns button:hover {
-            background: white;
-            color: var(--primary);
-            font-weight: bold;
+
+        .user-info { display: flex; align-items: center; gap: 0.75rem; }
+        .user-info img { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--accent); }
+
+        .nav-btns { display: flex; align-items: center; gap: 6px; }
+        .nav-btns button {
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.45rem 0.85rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-size: 0.88rem;
+            font-weight: 600;
         }
+        .nav-btns button:hover {
+            background: var(--border-highlight);
+            color: var(--text-primary);
+        }
+        .nav-btns button.active {
+            background: var(--accent);
+            color: #ffffff;
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .theme-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--bg-surface-higher);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.45rem 0.85rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        .theme-toggle-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
         .container {
             max-width: 1320px;
-            margin: 1rem auto;
-            padding: 0 0.8rem;
+            margin: 1.2rem auto;
+            padding: 0 1rem;
         }
+
         .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            background: var(--bg-surface);
+            padding: 1.6rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-card);
             margin-bottom: 1.2rem;
             text-align: center;
         }
+
         .workspace {
             display: none;
             gap: 1.2rem;
             grid-template-columns: 2.2fr 1fr;
         }
         .workspace.active { display: grid; }
-        
+
+        /* 🌟 Continuous Glowing Border Beam around Main Image Area 🌟 */
         .canvas-container {
-            background: #111827;
-            border: 2px dashed #cbd5e1;
-            border-radius: 8px;
-            overflow: hidden;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 250px;
+            min-height: 260px;
+            box-shadow: var(--shadow-elevated);
+            overflow: visible;
         }
+
+        .canvas-container::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            padding: 2px;
+            background: conic-gradient(
+                from var(--beam-angle),
+                transparent 55%,
+                rgba(56, 189, 248, 0.1) 70%,
+                rgba(56, 189, 248, 0.5) 82%,
+                var(--accent) 92%,
+                #ffffff 96%,
+                var(--accent) 100%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: canvasBeamRotate 4s linear infinite;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .canvas-container::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 16px;
+            background: conic-gradient(
+                from var(--beam-angle),
+                transparent 65%,
+                rgba(56, 189, 248, 0.15) 85%,
+                var(--accent-glow) 95%,
+                transparent 100%
+            );
+            filter: blur(8px);
+            animation: canvasBeamRotate 4s linear infinite;
+            pointer-events: none;
+            z-index: 9;
+            opacity: 0.85;
+        }
+
         canvas {
             display: block;
             max-width: 100%;
             height: auto;
             cursor: crosshair;
+            border-radius: 10px;
+            z-index: 1;
         }
+
         .panel {
-            background: white;
-            padding: 1.2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            background: var(--bg-surface);
+            padding: 1.3rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-card);
             height: fit-content;
             text-align: left;
         }
-        .form-group { margin-bottom: 0.8rem; }
+
+        .form-group { margin-bottom: 0.85rem; }
         .form-group label {
             display: block;
-            margin-bottom: 0.3rem;
-            font-weight: bold;
-            color: var(--secondary);
-            font-size: 0.88rem;
+            margin-bottom: 0.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.86rem;
         }
         .form-group input, .form-group select {
             width: 100%;
-            padding: 0.55rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            font-size: 0.95rem;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-surface-raised);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.92rem;
             box-sizing: border-box;
+            transition: all 0.2s ease;
         }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
         .btn-primary {
             background: var(--accent);
-            color: white;
+            color: #ffffff;
             border: none;
             padding: 0.75rem 1.2rem;
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: background 0.2s;
+            font-size: 0.95rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px var(--accent-glow);
         }
-        .btn-primary:hover { background: #2980b9; }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
         .btn-sm {
-            padding: 0.3rem 0.6rem;
+            padding: 0.35rem 0.65rem;
             font-size: 0.8rem;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            background: white;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface-raised);
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.15s ease;
             font-weight: 600;
         }
-        .btn-sm:hover { background: #f1f5f9; }
+        .btn-sm:hover {
+            background: var(--border-highlight);
+            color: var(--text-primary);
+            border-color: var(--border-highlight);
+        }
         .btn-sm.active-mode {
             background: var(--accent);
-            color: white;
+            color: #ffffff;
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        /* 📐 Unified Rectangular Selection Controls (以矩形為主) 📐 */
+        .rect-segment-group {
+            display: inline-flex;
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 3px;
+            gap: 3px;
+            align-items: center;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .rect-segment-item {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 11px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .rect-segment-item input[type="radio"],
+        .rect-segment-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .rect-segment-item:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .rect-segment-item.active,
+        .rect-segment-item:has(input:checked) {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            font-weight: 700;
+        }
+
+        /* Rectangular Toggle Chips */
+        .rect-toggle-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 5px;
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .rect-toggle-chip input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid var(--border-highlight);
+            border-radius: 3px;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+            margin: 0;
+        }
+
+        .rect-toggle-chip input[type="checkbox"]:checked {
+            background: var(--accent);
             border-color: var(--accent);
         }
 
+        .rect-toggle-chip input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 3.5px;
+            top: 1px;
+            width: 3.5px;
+            height: 7px;
+            border: solid #ffffff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .rect-toggle-chip:hover {
+            border-color: var(--border-highlight);
+            color: var(--text-primary);
+        }
+
+        .rect-toggle-chip:has(input:checked) {
+            background: var(--accent-subtle);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Custom Rectangular Checkbox */
+        .rect-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border: 1.5px solid var(--border-highlight);
+            border-radius: 3px;
+            background: var(--bg-surface-raised);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        .rect-checkbox:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .rect-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1.5px;
+            width: 4px;
+            height: 7px;
+            border: solid #ffffff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* ㄑ Minimal Chevron Icon System ㄑ */
+        .tree-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .tree-chevron svg {
+            width: 12px;
+            height: 12px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .tree-chevron.expanded {
+            transform: rotate(0deg);
+            color: var(--accent);
+        }
+
+        .tree-chevron.collapsed {
+            transform: rotate(-90deg);
+            color: var(--text-muted);
+        }
+
+        /* Tree Containers */
+        .editor-tree-box {
+            max-height: 220px;
+            overflow-y: auto;
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.45rem;
+            margin-top: 0.35rem;
+        }
+
+        .editor-tree-item {
+            padding: 0.35rem 0.55rem;
+            border-radius: 5px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+            color: var(--text-primary);
+            transition: all 0.15s ease;
+        }
+
+        .editor-tree-item:hover {
+            background: var(--bg-surface-higher);
+        }
+
+        .editor-tree-item.active-img {
+            background: var(--accent-subtle);
+            font-weight: 700;
+            border-left: 3px solid var(--accent);
+            color: var(--accent);
+        }
+
+        /* Quiz Scope Drawer */
+        .scope-drawer {
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            padding: 0.55rem 0.8rem;
+        }
+
+        .scope-drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .scope-drawer-header:hover { opacity: 0.88; }
+
+        .category-tree {
+            max-height: 180px;
+            overflow-y: auto;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.45rem;
+            margin-top: 0.4rem;
+        }
+
+        .cat-group {
+            margin-bottom: 0.35rem;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 0.3rem;
+        }
+
+        .cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.84rem;
+            color: var(--text-primary);
+            padding: 0.25rem 0.35rem;
+            border-radius: 5px;
+            transition: background 0.15s ease;
+        }
+        .cat-header:hover { background: var(--bg-surface-higher); }
+
+        .cat-children {
+            padding-left: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+        .cat-children.collapsed { display: none; }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .checkbox-item:hover {
+            color: var(--text-primary);
+            background: var(--bg-surface-higher);
+        }
+
+        /* Options Grid & Buttons */
         .options-grid {
             display: grid;
-            gap: 0.6rem;
-            margin-top: 0.8rem;
+            gap: 0.65rem;
+            margin-top: 0.85rem;
         }
         .grid-4 { grid-template-columns: 1fr 1fr; }
         .grid-6 { grid-template-columns: 1fr 1fr 1fr; }
+
         .option-btn {
-            padding: 0.8rem 0.6rem;
-            border: 2px solid #cbd5e1;
-            background: white;
-            color: #1e293b;
-            border-radius: 6px;
+            padding: 0.85rem 0.75rem;
+            border: 1.5px solid var(--border);
+            background: var(--bg-surface-raised);
+            color: var(--text-primary);
+            border-radius: 7px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.94rem;
             font-weight: 600;
-            transition: all 0.15s;
+            transition: all 0.15s ease;
             text-align: left;
             position: relative;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
         }
-        .option-btn:hover {
+        .option-btn:hover:not(:disabled) {
             border-color: var(--accent);
             color: var(--accent);
-            background: #ebf5fb;
+            background: var(--accent-subtle);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 12px var(--accent-glow);
         }
-        
+        .option-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
         .key-badge {
             display: inline-block;
-            background: #e2e8f0;
-            color: #475569;
-            font-size: 0.75rem;
+            background: var(--bg-surface-higher);
+            color: var(--text-secondary);
+            font-size: 0.74rem;
             padding: 1px 5px;
-            border-radius: 3px;
-            margin-right: 6px;
-            font-family: monospace;
+            border-radius: 4px;
+            margin-right: 7px;
+            font-family: Consolas, monospace;
             vertical-align: middle;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--border);
         }
-        
+
+        /* Feedback & Badges */
         #feedback {
-            margin-top: 0.8rem;
-            font-weight: bold;
+            margin-top: 0.85rem;
+            font-weight: 700;
             text-align: center;
             font-size: 1.05rem;
-            line-height: 1.45;
+            line-height: 1.5;
         }
         .correct { color: var(--success); }
         .incorrect { color: var(--danger); }
+
         .synonym-tag {
             display: inline-block;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
-            padding: 2px 6px;
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+            padding: 2px 7px;
             border-radius: 4px;
             font-size: 0.8rem;
-            margin-top: 3px;
+            margin-top: 4px;
         }
         .typo-tag {
             display: inline-block;
-            background: #fff8e1;
-            color: #f57f17;
-            border: 1px solid #ffe082;
-            padding: 2px 6px;
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+            padding: 2px 7px;
             border-radius: 4px;
             font-size: 0.8rem;
-            margin-top: 3px;
+            margin-top: 4px;
         }
 
-        .user-info { display: flex; align-items: center; gap: 0.8rem; }
-        .user-info img { width: 30px; height: 30px; border-radius: 50%; }
+        .quiz-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.45rem;
+            gap: 0.45rem;
+            flex-wrap: nowrap;
+            min-width: 0;
+        }
 
-        /* 🔥 火焰 Combo 特效 🔥 */
+        #quiz-title-tag {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .daily-badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.3rem 0.7rem;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            line-height: 1.2;
+        }
+
+        .relearn-badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--relearn-bg);
+            border: 1px solid var(--relearn-border);
+            border-radius: 20px;
+            padding: 0.3rem 0.7rem;
+            font-size: 0.82rem;
+            color: var(--relearn);
+            font-weight: 700;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            line-height: 1.2;
+        }
+
+        .combo-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.88rem;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+            user-select: none;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            line-height: 1.2;
+        }
+        .combo-tier-0 { background: var(--bg-surface-raised); color: var(--text-muted); border: 1px solid var(--border); filter: none; }
+        .combo-tier-1 { background: linear-gradient(135deg, #ff9800, #ff5722); color: white; animation: flamePulse 1.4s infinite; }
+        .combo-tier-2 { background: linear-gradient(135deg, #f44336, #e91e63, #ff9800); color: #fff; animation: flamePulse 0.85s infinite; box-shadow: 0 0 14px rgba(255, 87, 34, 0.7); }
+        .combo-tier-3 { background: linear-gradient(135deg, #ffd700, #ff5722, #9c27b0); color: #fff; animation: godlikeFlicker 0.55s infinite; box-shadow: 0 0 22px rgba(255, 215, 0, 0.95); }
+        .combo-shake { animation: comboShake 0.4s ease-in-out !important; background: var(--border-highlight) !important; color: var(--text-secondary) !important; }
+
         @keyframes flamePulse {
             0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #ff5722); }
             50% { transform: scale(1.08); filter: drop-shadow(0 0 14px #ff9800); }
@@ -226,233 +788,117 @@
             40%, 80% { transform: translateX(5px); }
         }
 
-        .quiz-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.4rem;
-            gap: 0.4rem;
-            flex-wrap: nowrap;
-            min-width: 0;
-        }
-
-        #quiz-title-tag {
-            font-weight: bold;
-            color: var(--primary);
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            min-width: 0;
-            flex: 1;
-        }
-
-        .daily-badge {
-            display: inline-flex;
-            align-items: center;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 20px;
-            padding: 0.28rem 0.65rem;
-            font-size: 0.82rem;
-            color: #334155;
-            font-weight: 600;
-            white-space: nowrap !important;
-            flex-shrink: 0 !important;
-            line-height: 1.2;
-        }
-
-        .relearn-badge {
-            display: inline-flex;
-            align-items: center;
-            background: #f3e8ff;
-            border: 1px solid #d8b4fe;
-            border-radius: 20px;
-            padding: 0.28rem 0.6rem;
-            font-size: 0.8rem;
-            color: #7e22ce;
-            font-weight: bold;
-            white-space: nowrap !important;
-            flex-shrink: 0 !important;
-            line-height: 1.2;
-        }
-
-        .combo-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            padding: 0.28rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.88rem;
-            letter-spacing: 0.5px;
-            transition: all 0.25s ease;
-            user-select: none;
-            white-space: nowrap !important;
-            flex-shrink: 0 !important;
-            line-height: 1.2;
-        }
-        .combo-tier-0 { background: #e2e8f0; color: #94a3b8; filter: none; }
-        .combo-tier-1 { background: linear-gradient(135deg, #ff9800, #ff5722); color: white; animation: flamePulse 1.4s infinite; }
-        .combo-tier-2 { background: linear-gradient(135deg, #f44336, #e91e63, #ff9800); color: #fff; animation: flamePulse 0.85s infinite; box-shadow: 0 0 14px rgba(255, 87, 34, 0.7); }
-        .combo-tier-3 { background: linear-gradient(135deg, #ffd700, #ff5722, #9c27b0); color: #fff; animation: godlikeFlicker 0.55s infinite; box-shadow: 0 0 22px rgba(255, 215, 0, 0.95); }
-        .combo-shake { animation: comboShake 0.4s ease-in-out !important; background: #64748b !important; color: #cbd5e1 !important; }
-
-        .mode-toggle-group {
-            display: flex; gap: 0.5rem;
-            background: #f1f5f9; padding: 0.45rem 0.65rem;
-            border-radius: 6px; margin-bottom: 0.6rem;
-            align-items: center; white-space: nowrap;
-        }
-        .mode-toggle-group label {
-            cursor: pointer; font-weight: 600;
-            color: #334155; font-size: 0.84rem;
-            display: flex; align-items: center; gap: 0.25rem; margin: 0;
-        }
-
-        .scope-drawer {
-            background: #f8fafc; border: 1px solid #e2e8f0;
-            border-radius: 6px; margin-bottom: 0.7rem; padding: 0.5rem 0.7rem;
-        }
-        .scope-drawer-header {
-            display: flex; justify-content: space-between;
-            align-items: center; cursor: pointer; user-select: none;
-        }
-        .scope-drawer-header:hover { opacity: 0.85; }
-        .category-tree {
-            max-height: 170px; overflow-y: auto;
-            background: white; border: 1px solid #cbd5e1;
-            border-radius: 6px; padding: 0.4rem; margin-top: 0.4rem;
-        }
-        .cat-group {
-            margin-bottom: 0.35rem; border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 0.25rem;
-        }
-        .cat-header {
-            display: flex; justify-content: space-between;
-            align-items: center; cursor: pointer; font-weight: bold;
-            font-size: 0.85rem; color: #1e293b; padding: 0.2rem 0.3rem; border-radius: 4px;
-        }
-        .cat-header:hover { background: #f8fafc; }
-        .cat-children {
-            padding-left: 1.1rem; display: flex; flex-direction: column;
-            gap: 0.2rem; margin-top: 0.25rem;
-        }
-        .cat-children.collapsed { display: none; }
-        .checkbox-item {
-            display: flex; align-items: center; gap: 0.4rem;
-            font-size: 0.8rem; color: #475569; cursor: pointer;
-        }
-        .checkbox-item input { width: auto; margin: 0; }
-
-        /* 榮譽大看板 */
+        /* Analytics Dashboard */
         .hero-banner {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 0.8rem; margin-bottom: 1.2rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.85rem;
+            margin-bottom: 1.2rem;
         }
         .hero-card {
-            background: linear-gradient(135deg, #ffffff, #f8fafc);
-            border: 1px solid #e2e8f0; border-radius: 8px;
-            padding: 0.9rem; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            background: var(--bg-surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .hero-label { font-size: 0.8rem; font-weight: bold; color: #64748b; }
-        .hero-val { font-size: 1.45rem; font-weight: 900; margin-top: 0.25rem; color: #1e293b; }
+        .hero-label { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); }
+        .hero-val { font-size: 1.5rem; font-weight: 900; margin-top: 0.25rem; color: var(--text-primary); }
 
         .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; text-align: left; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.88rem; }
-        .stats-table th, .stats-table td { padding: 0.65rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
-        .stats-table th { background: #f8fafc; color: #475569; font-weight: bold; }
-        .accuracy-pill { padding: 0.2rem 0.5rem; border-radius: 10px; font-weight: bold; font-size: 0.78rem; }
-        .acc-high { background: #d4edda; color: #155724; }
-        .acc-med { background: #fff3cd; color: #856404; }
-        .acc-low { background: #f8d7da; color: #721c24; }
-        
+        .stats-table th, .stats-table td { padding: 0.65rem; border-bottom: 1px solid var(--border); text-align: left; }
+        .stats-table th { background: var(--bg-surface-higher); color: var(--text-secondary); font-weight: 700; }
+        .accuracy-pill { padding: 0.2rem 0.55rem; border-radius: 10px; font-weight: 700; font-size: 0.78rem; }
+        .acc-high { background: var(--success-bg); color: var(--success); }
+        .acc-med { background: var(--warning-bg); color: var(--warning); }
+        .acc-low { background: var(--danger-bg); color: var(--danger); }
+
         .weak-list { list-style: none; padding: 0; margin-top: 0.6rem; }
         .weak-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0.55rem 0.75rem; border-radius: 6px; background: #fff5f5;
+            padding: 0.6rem 0.8rem; border-radius: 6px; background: var(--danger-bg);
             border-left: 4px solid var(--danger); margin-bottom: 0.45rem;
             font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
-            border-top: 1px solid #fee2e2; border-right: 1px solid #fee2e2; border-bottom: 1px solid #fee2e2;
+            border-top: 1px solid var(--danger-border);
+            border-right: 1px solid var(--danger-border);
+            border-bottom: 1px solid var(--danger-border);
         }
-        .weak-item:hover { background: #fee2e2; transform: translateX(3px); }
+        .weak-item:hover { transform: translateX(3px); filter: brightness(1.08); }
 
-        .editor-tree-box {
-            max-height: 200px; overflow-y: auto; background: #fff;
-            border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.4rem; margin-top: 0.3rem;
-        }
-        .editor-tree-item {
-            padding: 0.3rem 0.5rem; border-radius: 4px; font-size: 0.82rem;
-            cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;
-        }
-        .editor-tree-item:hover { background: #e0f2fe; }
-        .editor-tree-item.active-img { background: #bae6fd; font-weight: bold; border-left: 3px solid var(--accent); }
-
-
-        /* V9 新增：AI-OCR 徽章、比對高亮、Modal 與快捷列 */
+        /* OCR badge, Modal, Diff */
         .ocr-badge {
             display: inline-flex; align-items: center; gap: 4px;
             font-size: 0.75rem; padding: 2px 8px; border-radius: 12px;
-            font-weight: bold; transition: all 0.2s;
+            font-weight: 700; transition: all 0.2s;
         }
-        .ocr-idle { background: #f1f5f9; color: #64748b; }
-        .ocr-busy { background: #dbeafe; color: #1d4ed8; animation: flamePulse 1s infinite; }
-        .ocr-ok { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-        .ocr-warn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .ocr-idle { background: var(--bg-surface-raised); color: var(--text-secondary); border: 1px solid var(--border); }
+        .ocr-busy { background: var(--accent-subtle); color: var(--accent); border: 1px solid var(--accent); animation: flamePulse 1s infinite; }
+        .ocr-ok { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+        .ocr-warn { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+
         .tree-action-btn {
-            border: 1px solid #cbd5e1; background: #fff; color: #334155;
-            border-radius: 3px; padding: 1px 5px; font-size: 0.72rem;
+            border: 1px solid var(--border); background: var(--bg-surface-raised); color: var(--text-secondary);
+            border-radius: 4px; padding: 1px 5px; font-size: 0.72rem;
             cursor: pointer; margin-left: 3px; transition: all 0.15s;
         }
         .tree-action-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
+            position: fixed; inset: 0; background: rgba(11, 15, 25, 0.75);
+            backdrop-filter: blur(4px);
             display: none; justify-content: center; align-items: center;
             z-index: 9999; padding: 1rem;
         }
         .modal-overlay.show { display: flex; }
         .modal-card {
-            background: #fff; border-radius: 10px; max-width: 820px; width: 100%;
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: 12px; max-width: 820px; width: 100%;
             max-height: 86vh; display: flex; flex-direction: column;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; text-align: left;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden; text-align: left;
         }
         .modal-header {
-            padding: 0.9rem 1.2rem; background: var(--primary); color: #fff;
-            display: flex; justify-content: space-between; align-items: center; font-weight: bold;
+            padding: 0.9rem 1.25rem; background: var(--bg-surface-raised);
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; font-weight: 700;
         }
-        .modal-body { padding: 1rem 1.2rem; overflow-y: auto; font-size: 0.88rem; }
+        .modal-body { padding: 1rem 1.25rem; overflow-y: auto; font-size: 0.88rem; color: var(--text-secondary); }
         .modal-footer {
-            padding: 0.75rem 1.2rem; background: #f8fafc; border-top: 1px solid #e2e8f0;
+            padding: 0.8rem 1.25rem; background: var(--bg-surface-raised); border-top: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
         }
         .typo-audit-row {
             display: grid; grid-template-columns: 26px 1.25fr 1.1fr 1.25fr auto;
-            gap: 0.5rem; align-items: center; padding: 0.5rem 0.6rem;
-            border-bottom: 1px solid #f1f5f9; font-size: 0.82rem;
+            gap: 0.5rem; align-items: center; padding: 0.55rem 0.6rem;
+            border-bottom: 1px solid var(--border-subtle); font-size: 0.82rem;
         }
-        .typo-audit-row:hover { background: #f8fafc; }
+        .typo-audit-row:hover { background: var(--bg-surface-higher); }
+
         .diff-box {
-            display: inline-block; background: #1e293b; color: #f8fafc;
-            padding: 4px 10px; border-radius: 6px; font-family: Consolas, monospace;
-            font-size: 0.92rem; letter-spacing: 0.5px; margin-top: 4px;
+            display: inline-block; background: var(--bg-surface-higher); color: var(--text-primary);
+            padding: 5px 12px; border-radius: 6px; font-family: Consolas, monospace;
+            font-size: 0.92rem; letter-spacing: 0.5px; margin-top: 5px;
+            border: 1px solid var(--border);
         }
         .diff-ok { color: #4ade80; }
-        .diff-err { color: #f87171; text-decoration: underline wavy #ef4444; font-weight: bold; }
+        .diff-err { color: #f87171; text-decoration: underline wavy #ef4444; font-weight: 700; }
+
         .hint-scaffold-box {
-            background: #eff6ff; border: 1px dashed #93c5fd; color: #1e40af;
-            padding: 0.35rem 0.6rem; border-radius: 5px; font-family: Consolas, monospace;
-            font-size: 0.9rem; font-weight: bold; margin-bottom: 0.45rem; display: none;
+            background: var(--accent-subtle); border: 1px dashed var(--accent); color: var(--accent);
+            padding: 0.4rem 0.7rem; border-radius: 6px; font-family: Consolas, monospace;
+            font-size: 0.92rem; font-weight: 700; margin-bottom: 0.5rem; display: none;
             letter-spacing: 1px;
         }
-  
+
         @media (max-width: 900px) {
             header { padding: 0.5rem 0.8rem; }
             header h2 { font-size: 1.05rem; }
             .container { margin: 0.4rem auto; padding: 0 0.4rem; }
             .workspace { display: flex; flex-direction: column; gap: 0.5rem; }
-            .canvas-container { max-height: 36vh; min-height: 180px; width: 100%; }
-            canvas { max-height: 36vh; width: auto; object-fit: contain; }
-            .panel { padding: 0.75rem; }
+            .canvas-container { max-height: 38vh; min-height: 180px; width: 100%; }
+            canvas { max-height: 38vh; width: auto; object-fit: contain; }
+            .panel { padding: 0.85rem; }
             .options-grid { gap: 0.45rem; margin-top: 0.4rem; }
             .grid-6 { grid-template-columns: 1fr 1fr; }
             .option-btn { padding: 0.7rem 0.5rem; font-size: 0.88rem; }
@@ -462,38 +908,40 @@
             .analytics-grid { grid-template-columns: 1fr; }
             .daily-badge, .relearn-badge { font-size: 0.75rem; padding: 0.2rem 0.45rem; }
         }
+    
     </style>
 </head>
 <body>
 
 <header>
-    <h2>🦴 解剖學記憶分析系統 <span style="font-size: 0.72rem; background: #16a085; padding: 2px 5px; border-radius: 4px;">V9-PRO 審查完修版</span></h2>
+    <h2>🦴 獸醫解剖學記憶分析系統 <span class="version-badge">V9-PRO 灰藍旗艦</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
-        <span id="user-name" style="font-size: 0.9rem;"></span>
+        <span id="user-name" style="font-size: 0.9rem; font-weight: bold; color: var(--text-primary);"></span>
         <div class="nav-btns">
             <button id="nav-editor" onclick="switchMode('editor')" class="">🛠️ 編輯器</button>
             <button id="nav-quiz" class="" onclick="switchMode('quiz')">📝 測驗</button>
             <button id="nav-analytics" onclick="switchMode('analytics')" class="active">📊 分析</button>
-            <button onclick="logout()" style="border-color: #e74c3c; color: #e74c3c;">登出</button>
+            <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="切換白天與黑夜模式"><span id="theme-icon">🌙</span> <span id="theme-text">深色高階</span></button>
+            <button onclick="logout()" style="border-color: var(--danger); color: var(--danger); background: var(--danger-bg);">登出</button>
         </div>
     </div>
 </header>
 
 <div class="container">
     <div id="login-zone" class="card" style="display: block;">
-        <h3>歡迎使用解剖學專業記憶系統 (V8-PRO)</h3>
-        <p style="font-size: 0.9rem; color: #555;">嚴格遵循 NAV 解剖命名規範、真實 SM-2 間隔重複、錯題即刻強化、IndexedDB 本機持久化與 Firestore 批次安全防禦。<br>請登入 Google 帳號以連線雲端題庫。</p>
+        <h3>歡迎使用解剖學專業記憶系統 (V9-PRO 旗艦版)</h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">嚴格遵循 NAV 解剖命名規範、真實 SM-2 間隔重複、錯題即刻強化、IndexedDB 本機持久化與 Firestore 批次安全防禦。<br>請登入 Google 帳號以連線雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
 
     <div id="setup-zone" class="card" style="display: none;">
         <h3>準備階段：載入圖片資料夾</h3>
-        <p style="color: #666; font-size: 0.85em;">(選取本機包含解剖圖的「參考資料」資料夾。圖片將自動快取至 IndexedDB，日後免重複選取！)</p>
+        <p style="color: var(--text-secondary); font-size: 0.85em;">(選取本機包含解剖圖的「參考資料」資料夾。圖片將自動快取至 IndexedDB，日後免重複選取！)</p>
         <div style="margin: 0.6rem 0;">
             <input type="file" id="folder-input" webkitdirectory="" directory="" multiple="" accept="image/*">
         </div>
-        <div id="idb-cache-status" style="font-size: 0.82rem; color: #27ae60; margin-bottom: 0.6rem; font-weight: bold;">
+        <div id="idb-cache-status" style="font-size: 0.82rem; color: var(--success); margin-bottom: 0.6rem; font-weight: bold;">
             💾 本機快取狀態：檢查中...
         </div>
         <button class="btn-primary" style="width: auto;" onclick="finishSetup()">✅ 開始使用</button>
@@ -508,81 +956,82 @@
             <h3 style="margin-top: 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
                 <span>🛠️ 題庫編輯器</span>
                 <span style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                    <span id="editor-current-img-badge" style="font-size:0.75rem; color:#64748b; font-weight:normal;"></span>
-                    <button type="button" class="btn-sm" style="padding:2px 6px; font-size:0.74rem;" onclick="promptRenameSingleImage(currentImage)" title="修改目前圖片檔案名稱 (同步更新本機快取與雲端)">✏️ 改圖名</button>
-                    <button type="button" class="btn-sm" style="padding:2px 6px; font-size:0.74rem; background:#fef3c7; border-color:#f59e0b; color:#92400e;" onclick="openTypoAuditModal()" title="檢視 OCR 比對出的 11 筆題庫拼字候選並自由挑選修正">🩺 拼字健檢 (11)</button>
+                    <span id="editor-current-img-badge" style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;"></span>
+                    <button type="button" class="btn-sm" style="padding:2px 7px; font-size:0.74rem;" onclick="promptRenameSingleImage(currentImage)" title="修改目前圖片檔案名稱 (同步更新本機快取與雲端)">✏️ 改圖名</button>
+                    <button type="button" class="btn-sm" style="padding:2px 7px; font-size:0.74rem; background:var(--warning-bg); border-color:var(--warning); color:var(--warning);" onclick="openTypoAuditModal()" title="檢視 OCR 比對出的 11 筆題庫拼字候選並自由挑選修正">🩺 拼字健檢 (11)</button>
                 </span>
             </h3>
 
             <!-- 智慧分類選取與防呆提示 -->
-            <div class="form-group" style="background: #f8fafc; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+            <div class="form-group" style="background: var(--bg-surface-raised); padding: 0.65rem; border: 1px solid var(--border); border-radius: 8px;">
                 <label style="display: flex; justify-content: space-between; align-items: center;">
                     <span>📁 儲存分類資料夾：</span>
                     <span id="active-cat-name" style="color: var(--accent); font-weight: bold;">head_skull</span>
                 </label>
-                <div style="display: flex; gap: 0.4rem; margin-top: 0.3rem;">
+                <div style="display: flex; gap: 0.4rem; margin-top: 0.35rem;">
                     <select id="editor-category-select" onchange="onCategorySelectChange()" style="flex: 1;"></select>
-                    <button type="button" class="btn-sm" style="background:#27ae60; color:white; border-color:#27ae60;" onclick="promptCreateNewCategory()">➕ 新分類</button>
-                    <button type="button" class="btn-sm" style="background:#e67e22; color:white; border-color:#e67e22;" onclick="promptBatchRenameCategorySafe()">✏️ 批次更名</button>
+                    <button type="button" class="btn-sm" style="background:var(--success); color:white; border-color:var(--success);" onclick="promptCreateNewCategory()">➕ 新分類</button>
+                    <button type="button" class="btn-sm" style="background:var(--warning); color:white; border-color:var(--warning);" onclick="promptBatchRenameCategorySafe()">✏️ 批次更名</button>
                 </div>
             </div>
 
-            <!-- 圖片檔案分類樹狀檢視 -->
+            <!-- 圖片檔案分類樹狀檢視 (可收起展開 · ㄑ 提示) -->
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <label style="margin: 0;">🖼️ 選擇編輯圖片：</label>
-                    <input type="text" id="editor-tree-search" placeholder="🔍 搜尋圖名..." style="width: 140px; padding: 0.2rem 0.4rem; font-size: 0.78rem;" oninput="renderEditorImageTree()">
+                    <input type="text" id="editor-tree-search" placeholder="🔍 搜尋圖名..." style="width: 140px; padding: 0.25rem 0.5rem; font-size: 0.78rem;" oninput="renderEditorImageTree()">
                 </div>
                 <div id="editor-image-tree" class="editor-tree-box"></div>
             </div>
 
-            <!-- 遮蓋模式切換 -->
-            <div style="margin: 0.6rem 0; padding: 0.55rem; background: #f1f5f9; border-radius: 6px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                    <span style="font-size: 0.85rem; font-weight: bold; color: #1e293b;">📐 遮蓋模式：</span>
-                    <div style="display: flex; gap: 0.3rem;">
-                        <button type="button" id="mask-mode-single" class="btn-sm active-mode" onclick="setEditorMaskMode('single')">🔘 單個遮蓋</button>
-                        <button type="button" id="mask-mode-multi" class="btn-sm" onclick="setEditorMaskMode('multi')">🔲 多個遮蓋</button>
+            <!-- 遮蓋模式切換 (以矩形為主) -->
+            <div style="margin: 0.6rem 0; padding: 0.6rem; background: var(--bg-surface-raised); border-radius: 8px; border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-primary);">📐 遮蓋模式：</span>
+                    <div class="rect-segment-group">
+                        <button type="button" id="mask-mode-single" class="rect-segment-item" onclick="setEditorMaskMode('single')">▱ 單個遮蓋</button>
+                        <button type="button" id="mask-mode-multi" class="rect-segment-item" onclick="setEditorMaskMode('multi')">▰ 多個遮蓋</button>
                     </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #64748b;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
                     <span>已拉取：<strong id="pending-mask-count" style="color: var(--danger); font-size:0.95rem;">0</strong> 個區塊</span>
                     <div style="display: flex; gap: 0.3rem;">
-                        <button type="button" class="btn-sm" style="padding:1px 6px;" onclick="undoLastMask()">↩️ 撤銷最後一個</button>
-                        <button type="button" class="btn-sm" style="padding:1px 6px;" onclick="clearPendingMasks()">🗑️ 全部清除</button>
+                        <button type="button" class="btn-sm" style="padding:2px 7px;" onclick="undoLastMask()">↩️ 撤銷最後一個</button>
+                        <button type="button" class="btn-sm" style="padding:2px 7px;" onclick="clearPendingMasks()">🗑️ 全部清除</button>
                     </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem; flex-wrap:wrap; gap:4px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:4px;">
                     <label style="margin:0;">🔤 專有名詞 (正解/英/拉):</label>
                     <span id="ocr-status-badge" class="ocr-badge ocr-idle">🤖 畫框自動辨識就緒</span>
                 </div>
                 <input type="text" id="term-input" placeholder="畫紅框放開後自動辨識帶入 (不會直接寫入雲端，按 Enter 儲存)...">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.3rem; font-size:0.76rem; color:#475569; flex-wrap:wrap; gap:4px;">
-                    <label style="display:inline-flex; align-items:center; gap:4px; margin:0; font-weight:normal; cursor:pointer;">
-                        <input type="checkbox" id="ocr-auto-toggle" checked="" style="width:auto; margin:0;"> 畫框自動帶入欄位 (僅預填不直接存檔)
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; font-size:0.76rem; color:var(--text-secondary); flex-wrap:wrap; gap:4px;">
+                    <label class="rect-toggle-chip">
+                        <input type="checkbox" id="ocr-auto-toggle" checked="">
+                        <span>畫框自動帶入欄位 (僅預填不直接存檔)</span>
                     </label>
                     <div style="display:flex; gap:4px;">
-                        <button type="button" class="btn-sm" style="padding:1px 6px; font-size:0.72rem;" onclick="ocrLatestPendingMask()" title="重新對最新畫的紅框執行 OCR">🔄 辨識最新框</button>
-                        <button type="button" class="btn-sm" style="padding:1px 6px; font-size:0.72rem;" onclick="ocrMergeAllPendingMasks()" title="將多個紅框內的文字依上下順序合併辨識">🔗 合併多框</button>
+                        <button type="button" class="btn-sm" style="padding:2px 7px; font-size:0.72rem;" onclick="ocrLatestPendingMask()" title="重新對最新畫的紅框執行 OCR">🔄 辨識最新框</button>
+                        <button type="button" class="btn-sm" style="padding:2px 7px; font-size:0.72rem;" onclick="ocrMergeAllPendingMasks()" title="將多個紅框內的文字依上下順序合併辨識">🔗 合併多框</button>
                     </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.7rem;">
                 <div>
-                    <label style="font-size:0.8rem; font-weight:bold; color:#475569;">左右側性 (Sidedness):</label>
-                    <select id="sidedness-input" style="padding:0.4rem; font-size:0.85rem; border:1px solid #cbd5e1; border-radius:4px; width:100%;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:var(--text-secondary);">左右側性 (Sidedness):</label>
+                    <select id="sidedness-input" style="padding:0.45rem; font-size:0.85rem; width:100%;">
                         <option value="unpaired">中央 / 非成對 (Unpaired)</option>
                         <option value="left">左側 (Left)</option>
                         <option value="right">右側 (Right)</option>
                     </select>
                 </div>
                 <div>
-                    <label style="font-size:0.8rem; font-weight:bold; color:#475569;">解剖視角 (View):</label>
-                    <select id="view-angle-input" style="padding:0.4rem; font-size:0.85rem; border:1px solid #cbd5e1; border-radius:4px; width:100%;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:var(--text-secondary);">解剖視角 (View):</label>
+                    <select id="view-angle-input" style="padding:0.45rem; font-size:0.85rem; width:100%;">
                         <option value="general">一般視角 (General)</option>
                         <option value="dorsal">背側觀 (Dorsal)</option>
                         <option value="ventral">腹側觀 (Ventral)</option>
@@ -600,15 +1049,15 @@
             <button class="btn-primary" onclick="saveMaskRegion()">💾 儲存並同步至雲端目錄</button>
 
             <!-- 本圖片已標註名詞管理 -->
-            <div style="margin-top: 0.8rem; border-top: 1px dashed #cbd5e1; padding-top: 0.5rem;">
-                <span style="font-size: 0.82rem; font-weight: bold; color: #475569;">📋 本圖已標註名詞：</span>
-                <div id="image-terms-list" style="max-height: 120px; overflow-y: auto; margin-top: 0.3rem; font-size: 0.8rem;"></div>
+            <div style="margin-top: 0.9rem; border-top: 1px dashed var(--border); padding-top: 0.6rem;">
+                <span style="font-size: 0.82rem; font-weight: bold; color: var(--text-secondary);">📋 本圖已標註名詞：</span>
+                <div id="image-terms-list" style="max-height: 120px; overflow-y: auto; margin-top: 0.35rem; font-size: 0.8rem;"></div>
             </div>
         </div>
     </div>
 
     <!-- 2. 測驗模式 -->
-    <div id="mode-quiz" class="workspace">
+    <div id="mode-quiz" class="workspace" style="display: block;">
         <div class="canvas-container">
             <canvas id="quiz-canvas"></canvas>
         </div>
@@ -630,75 +1079,111 @@
                 <div id="combo-hud" class="combo-badge combo-tier-0">🔥 COMBO <span id="combo-count" style="margin-left:4px;">0</span></div>
             </div>
 
-            <!-- 出題範圍抽屜 -->
+            <!-- 出題範圍抽屜 (支援 ㄑ 提示與全開/全收) -->
             <div class="scope-drawer">
                 <div class="scope-drawer-header" onclick="toggleScopeDrawer()">
-                    <span style="font-size: 0.82rem; font-weight: bold; color: #1e293b;">
-                        📁 出題範圍 <small id="scope-summary" style="color: #64748b; font-weight: normal; margin-left: 4px;">(計算中)</small>
+                    <span style="font-size: 0.84rem; font-weight: bold; color: var(--text-primary);">
+                        📁 出題範圍 <small id="scope-summary" style="color: var(--text-muted); font-weight: normal; margin-left: 4px;">(計算中)</small>
                     </span>
-                    <span id="drawer-arrow-icon" style="font-size: 0.75rem; color: #64748b;">▸ 展開範圍設定</span>
+                    <span id="drawer-arrow-icon" style="font-size: 0.75rem; color: var(--text-secondary); display:flex; align-items:center; gap:4px;">
+                        <span id="drawer-arrow-text">展開範圍設定</span>
+                        <span class="tree-chevron collapsed" id="drawer-chevron-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></span>
+                    </span>
                 </div>
-                <div id="scope-drawer-body" style="display: none; margin-top: 0.4rem; border-top: 1px dashed #cbd5e1; padding-top: 0.4rem;">
-                    <div style="display: flex; justify-content: flex-end; gap: 0.4rem; margin-bottom: 0.3rem;">
-                        <button type="button" style="font-size: 0.72rem; padding: 0.15rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(true)">全選</button>
-                        <button type="button" style="font-size: 0.72rem; padding: 0.15rem 0.4rem; cursor: pointer; border-radius: 3px; border: 1px solid #cbd5e1; background: white;" onclick="toggleAllScopes(false)">全不選</button>
+                <div id="scope-drawer-body" style="display: none; margin-top: 0.4rem; border-top: 1px dashed var(--border); padding-top: 0.4rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                        <div style="display:flex; gap:4px;">
+                            <button type="button" class="btn-sm" style="font-size:0.72rem; padding:2px 7px;" onclick="expandAllScopes(true)">全展開</button>
+                            <button type="button" class="btn-sm" style="font-size:0.72rem; padding:2px 7px;" onclick="expandAllScopes(false)">全收起</button>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button type="button" class="btn-sm" style="font-size: 0.72rem; padding: 2px 7px;" onclick="toggleAllScopes(true)">全選</button>
+                            <button type="button" class="btn-sm" style="font-size: 0.72rem; padding: 2px 7px;" onclick="toggleAllScopes(false)">全不選</button>
+                        </div>
                     </div>
                     <div id="category-tree" class="category-tree"></div>
                 </div>
             </div>
 
-            <!-- 模式切換 -->
-            <div style="display: flex; gap: 0.4rem; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap;">
-                <div class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
-                    <label><input type="radio" name="quiz-type" value="mcq" checked="" onchange="onQuizTypeChanged()"> 🔘 選擇題</label>
-                    <label><input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()"> ✍️ 單題填空</label>
-                    <label><input type="radio" name="quiz-type" value="sheet" onchange="onQuizTypeChanged()"> 🗺️ 全圖地毯</label>
+            <!-- 模式切換 (以矩形為主) -->
+            <div style="display: flex; gap: 0.4rem; justify-content: space-between; margin-bottom: 0.6rem; flex-wrap: wrap; align-items: center;">
+                <div class="rect-segment-group">
+                    <label class="rect-segment-item active" id="seg-type-mcq">
+                        <input type="radio" name="quiz-type" value="mcq" checked="" onchange="onQuizTypeChanged()">
+                        <span>🔘 選擇題</span>
+                    </label>
+                    <label class="rect-segment-item" id="seg-type-fill">
+                        <input type="radio" name="quiz-type" value="fill" onchange="onQuizTypeChanged()">
+                        <span>✍️ 單題填空</span>
+                    </label>
+                    <label class="rect-segment-item" id="seg-type-sheet">
+                        <input type="radio" name="quiz-type" value="sheet" onchange="onQuizTypeChanged()">
+                        <span>🗺️ 全圖地毯</span>
+                    </label>
                 </div>
-                <div id="option-count-bar" class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem;">
-                    <label><input type="radio" name="option-count" value="4" checked="" onchange="onOptionCountChanged()"> 4 選 1</label>
-                    <label><input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()"> 6 選 1</label>
+                
+                <div id="option-count-bar" class="rect-segment-group" style="display: flex;">
+                    <label class="rect-segment-item active" id="seg-opt-4">
+                        <input type="radio" name="option-count" value="4" checked="" onchange="onOptionCountChanged()">
+                        <span>4 選 1</span>
+                    </label>
+                    <label class="rect-segment-item" id="seg-opt-6">
+                        <input type="radio" name="option-count" value="6" onchange="onOptionCountChanged()">
+                        <span>6 選 1</span>
+                    </label>
                 </div>
-                <div id="sheet-order-bar" class="mode-toggle-group" style="margin: 0; padding: 0.3rem 0.5rem; display: none;">
-                    <span style="font-size:0.78rem; color:#475569; font-weight:bold;">巡覽：</span>
-                    <label title="依解剖圖由上而下、由左而右依序出題"><input type="radio" name="sheet-order" value="topdown" checked="" onchange="onSheetOrderChanged()"> 🧭 由上而下</label>
-                    <label title="依圖片中心順時針環繞出題"><input type="radio" name="sheet-order" value="clockwise" onchange="onSheetOrderChanged()"> 🔄 順時針</label>
-                    <label title="隨機順序出題"><input type="radio" name="sheet-order" value="random" onchange="onSheetOrderChanged()"> 🎲 隨機</label>
+
+                <div id="sheet-order-bar" class="rect-segment-group" style="display: none;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:bold; margin-right:2px; margin-left:4px;">巡覽:</span>
+                    <label class="rect-segment-item active" id="seg-order-topdown" title="依解剖圖由上而下、由左而右依序出題">
+                        <input type="radio" name="sheet-order" value="topdown" checked="" onchange="onSheetOrderChanged()">
+                        <span>🧭 由上而下</span>
+                    </label>
+                    <label class="rect-segment-item" id="seg-order-clockwise" title="依圖片中心順時針環繞出題">
+                        <input type="radio" name="sheet-order" value="clockwise" onchange="onSheetOrderChanged()">
+                        <span>🔄 順時針</span>
+                    </label>
+                    <label class="rect-segment-item" id="seg-order-random" title="隨機順序出題">
+                        <input type="radio" name="sheet-order" value="random" onchange="onSheetOrderChanged()">
+                        <span>🎲 隨機</span>
+                    </label>
                 </div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin: 0.2rem 0;">
                 <p style="margin: 0; font-size: 0.9rem;">請回答<strong style="color:var(--danger);">紅色區塊</strong>構造名稱：</p>
-                <span id="question-meta-badge" style="font-size: 0.75rem; color:#64748b; font-weight:600;"></span>
+                <span id="question-meta-badge" style="font-size: 0.75rem; color:var(--text-secondary); font-weight:600;"></span>
             </div>
 
             <!-- 選擇題區 -->
-            <div id="mcq-container">
+            <div id="mcq-container" style="display: block;">
                 <div class="options-grid grid-4" id="quiz-options"></div>
             </div>
 
             <!-- 填空題區 (單題與全圖地毯共用) -->
             <div id="fill-container" style="display: none; margin-top: 0.5rem;">
                 <div id="hint-scaffold" class="hint-scaffold-box"></div>
-                <div class="form-group" style="margin-bottom: 0.35rem;">
+                <div class="form-group" style="margin-bottom: 0.4rem;">
                     <input type="text" id="fill-input" placeholder="輸入名稱 (Enter 送出 · 按 Tab 顯示首字母提示)..." autocomplete="off">
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem; font-size:0.78rem; color:#475569; flex-wrap:wrap; gap:4px;">
-                    <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer; margin:0;">
-                        <input type="checkbox" id="near-miss-retry-toggle" checked="" style="width:auto; margin:0;"> 🛡️ 差一字重試保連勝 (Near-Miss Retry)
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem; font-size:0.78rem; color:var(--text-secondary); flex-wrap:wrap; gap:4px;">
+                    <label class="rect-toggle-chip">
+                        <input type="checkbox" id="near-miss-retry-toggle" checked="">
+                        <span>🛡️ 差一字重試保連勝 (Near-Miss Retry)</span>
                     </label>
-                    <button type="button" class="btn-sm" style="padding:2px 8px; font-size:0.76rem; background:#eff6ff; border-color:#93c5fd; color:#1d4ed8;" onclick="triggerFillHint()">💡 首字母提示 (Tab)</button>
+                    <button type="button" class="btn-sm" style="padding:2px 8px; font-size:0.76rem; background:var(--accent-subtle); border-color:var(--accent); color:var(--accent);" onclick="triggerFillHint()">💡 首字母提示 (Tab)</button>
                 </div>
                 <button class="btn-primary" id="fill-submit-btn" onclick="submitFillAnswer()">提交答案</button>
             </div>
             
             <div id="feedback"><span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span></div>
-            <button class="btn-primary" id="next-btn" style="display: none; margin-top: 0.7rem; background: #27ae60;" onclick="nextQuestion()">下一題 (或敲 Enter 鍵)</button>
+            <button class="btn-primary" id="next-btn" style="display: none; margin-top: 0.7rem; background: var(--success);" onclick="nextQuestion()">下一題 (或敲 Enter 鍵)</button>
         </div>
     </div>
 
     <!-- 3. 學習分析模式 -->
     <div id="mode-analytics" class="card" style="display: none;">
-        <h3 style="text-align: left; margin-top: 0;">📊 學習成效分析儀表板</h3>
+        <h3 style="text-align: left; margin-top: 0; color:var(--text-primary);">📊 學習成效分析儀表板</h3>
         
         <!-- 最上排 4 欄榮譽大看板 -->
         <div class="hero-banner">
@@ -712,19 +1197,19 @@
             </div>
             <div class="hero-card">
                 <div class="hero-label">🎯 今日進度 (已做 / 待複習)</div>
-                <div class="hero-val" id="stat-daily-progress" style="color: #16a085;">0 <small style="font-size:0.85rem; color:#64748b;">(待複習: 0)</small></div>
+                <div class="hero-val" id="stat-daily-progress" style="color: #10b981;">0 <small style="font-size:0.85rem; color:var(--text-muted);">(待複習: 0)</small></div>
             </div>
             <div class="hero-card">
                 <div class="hero-label">📈 歷史累積總答題量</div>
-                <div class="hero-val" id="stat-total-answered" style="color: var(--primary);">0 次</div>
+                <div class="hero-val" id="stat-total-answered" style="color: var(--accent);">0 次</div>
             </div>
         </div>
 
         <div class="analytics-grid">
             <div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h4 style="margin: 0.4rem 0; color: #334155;">各檔案分類掌握度總覽</h4>
-                    <button class="btn-sm" style="background:#3b82f6; color:white; border-color:#3b82f6;" onclick="migrateToHierarchySafe()">🚀 安全升級至 Firestore 3層目錄 (防500限制)</button>
+                    <h4 style="margin: 0.4rem 0; color: var(--text-primary);">各檔案分類掌握度總覽</h4>
+                    <button class="btn-sm" style="background:var(--accent); color:white; border-color:var(--accent);" onclick="migrateToHierarchySafe()">🚀 安全升級至 Firestore 3層目錄 (防500限制)</button>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -743,42 +1228,41 @@
             <div>
                 <div style="display: flex; justify-content: space-between; align-items: baseline;">
                     <h4 style="margin: 0.4rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
-                    <span style="font-size: 0.75rem; color: #64748b;">(依單字聚合多角度)</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">(依單字聚合多角度)</span>
                 </div>
-                <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
-                <ul class="weak-list" id="weak-terms-list"><li style="color:#64748b; font-size:0.85rem; padding:0.5rem;">🎉 尚無明顯弱點單字，請多進行幾輪測驗！</li></ul>
-                <button class="btn-primary" style="background: #e67e22;" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
+                <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
+                <ul class="weak-list" id="weak-terms-list"><li style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">🎉 尚無明顯弱點單字，請多進行幾輪測驗！</li></ul>
+                <button class="btn-primary" style="background: var(--warning);" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
             </div>
         </div>
     </div>
 </div>
-
 
 <!-- 🩺 題庫拼字健檢與挑選修正 Modal -->
 <div id="typo-audit-modal" class="modal-overlay">
     <div class="modal-card">
         <div class="modal-header">
             <span>🩺 題庫拼字健檢清單（11 項候選 · 由您自由勾選修正）</span>
-            <button type="button" class="btn-sm" style="background:transparent; color:#fff; border-color:rgba(255,255,255,0.5);" onclick="closeTypoAuditModal()">✕ 關閉</button>
+            <button type="button" class="btn-sm" style="background:transparent; color:var(--text-primary); border-color:var(--border);" onclick="closeTypoAuditModal()">✕ 關閉</button>
         </div>
         <div class="modal-body">
-            <p style="margin-top:0; color:#475569; font-size:0.83rem; line-height:1.45;">
+            <p style="margin-top:0; color:var(--text-secondary); font-size:0.83rem; line-height:1.45;">
                 以下為 AI-OCR 對比 39 張圖譜後，檢測出雲端題庫與課本印刷字存在拼字差異的 <strong>11 項候選題目</strong>。<br>
                 💡 <strong>安全機制</strong>：為避免影響您刻意建立的「無字空遮罩」或自訂命名，系統<strong>不會自動修改</strong>任何題目。您可以點擊「👁️ 看圖」在畫布上高亮檢視該紅框位置，僅勾選您確認要修正的項目！
             </p>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; padding:0.35rem 0.6rem; background:#f1f5f9; border-radius:4px; font-size:0.8rem; font-weight:bold;">
-                <label style="cursor:pointer; display:inline-flex; align-items:center; gap:5px; margin:0;">
-                    <input type="checkbox" id="typo-select-all" checked="" onchange="toggleAllTypoChecks(this.checked)" style="width:auto; margin:0;"> 全選 / 全不選
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; padding:0.4rem 0.7rem; background:var(--bg-surface-raised); border:1px solid var(--border); border-radius:6px; font-size:0.8rem; font-weight:bold;">
+                <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; margin:0; color:var(--text-primary);">
+                    <input type="checkbox" id="typo-select-all" class="rect-checkbox" checked="" onchange="toggleAllTypoChecks(this.checked)"> 全選 / 全不選
                 </label>
-                <span id="typo-audit-count-label" style="color:var(--primary);">共 11 項候選</span>
+                <span id="typo-audit-count-label" style="color:var(--accent);">共 11 項候選</span>
             </div>
             <div id="typo-audit-list"></div>
         </div>
         <div class="modal-footer">
-            <span style="font-size:0.78rem; color:#64748b;">同步範圍：本機記憶、quiz_data 與三層 categories/images/terms</span>
+            <span style="font-size:0.78rem; color:var(--text-muted);">同步範圍：本機記憶、quiz_data 與三層 categories/images/terms</span>
             <div style="display:flex; gap:0.5rem;">
                 <button type="button" class="btn-sm" onclick="closeTypoAuditModal()">暫不修改</button>
-                <button type="button" class="btn-primary" style="width:auto; padding:0.45rem 1rem; font-size:0.88rem; background:#16a085;" onclick="applySelectedTypoFixes()">✅ 套用已勾選項目並同步雲端</button>
+                <button type="button" class="btn-primary" style="width:auto; padding:0.45rem 1rem; font-size:0.88rem; background:var(--success);" onclick="applySelectedTypoFixes()">✅ 套用已勾選項目並同步雲端</button>
             </div>
         </div>
     </div>
@@ -972,6 +1456,68 @@
     let weakDrillPool = null;
     let drillModeName = "";
     let isDrawerOpen = false;
+
+    // 🎨 白天與黑夜模式 + 樹狀目錄收合記憶
+    let editorCollapsedCats = new Set();
+    let quizCollapsedCats = new Set();
+    let currentTheme = localStorage.getItem('vet_anatomy_theme') || 'dark';
+
+    window.toggleTheme = () => {
+        const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        const nxt = (cur === 'dark') ? 'light' : 'dark';
+        applyTheme(nxt);
+    };
+
+    function applyTheme(t) {
+        currentTheme = t;
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('vet_anatomy_theme', t);
+        const icon = document.getElementById('theme-icon');
+        const text = document.getElementById('theme-text');
+        if (icon && text) {
+            if (t === 'dark') {
+                icon.innerText = '🌙';
+                text.innerText = '深色高階';
+            } else {
+                icon.innerText = '☀️';
+                text.innerText = '簡約日間';
+            }
+        }
+    }
+    window.applyTheme = applyTheme;
+
+    function updateSegmentActiveStyles() {
+        document.querySelectorAll('.rect-segment-item').forEach(item => {
+            const input = item.querySelector('input');
+            if (input && input.checked) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+    window.updateSegmentActiveStyles = updateSegmentActiveStyles;
+
+    window.expandAllScopes = (expand) => {
+        document.querySelectorAll('#category-tree .cat-group').forEach(group => {
+            const children = group.querySelector('.cat-children');
+            const chevron = group.querySelector('.tree-chevron');
+            const catTitle = group.querySelector('strong')?.innerText;
+            if (children && chevron) {
+                if (expand) {
+                    children.classList.remove('collapsed');
+                    chevron.classList.remove('collapsed');
+                    chevron.classList.add('expanded');
+                    if (catTitle) quizCollapsedCats.delete(catTitle);
+                } else {
+                    children.classList.add('collapsed');
+                    chevron.classList.remove('expanded');
+                    chevron.classList.add('collapsed');
+                    if (catTitle) quizCollapsedCats.add(catTitle);
+                }
+            }
+        });
+    };
 
     // 🔥 Combo 與當日統計
     let currentCombo = 0;
@@ -1377,8 +1923,10 @@
     // --- 編輯器遮蓋模式 ---
     window.setEditorMaskMode = (mode) => {
         editorMaskMode = mode;
-        document.getElementById('mask-mode-single').className = (mode === 'single') ? 'btn-sm active-mode' : 'btn-sm';
-        document.getElementById('mask-mode-multi').className = (mode === 'multi') ? 'btn-sm active-mode' : 'btn-sm';
+        const sBtn = document.getElementById('mask-mode-single');
+        const mBtn = document.getElementById('mask-mode-multi');
+        if (sBtn) sBtn.className = (mode === 'single') ? 'rect-segment-item active' : 'rect-segment-item';
+        if (mBtn) mBtn.className = (mode === 'multi') ? 'rect-segment-item active' : 'rect-segment-item';
     };
 
     window.undoLastMask = () => {
@@ -1783,25 +2331,59 @@
         const allLoadedImages = Object.keys(imagesData);
         const uncategorizedImages = allLoadedImages.filter(img => !imageToCat[img]);
 
-        // 1. 已歸檔
+        // 1. 已歸檔分類 (支援點擊展開/收合與極簡 ㄑ 指示箭頭)
         for (const [catName, imgSet] of Object.entries(catMap)) {
             const imgList = Array.from(imgSet).filter(img => img.toLowerCase().includes(searchKeyword));
             if (imgList.length === 0 && searchKeyword) continue;
 
             const groupDiv = document.createElement('div');
-            groupDiv.style.marginBottom = '4px';
+            groupDiv.className = 'cat-group';
+            groupDiv.style.marginBottom = '6px';
+
+            const isCollapsed = editorCollapsedCats.has(catName);
 
             const head = document.createElement('div');
-            head.style.cssText = 'font-weight:bold; font-size:0.82rem; color:#1e293b; cursor:pointer; padding:2px 4px; background:#f8fafc; border-radius:3px; display:flex; justify-content:space-between;';
-            head.innerHTML = `<span>📁 ${catName} <small style="color:#64748b;">(${imgList.length} 圖)</small></span><span>▾</span>`;
+            head.className = 'cat-header';
+            head.style.cssText = 'font-weight:700; font-size:0.83rem; color:var(--text-primary); cursor:pointer; padding:4px 6px; background:var(--bg-surface-higher); border-radius:5px; display:flex; justify-content:space-between; align-items:center;';
+            head.innerHTML = `
+                <span style="display:flex; align-items:center; gap:5px;">
+                    📁 <strong>${catName}</strong> <small style="color:var(--text-muted); font-size:0.75rem;">(${imgList.length} 圖)</small>
+                </span>
+                <span class="tree-chevron ${isCollapsed ? 'collapsed' : 'expanded'}">
+                    <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                </span>
+            `;
 
             const childDiv = document.createElement('div');
-            childDiv.style.paddingLeft = '10px';
+            childDiv.className = 'cat-children' + (isCollapsed ? ' collapsed' : '');
+            childDiv.style.paddingLeft = '8px';
+            childDiv.style.marginTop = '4px';
+
+            head.addEventListener('click', () => {
+                const chevron = head.querySelector('.tree-chevron');
+                if (editorCollapsedCats.has(catName)) {
+                    editorCollapsedCats.delete(catName);
+                    childDiv.classList.remove('collapsed');
+                    if (chevron) { chevron.classList.remove('collapsed'); chevron.classList.add('expanded'); }
+                } else {
+                    editorCollapsedCats.add(catName);
+                    childDiv.classList.add('collapsed');
+                    if (chevron) { chevron.classList.remove('expanded'); chevron.classList.add('collapsed'); }
+                }
+            });
 
             imgList.forEach(imgName => {
                 const item = document.createElement('div');
                 item.className = 'editor-tree-item' + (imgName === currentImage ? ' active-img' : '');
-                item.innerHTML = `<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">🖼️ ${imgName}</span><span style="display:flex; align-items:center; flex-shrink:0;"><small style="color:#64748b; font-size:0.74rem; margin-right:3px;">${imageTermCount[imgName] || 0} 詞</small><button type="button" class="tree-action-btn" title="修改此圖片檔案名稱" onclick="event.stopPropagation(); promptRenameSingleImage('${imgName.replace(/'/g, "\\'")}')">✏️</button></span>`;
+                item.innerHTML = `
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; gap:4px;">
+                        🖼️ ${imgName}
+                    </span>
+                    <span style="display:flex; align-items:center; flex-shrink:0;">
+                        <small style="color:var(--text-muted); font-size:0.74rem; margin-right:4px;">${imageTermCount[imgName] || 0} 詞</small>
+                        <button type="button" class="tree-action-btn" title="修改此圖片檔案名稱" onclick="event.stopPropagation(); promptRenameSingleImage('${imgName.replace(/'/g, "\\'")}')">✏️</button>
+                    </span>
+                `;
                 item.onclick = () => {
                     loadEditorImage(imgName);
                     editorActiveCategory = catName;
@@ -1815,26 +2397,57 @@
             container.appendChild(groupDiv);
         }
 
-        // 2. 未歸檔專區
+        // 2. 未歸檔專區 (同樣支援極簡 ㄑ 收合展開)
         const filteredUncat = uncategorizedImages.filter(img => img.toLowerCase().includes(searchKeyword));
         if (filteredUncat.length > 0 || uncategorizedImages.length > 0) {
+            const isUncatCollapsed = editorCollapsedCats.has('__uncategorized__');
             const uncatDiv = document.createElement('div');
-            uncatDiv.style.marginTop = '6px';
-            uncatDiv.style.borderTop = '1px dashed #f59e0b';
-            uncatDiv.style.paddingTop = '4px';
+            uncatDiv.className = 'cat-group';
+            uncatDiv.style.marginTop = '8px';
+            uncatDiv.style.borderTop = '1px dashed var(--warning)';
+            uncatDiv.style.paddingTop = '6px';
 
             const uncatHead = document.createElement('div');
-            uncatHead.style.cssText = 'font-weight:bold; font-size:0.82rem; color:#d97706; cursor:pointer; padding:2px 4px; display:flex; justify-content:space-between;';
-            uncatHead.innerHTML = `<span>⚠️ 未歸檔圖片專區 <small style="color:#92400e;">(${filteredUncat.length} 張未標註)</small></span><span>▾</span>`;
+            uncatHead.className = 'cat-header';
+            uncatHead.style.cssText = 'font-weight:700; font-size:0.83rem; color:var(--warning); cursor:pointer; padding:4px 6px; background:var(--warning-bg); border-radius:5px; display:flex; justify-content:space-between; align-items:center;';
+            uncatHead.innerHTML = `
+                <span style="display:flex; align-items:center; gap:5px;">
+                    ⚠️ <strong>未歸檔圖片專區</strong> <small style="color:var(--warning); font-size:0.75rem;">(${filteredUncat.length} 未標註)</small>
+                </span>
+                <span class="tree-chevron ${isUncatCollapsed ? 'collapsed' : 'expanded'}">
+                    <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                </span>
+            `;
 
             const uncatChildren = document.createElement('div');
-            uncatChildren.style.paddingLeft = '10px';
+            uncatChildren.className = 'cat-children' + (isUncatCollapsed ? ' collapsed' : '');
+            uncatChildren.style.paddingLeft = '8px';
+            uncatChildren.style.marginTop = '4px';
+
+            uncatHead.addEventListener('click', () => {
+                const chevron = uncatHead.querySelector('.tree-chevron');
+                if (editorCollapsedCats.has('__uncategorized__')) {
+                    editorCollapsedCats.delete('__uncategorized__');
+                    uncatChildren.classList.remove('collapsed');
+                    if (chevron) { chevron.classList.remove('collapsed'); chevron.classList.add('expanded'); }
+                } else {
+                    editorCollapsedCats.add('__uncategorized__');
+                    uncatChildren.classList.add('collapsed');
+                    if (chevron) { chevron.classList.remove('expanded'); chevron.classList.add('collapsed'); }
+                }
+            });
 
             filteredUncat.forEach(imgName => {
                 const item = document.createElement('div');
                 item.className = 'editor-tree-item' + (imgName === currentImage ? ' active-img' : '');
-                item.style.color = '#b45309';
-                item.innerHTML = `<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${imgName}</span><span style="display:flex; align-items:center; flex-shrink:0;"><small style="font-size:0.72rem; color:#b45309; margin-right:3px;">待編輯</small><button type="button" class="tree-action-btn" title="修改此圖片檔案名稱" onclick="event.stopPropagation(); promptRenameSingleImage('${imgName.replace(/'/g, "\\'")}')">✏️</button></span>`;
+                item.style.color = 'var(--warning)';
+                item.innerHTML = `
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${imgName}</span>
+                    <span style="display:flex; align-items:center; flex-shrink:0;">
+                        <small style="font-size:0.72rem; color:var(--warning); margin-right:4px;">待編輯</small>
+                        <button type="button" class="tree-action-btn" title="修改此圖片檔案名稱" onclick="event.stopPropagation(); promptRenameSingleImage('${imgName.replace(/'/g, "\\'")}')">✏️</button>
+                    </span>
+                `;
                 item.onclick = () => loadEditorImage(imgName);
                 uncatChildren.appendChild(item);
             });
@@ -1844,7 +2457,7 @@
             container.appendChild(uncatDiv);
         }
     }
-
+    
     function renderImageTermsList() {
         const listDiv = document.getElementById('image-terms-list');
         listDiv.innerHTML = '';
@@ -1919,8 +2532,20 @@
     // --- 出題範圍抽屜 ---
     window.toggleScopeDrawer = () => {
         isDrawerOpen = !isDrawerOpen;
-        document.getElementById('scope-drawer-body').style.display = isDrawerOpen ? 'block' : 'none';
-        document.getElementById('drawer-arrow-icon').innerText = isDrawerOpen ? '▴ 收合設定' : '▸ 展開範圍設定';
+        const body = document.getElementById('scope-drawer-body');
+        const chevron = document.getElementById('drawer-chevron-icon');
+        const arrowText = document.getElementById('drawer-arrow-text');
+        if (body) body.style.display = isDrawerOpen ? 'block' : 'none';
+        if (arrowText) arrowText.innerText = isDrawerOpen ? '收合設定' : '展開範圍設定';
+        if (chevron) {
+            if (isDrawerOpen) {
+                chevron.classList.remove('collapsed');
+                chevron.classList.add('expanded');
+            } else {
+                chevron.classList.remove('expanded');
+                chevron.classList.add('collapsed');
+            }
+        }
     };
 
     function updateScopeSummary() {
@@ -1932,6 +2557,7 @@
 
     function buildCategoryTree() {
         const container = document.getElementById('category-tree');
+        if (!container) return;
         container.innerHTML = '';
 
         const grouped = {};
@@ -1950,9 +2576,10 @@
             
             const catCheckbox = document.createElement('input');
             catCheckbox.type = 'checkbox';
-            catCheckbox.style.marginRight = '5px';
+            catCheckbox.className = 'rect-checkbox';
+            catCheckbox.style.marginRight = '6px';
             const catImages = Object.keys(images);
-            catCheckbox.checked = catImages.every(img => selectedImages.has(img));
+            catCheckbox.checked = catImages.length > 0 && catImages.every(img => selectedImages.has(img));
 
             catCheckbox.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1967,23 +2594,44 @@
                 window.nextQuestion();
             });
 
+            const totalTermsInCat = Object.values(images).reduce((a, b) => a + b, 0);
             const titleSpan = document.createElement('span');
-            titleSpan.innerHTML = `📁 <strong>${catName}</strong> <small style="color:#64748b;">(${Object.values(images).reduce((a,b)=>a+b, 0)} 題)</small>`;
+            titleSpan.style.display = 'inline-flex';
+            titleSpan.style.alignItems = 'center';
+            titleSpan.style.gap = '5px';
+            titleSpan.innerHTML = `📁 <strong>${catName}</strong> <small style="color:var(--text-muted); font-size:0.75rem;">(${totalTermsInCat} 題)</small>`;
+
+            const isCollapsed = quizCollapsedCats.has(catName);
 
             const toggleIcon = document.createElement('span');
-            toggleIcon.innerText = '▾';
-            toggleIcon.style.fontSize = '0.75rem';
+            toggleIcon.className = 'tree-chevron ' + (isCollapsed ? 'collapsed' : 'expanded');
+            toggleIcon.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>`;
 
-            header.appendChild(catCheckbox);
-            header.appendChild(titleSpan);
+            const leftDiv = document.createElement('div');
+            leftDiv.style.display = 'inline-flex';
+            leftDiv.style.alignItems = 'center';
+            leftDiv.appendChild(catCheckbox);
+            leftDiv.appendChild(titleSpan);
+
+            header.appendChild(leftDiv);
             header.appendChild(toggleIcon);
 
             const childrenDiv = document.createElement('div');
-            childrenDiv.className = 'cat-children';
+            childrenDiv.className = 'cat-children' + (isCollapsed ? ' collapsed' : '');
 
-            header.addEventListener('click', () => {
-                childrenDiv.classList.toggle('collapsed');
-                toggleIcon.innerText = childrenDiv.classList.contains('collapsed') ? '▸' : '▾';
+            header.addEventListener('click', (e) => {
+                if (e.target === catCheckbox) return;
+                if (quizCollapsedCats.has(catName)) {
+                    quizCollapsedCats.delete(catName);
+                    childrenDiv.classList.remove('collapsed');
+                    toggleIcon.classList.remove('collapsed');
+                    toggleIcon.classList.add('expanded');
+                } else {
+                    quizCollapsedCats.add(catName);
+                    childrenDiv.classList.add('collapsed');
+                    toggleIcon.classList.remove('expanded');
+                    toggleIcon.classList.add('collapsed');
+                }
             });
 
             for (const [imgName, count] of Object.entries(images)) {
@@ -1992,6 +2640,7 @@
                 
                 const imgCheckbox = document.createElement('input');
                 imgCheckbox.type = 'checkbox';
+                imgCheckbox.className = 'rect-checkbox';
                 imgCheckbox.value = imgName;
                 imgCheckbox.checked = selectedImages.has(imgName);
 
@@ -2015,7 +2664,7 @@
             container.appendChild(groupDiv);
         }
     }
-
+    
     function resetSheetState() {
         sheetQuestions = [];
         sheetIndex = 0;
@@ -2034,6 +2683,7 @@
     };
 
     window.onQuizTypeChanged = () => {
+        updateSegmentActiveStyles();
         const radios = document.getElementsByName('quiz-type');
         for (const r of radios) if (r.checked) quizType = r.value;
         
@@ -2095,6 +2745,7 @@
     }
 
     window.onSheetOrderChanged = () => {
+        updateSegmentActiveStyles();
         const radios = document.getElementsByName('sheet-order');
         for (const r of radios) if (r.checked) sheetOrderMode = r.value;
         if (quizType === 'sheet' && sheetCurrentImg) {
@@ -2108,6 +2759,7 @@
     };
 
     window.onOptionCountChanged = () => {
+        updateSegmentActiveStyles();
         const radios = document.getElementsByName('option-count');
         for (const r of radios) if (r.checked) optionCount = parseInt(r.value);
         const grid = document.getElementById('quiz-options');
@@ -3019,7 +3671,22 @@
         alert(`⚡ 已啟動 Top ${window.cachedTopWeakTerms.length} 弱點多視角綜合特訓！\n共匯入 ${weakDrillPool.length} 道跨角度題目進行高強度轟炸！`);
         window.switchMode('quiz');
     };
+
+
+    // 🚀 初始化主題與矩形選擇控制
+    applyTheme(currentTheme);
+    updateSegmentActiveStyles();
+
 </script>
 
 
-</body></html>
+<div id="v9-flagship-download-bar" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 100%); border: 1px solid rgb(56, 189, 248); border-radius: 10px; padding: 12px 18px; box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 30px, rgba(56, 189, 248, 0.3) 0px 0px 15px; display: flex; align-items: center; gap: 12px; font-family: system-ui, sans-serif;">
+    <div style="display:flex; flex-direction:column;">
+      <span style="color:#f8fafc; font-weight:700; font-size:0.9rem;">✨ V9-PRO 俐落高階灰藍旗艦版 已在瀏覽器生效！</span>
+      <span style="color:#94a3b8; font-size:0.75rem;">主圖亮環環繞 · 統一矩形規格 · 檔案區 ㄑ 摺疊 · 日夜模式切換</span>
+    </div>
+    <a id="dl-flagship-file-btn" href="blob:null/74f7c04a-3801-4c9f-8be2-1ba1b0a512f6" download="index (6).html" style="background:#0284c7; hover:background:#0369a1; color:#ffffff; font-weight:700; font-size:0.85rem; padding:8px 14px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(2,132,199,0.4); cursor:pointer;">
+      💾 下載檔案 (index (6).html)
+    </a>
+    <button onclick="this.parentElement.remove()" style="background:transparent; border:none; color:#64748b; font-size:1.1rem; cursor:pointer; padding:2px 6px;">✕</button>
+  </div></body></html>
