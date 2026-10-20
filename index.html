@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-TW" data-theme="dark"><head>
+<html lang="zh-TW" data-theme="light"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V9-PRO 俐落高階灰藍旗艦版)</title>
+    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V10-ZEN 臨床紙感·左圖右題雙欄旗艦版)</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root, [data-theme="dark"] {
@@ -73,17 +73,6 @@
             --header-bg: #1e293b;
             --primary: #0f172a;
             --secondary: #475569;
-        }
-
-        @property --beam-angle {
-            syntax: '<angle>';
-            inherits: false;
-            initial-value: 0deg;
-        }
-
-        @keyframes canvasBeamRotate {
-            0% { --beam-angle: 0deg; }
-            100% { --beam-angle: 360deg; }
         }
 
         * {
@@ -200,7 +189,7 @@
         }
         .workspace.active { display: grid; }
 
-        /* 🌟 Continuous Glowing Border Beam around Main Image Area 🌟 */
+        /* 🌟 Pure Quiet Medical Canvas Container 🌟 */
         .canvas-container {
             background: var(--canvas-bg);
             border: 1px solid var(--border);
@@ -210,51 +199,11 @@
             justify-content: center;
             align-items: center;
             min-height: 260px;
-            box-shadow: var(--shadow-elevated);
-            overflow: visible;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
         }
 
-        .canvas-container::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 14px;
-            padding: 2px;
-            background: conic-gradient(
-                from var(--beam-angle),
-                transparent 55%,
-                rgba(56, 189, 248, 0.1) 70%,
-                rgba(56, 189, 248, 0.5) 82%,
-                var(--accent) 92%,
-                #ffffff 96%,
-                var(--accent) 100%
-            );
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            animation: canvasBeamRotate 4s linear infinite;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .canvas-container::after {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: 16px;
-            background: conic-gradient(
-                from var(--beam-angle),
-                transparent 65%,
-                rgba(56, 189, 248, 0.15) 85%,
-                var(--accent-glow) 95%,
-                transparent 100%
-            );
-            filter: blur(8px);
-            animation: canvasBeamRotate 4s linear infinite;
-            pointer-events: none;
-            z-index: 9;
-            opacity: 0.85;
-        }
+        
 
         canvas {
             display: block;
@@ -910,88 +859,300 @@
         }
     
     
-    /* === V9.1-PRO 人體工學 2px 光軌與零滾動刷題佈局 === */
-    .canvas-container {
-        position: relative !important;
-        background: #090e1a !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 10px !important;
+    </style>
+<style id="v10-zen-styles">
+    /* === V10-ZEN 臨床紙感·左圖右題雙欄分流旗艦規範 === */
+    :root {
+        --bg-base: #f8fafc;
+        --bg-surface: #ffffff;
+        --bg-surface-raised: #f1f5f9;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --border-focus: #0284c7;
+        --accent: #0284c7;
+        --accent-hover: #0369a1;
+        --accent-subtle: #e0f2fe;
+        --danger: #ef4444;
+        --danger-bg: #fef2f2;
+        --success: #10b981;
+        --success-bg: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-bg: #fffbeb;
+        --canvas-bg: #ffffff;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] {
+        --bg-base: #0f172a;
+        --bg-surface: #1e293b;
+        --bg-surface-raised: #151e2e;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --border: #334155;
+        --border-focus: #38bdf8;
+        --accent: #38bdf8;
+        --accent-hover: #0284c7;
+        --accent-subtle: rgba(56, 189, 248, 0.15);
+        --danger: #ef4444;
+        --danger-bg: rgba(239, 68, 68, 0.15);
+        --success: #10b981;
+        --success-bg: rgba(16, 185, 129, 0.15);
+        --warning: #f59e0b;
+        --warning-bg: rgba(245, 158, 11, 0.15);
+        --canvas-bg: #151e2e;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    body {
+        background-color: var(--bg-base) !important;
+        color: var(--text-primary) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    }
+
+    header {
+        background: var(--bg-surface) !important;
+        color: var(--text-primary) !important;
+        border-bottom: 1px solid var(--border) !important;
+        padding: 0.6rem 1.5rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+
+    header h2 {
+        color: var(--text-primary) !important;
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .version-badge {
+        background: var(--accent-subtle) !important;
+        color: var(--accent) !important;
+        border: 1px solid var(--accent) !important;
+        font-size: 0.72rem !important;
+        padding: 2px 7px !important;
+        border-radius: 4px !important;
+        font-weight: 700 !important;
+    }
+
+    .nav-btns button {
+        background: var(--bg-surface-raised) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text-secondary) !important;
+        padding: 0.45rem 0.85rem !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+    }
+
+    .nav-btns button:hover {
+        background: var(--accent-subtle) !important;
+        color: var(--accent) !important;
+        border-color: var(--accent) !important;
+    }
+
+    .nav-btns button.active {
+        background: var(--accent) !important;
+        color: #ffffff !important;
+        border-color: var(--accent) !important;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3) !important;
+    }
+
+    /* === 測驗模式：左圖右題雙欄分流 === */
+    #mode-quiz.workspace.active {
+        display: grid !important;
+        grid-template-columns: 56fr 44fr !important;
+        gap: 1.25rem !important;
+        max-width: 1600px !important;
+        margin: 0.6rem auto !important;
+        padding: 0 1.25rem !important;
+        align-items: stretch !important;
+        box-sizing: border-box !important;
+        height: calc(100vh - 75px) !important;
         overflow: hidden !important;
+    }
+
+    /* 左側解剖畫布視窗：純淨、靜態、高度拉滿 85vh */
+    #mode-quiz .canvas-container {
+        background: var(--canvas-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        position: relative !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
+        height: 100% !important;
+        max-height: 85vh !important;
+        min-height: 400px !important;
+        box-shadow: var(--shadow-sm) !important;
+        padding: 0 !important;
     }
-    .canvas-container::before {
-        content: '' !important;
-        position: absolute !important;
-        inset: 0 !important;
-        border-radius: 10px !important;
-        padding: 2px !important;
-        background: conic-gradient(
-            from var(--beam-angle, 0deg),
-            transparent 0deg,
-            transparent 270deg,
-            rgba(56, 189, 248, 0.3) 310deg,
-            #38bdf8 345deg,
-            #ffffff 360deg
-        ) !important;
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
-        -webkit-mask-composite: xor !important;
-        mask-composite: exclude !important;
-        pointer-events: none !important;
-        z-index: 3 !important;
-    }
+
+    /* 徹底拔除任何旋轉光軌與模糊光暈 */
+    .canvas-container::before,
     .canvas-container::after {
         display: none !important;
         content: none !important;
     }
-    #mode-quiz {
-        max-width: 1200px !important;
-        margin: 0.3rem auto !important;
-    }
-    #mode-quiz .canvas-container {
-        max-height: min(38vh, 360px) !important;
-        min-height: 200px !important;
-        margin-bottom: 0.4rem !important;
-    }
+
+    /* 畫布智慧自適應縮放 */
     #quiz-canvas {
-        max-height: min(38vh, 360px) !important;
+        max-height: 100% !important;
         max-width: 100% !important;
         width: auto !important;
         height: auto !important;
         object-fit: contain !important;
         display: block !important;
     }
+
+    /* 右側控制面板：垂直自然居中 */
     #mode-quiz .panel {
-        padding: 0.75rem 1rem !important;
-        border-radius: 10px !important;
+        background: var(--bg-surface) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        padding: 1.5rem 1.8rem !important;
+        box-shadow: var(--shadow-sm) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        height: 100% !important;
+        max-height: 85vh !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
     }
+
+    /* 緊湊選項網格 */
     .options-grid {
-        gap: 0.45rem !important;
-        margin-top: 0.25rem !important;
+        display: grid !important;
+        gap: 0.65rem !important;
+        margin-top: 0.75rem !important;
     }
+    .options-grid.grid-4 { grid-template-columns: 1fr 1fr !important; }
+    .options-grid.grid-6 { grid-template-columns: 1fr 1fr 1fr !important; }
+
     .option-btn {
-        padding: 0.55rem 0.8rem !important;
-        font-size: 0.88rem !important;
-        min-height: 42px !important;
+        padding: 0.75rem 1rem !important;
+        min-height: 46px !important;
+        font-size: 0.92rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        border: 1.5px solid var(--border) !important;
+        background: var(--bg-surface) !important;
+        color: var(--text-primary) !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        text-align: left !important;
+        display: flex !important;
+        align-items: center !important;
+        box-shadow: var(--shadow-sm) !important;
     }
-    #live-download-bar, #v9-flagship-download-bar {
+
+    .option-btn:hover {
+        border-color: var(--accent) !important;
+        background: var(--accent-subtle) !important;
+        color: var(--accent) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    .option-btn.correct {
+        background: var(--success) !important;
+        border-color: var(--success) !important;
+        color: #ffffff !important;
+    }
+
+    .option-btn.wrong {
+        background: var(--danger-bg) !important;
+        border-color: var(--danger) !important;
+        color: var(--danger) !important;
+    }
+
+    .key-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        background: var(--bg-surface-raised);
+        border: 1px solid var(--border);
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    /* 鮮明的下一題 CTA 按鈕 */
+    #next-btn {
+        background: var(--success) !important;
+        color: #ffffff !important;
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        padding: 0.85rem 1.5rem !important;
+        border-radius: 8px !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+        cursor: pointer !important;
+        margin-top: 1rem !important;
+        transition: all 0.15s ease !important;
+    }
+    #next-btn:hover {
+        filter: brightness(1.08) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* 永久拔除任何浮動彈窗 */
+    #v9-flagship-download-bar,
+    .v9-flagship-download-bar {
         display: none !important;
     }
 
-</style>
-</head>
+    /* 響應式斷點 (< 960px) */
+    @media (max-width: 960px) {
+        #mode-quiz.workspace.active {
+            display: flex !important;
+            flex-direction: column !important;
+            height: auto !important;
+            gap: 0.8rem !important;
+        }
+        #mode-quiz .canvas-container {
+            max-height: 45vh !important;
+            min-height: 220px !important;
+        }
+        #mode-quiz .panel {
+            max-height: none !important;
+            height: auto !important;
+            padding: 1rem !important;
+        }
+        .options-grid.grid-6 { grid-template-columns: 1fr 1fr !important; }
+    }
+  </style></head>
 <body>
 
 <header>
-    <h2>🦴 獸醫解剖學記憶分析系統 <span class="version-badge">V9-PRO 灰藍旗艦</span></h2>
+    <h2>🦴 獸醫解剖學記憶分析系統 <span class="version-badge">V10-ZEN 臨床紙感旗艦</span></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem; font-weight: bold; color: var(--text-primary);"></span>
         <div class="nav-btns">
             <button id="nav-editor" onclick="switchMode('editor')" class="">🛠️ 編輯器</button>
-            <button id="nav-quiz" class="" onclick="switchMode('quiz')">📝 測驗</button>
-            <button id="nav-analytics" onclick="switchMode('analytics')" class="active">📊 分析</button>
+            <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗</button>
+            <button id="nav-analytics" onclick="switchMode('analytics')" class="">📊 分析</button>
             <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="切換白天與黑夜模式"><span id="theme-icon">🌙</span> <span id="theme-text">深色高階</span></button>
             <button onclick="logout()" style="border-color: var(--danger); color: var(--danger); background: var(--danger-bg);">登出</button>
         </div>
@@ -999,7 +1160,7 @@
 </header>
 
 <div class="container">
-    <div id="login-zone" class="card" style="display: block;">
+    <div id="login-zone" class="card" style="display: none;">
         <h3>歡迎使用解剖學專業記憶系統 (V9-PRO 旗艦版)</h3>
         <p style="font-size: 0.9rem; color: var(--text-secondary);">嚴格遵循 NAV 解剖命名規範、真實 SM-2 間隔重複、錯題即刻強化、IndexedDB 本機持久化與 Firestore 批次安全防禦。<br>請登入 Google 帳號以連線雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
@@ -1018,7 +1179,7 @@
     </div>
 
     <!-- 1. 編輯器模式 -->
-    <div id="mode-editor" class="workspace">
+    <div id="mode-editor" class="workspace" style="display: none;">
         <div class="canvas-container">
             <canvas id="editor-canvas"></canvas>
         </div>
@@ -1127,9 +1288,9 @@
     </div>
 
     <!-- 2. 測驗模式 -->
-    <div id="mode-quiz" class="workspace" style="display: block;">
+    <div id="mode-quiz" class="workspace active" style="display: grid;">
         <div class="canvas-container">
-            <canvas id="quiz-canvas"></canvas>
+            <canvas id="quiz-canvas" width="600" height="1000"></canvas>
         </div>
         <div class="panel">
             <div class="quiz-header-bar">
@@ -1227,7 +1388,12 @@
 
             <!-- 選擇題區 -->
             <div id="mcq-container" style="display: block;">
-                <div class="options-grid grid-4" id="quiz-options"></div>
+                <div class="options-grid grid-4" id="quiz-options">
+      <button class="option-btn"><span class="key-badge">1</span>accessory carpal bone</button>
+      <button class="option-btn"><span class="key-badge">2</span>capitulum of humerus</button>
+      <button class="option-btn"><span class="key-badge">3</span>acromion of scapula</button>
+      <button class="option-btn"><span class="key-badge">4</span>radial fossa</button>
+    </div>
             </div>
 
             <!-- 填空題區 (單題與全圖地毯共用) -->
@@ -1246,8 +1412,8 @@
                 <button class="btn-primary" id="fill-submit-btn" onclick="submitFillAnswer()">提交答案</button>
             </div>
             
-            <div id="feedback"><span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span></div>
-            <button class="btn-primary" id="next-btn" style="display: none; margin-top: 0.7rem; background: var(--success);" onclick="nextQuestion()">下一題 (或敲 Enter 鍵)</button>
+            <div id="feedback"></div>
+            <button class="btn-primary" id="next-btn" style="display: block; margin-top: 0.7rem; background: var(--success);" onclick="nextQuestion()">下一題 (或敲 Enter 鍵)</button>
         </div>
     </div>
 
@@ -1558,10 +1724,10 @@
     // 🎨 白天與黑夜模式 + 樹狀目錄收合記憶
     let editorCollapsedCats = new Set();
     let quizCollapsedCats = new Set();
-    let currentTheme = localStorage.getItem('vet_anatomy_theme') || 'dark';
+    let currentTheme = localStorage.getItem('vet_anatomy_theme') || 'light';
 
     window.toggleTheme = () => {
-        const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        const cur = document.documentElement.getAttribute('data-theme') || 'light';
         const nxt = (cur === 'dark') ? 'light' : 'dark';
         applyTheme(nxt);
     };
@@ -3846,8 +4012,6 @@
 
 
 
-    <a id="dl-flagship-file-btn" href="blob:null/74f7c04a-3801-4c9f-8be2-1ba1b0a512f6" download="index (6).html" style="background:#0284c7; hover:background:#0369a1; color:#ffffff; font-weight:700; font-size:0.85rem; padding:8px 14px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(2,132,199,0.4); cursor:pointer;">
-      💾 下載檔案 (index (6).html)
-    </a>
-    <button onclick="this.parentElement.remove()" style="background:transparent; border:none; color:#64748b; font-size:1.1rem; cursor:pointer; padding:2px 6px;">✕</button>
-  </div></body></html>
+    
+    
+  </body></html>

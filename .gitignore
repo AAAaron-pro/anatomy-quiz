@@ -6,3 +6,6 @@
 # OS & temporary files
 .DS_Store
 Thumbs.db
+
+audit_v10.js
+
