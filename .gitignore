@@ -1,7 +1,7 @@
-# Ignore oversized textbook PDF (103.5 MB exceeds GitHub 100MB limit)
+# Ignore local reference materials and large slides
+參考資料/
+上課內容/
 *.pdf
-参考資料/*.pdf
-參考資料/*.pdf
 
 # OS & temporary files
 .DS_Store

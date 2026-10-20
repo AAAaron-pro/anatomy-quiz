@@ -1737,6 +1737,61 @@
     window.login = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert("登入失敗: " + err.message));
     window.logout = () => signOut(auth).then(() => location.reload());
 
+    
+    const BUNDLED_IMAGE_NAMES = [
+        "3rd_caudal_ver.PNG","4th_caudal_ver.PNG","6th_caudal_ver.PNG","atlantoaxial(C1+C2).png",
+        "atlas_dorsal(C1).png","axis_left_lateral (C2).png","C5_craniolateral.png","C7_caudal.png",
+        "disarticulated_skull_ventral.PNG","IMG_1955.PNG","IMG_1956.PNG","IMG_1957.PNG","IMG_1958.PNG",
+        "L4+L5+ Intervertebral_disc.png","L_femur.PNG","L_hip.PNG","L_hip_lateral.PNG","L_hip_medial.PNG",
+        "L_humerus.PNG","L_radius_caudal.PNG","L_scapula.PNG","L_scapula_ventral.PNG","L_tibia+fibula.PNG",
+        "L_ulna.PNG","mandibles_dorsal_lateral.PNG","paw_dorsal.PNG","paw_palmar.PNG",
+        "pelvis+sacrum_caudodorsal.PNG","rib_lateral.PNG","rib_ventral.PNG","sacrum.PNG",
+        "sacrum_caudal_lateral.PNG","sacrum_dorsal.PNG","sagittal_skull_medial.PNG","skullbone_ventral.PNG",
+        "skull_dorsal.PNG","skull_ventral_view.PNG","T6+T12_13.png","vomer_ethmoid_lateral.PNG"
+    ];
+
+    async function autoLoadBundledImagesIfMissing() {
+        const missing = BUNDLED_IMAGE_NAMES.filter(name => !imagesData[name]);
+        if (missing.length === 0) return;
+        const statusEl = document.getElementById('idb-cache-status');
+        if (statusEl) statusEl.innerHTML = "⏳ 正在自動載入圖庫至本機快取 (免手動選取)...";
+        let loadedCount = 0;
+        await Promise.all(missing.map(async (name) => {
+            try {
+                const paths = ['./images/' + encodeURIComponent(name), './參考資料/用好了/' + encodeURIComponent(name)];
+                let res = null;
+                for (const p of paths) {
+                    try {
+                        const r = await fetch(p);
+                        if (r.ok) { res = r; break; }
+                    } catch(e) {}
+                }
+                if (res && res.ok) {
+                    const blob = await res.blob();
+                    await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = async (ev) => {
+                            const dataUrl = ev.target.result;
+                            imagesData[name] = dataUrl;
+                            await cacheImage(name, dataUrl);
+                            loadedCount++;
+                            resolve();
+                        };
+                        reader.onerror = resolve;
+                        reader.readAsDataURL(blob);
+                    });
+                }
+            } catch(e) {}
+        }));
+        if (loadedCount > 0) {
+            renderEditorImageTree();
+            if (statusEl) {
+                statusEl.innerHTML = "💾 已自動完成 <strong>" + Object.keys(imagesData).length + "</strong> 張圖譜本機快取 (隨開即用！)";
+                statusEl.style.color = "#27ae60";
+            }
+        }
+    }
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
@@ -1760,6 +1815,7 @@
                 statusEl.style.color = "#d97706";
             }
 
+            await autoLoadBundledImagesIfMissing();
             await fetchCloudData();
         } else {
             document.getElementById('login-zone').style.display = 'block';
