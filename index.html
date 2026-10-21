@@ -1278,6 +1278,83 @@
             color: var(--text-secondary) !important;
             font-size: 0.76rem !important;
         }
+        /* === 🗂️ 全題庫名詞檢索與圖鑑辭典 (Question Bank Explorer) === */
+        .qb-explorer-card {
+            margin-top: 1.5rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .qb-cards-grid {
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 6px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 0.65rem;
+        }
+        .qb-card {
+            background: var(--bg-surface-raised);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 0.95rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.45rem;
+            transition: all 0.15s ease;
+        }
+        .qb-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .qb-badge-mastered {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .qb-badge-learning {
+            background: rgba(2, 132, 199, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(2, 132, 199, 0.3);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .qb-badge-weak {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .qb-badge-untested {
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .qb-tag {
+            font-size: 0.73rem;
+            color: var(--text-secondary);
+            background: var(--bg-surface);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
     </style></head>
 <body>
 
@@ -1657,8 +1734,54 @@
                 <button class="btn-primary" style="background: var(--warning);" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
             </div>
         </div>
+
+        <!-- 🗂️ 全題庫名詞檢索與解剖圖鑑辭典 (Question Bank Explorer) -->
+        <div class="qb-explorer-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
+                <div>
+                    <h4 style="margin: 0; color: var(--text-primary); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                        <span>🗂️ 全題庫名詞檢索與圖鑑辭典</span>
+                        <span id="qb-total-badge" class="version-badge" style="background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); font-size: 0.75rem;">共 455 題</span>
+                    </h4>
+                    <p style="margin: 0.35rem 0 0 0; color: var(--text-muted); font-size: 0.82rem;">
+                        💡 學生端解剖背書辭典：免測驗自由翻閱全部題目、即時搜尋專有名詞、檢視解剖圖遮罩正解與個人熟練度。
+                    </p>
+                </div>
+                <!-- 快捷搜尋與分類過濾列 -->
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <div style="position: relative;">
+                        <input type="text" id="qb-search-input" placeholder="🔍 搜尋英文/拉丁名詞 (例: foramen, process)..." 
+                               style="width: 250px; padding: 0.45rem 0.75rem 0.45rem 1.8rem; font-size: 0.83rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-surface-raised); color: var(--text-primary);"
+                               oninput="filterQuestionBank()">
+                        <span style="position: absolute; left: 7px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none;">🔍</span>
+                    </div>
+                    <select id="qb-category-filter" onchange="filterQuestionBank()" 
+                            style="padding: 0.45rem 0.65rem; font-size: 0.83rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-surface-raised); color: var(--text-primary); cursor: pointer;">
+                        <option value="all">📁 全部部位分類</option>
+                    </select>
+                    <select id="qb-status-filter" onchange="filterQuestionBank()" 
+                            style="padding: 0.45rem 0.65rem; font-size: 0.83rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-surface-raised); color: var(--text-primary); cursor: pointer;">
+                        <option value="all">🎯 全部掌握狀態</option>
+                        <option value="mastered">🌟 已掌握 (正確率 ≥ 80%)</option>
+                        <option value="learning">🔄 學習中 (正確率 50-79%)</option>
+                        <option value="weak">⚠️ 常錯弱點 (錯誤 ≥ 2 或勝率 < 50%)</option>
+                        <option value="untested">⚪ 尚未測驗</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 即時搜尋篩選結果計數列 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--text-secondary);">
+                <span>符合條件：<strong id="qb-filtered-count" style="color: var(--accent); font-size:0.9rem;">0</strong> 題</span>
+                <span id="qb-scope-tip" style="color: var(--text-muted); font-size: 0.76rem;">💡 點擊「👁️ 檢視解剖圖」可查看原圖高亮紅框正解標記</span>
+            </div>
+
+            <!-- 題庫辭典卡片容器 -->
+            <div id="qb-cards-container" class="qb-cards-grid">
+                <!-- 動態注入題目卡片 -->
+            </div>
+        </div>
     </div>
-</div>
 
 <!-- 🩺 題庫拼字健檢與挑選修正 Modal -->
 <div id="typo-audit-modal" class="modal-overlay">
@@ -1686,6 +1809,32 @@
                 <button type="button" class="btn-sm" onclick="closeTypoAuditModal()">暫不修改</button>
                 <button type="button" class="btn-primary" style="width:auto; padding:0.45rem 1rem; font-size:0.88rem; background:var(--success);" onclick="applySelectedTypoFixes()">✅ 套用已勾選項目並同步雲端</button>
             </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 👁️ 題庫解剖圖檢視器 Modal (Atlas Preview Modal) -->
+<div id="qb-preview-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 920px; width: 95vw; max-height: 92vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.15rem;">🦴</span>
+                <div>
+                    <h4 id="qb-modal-term" style="margin: 0; color: var(--text-primary); font-size: 1.05rem;"></h4>
+                    <span id="qb-modal-sub" style="font-size: 0.78rem; color: var(--text-muted);"></span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" id="qb-modal-practice-btn" class="btn-sm" style="background: var(--accent); color: white; border-color: var(--accent); padding: 5px 12px; font-weight: 600; cursor: pointer;">🎯 考這題</button>
+                <button type="button" class="btn-sm" style="background: transparent; color: var(--text-primary); border-color: var(--border); font-size: 1rem; padding: 3px 9px; cursor: pointer;" onclick="closeQbPreviewModal()">✕</button>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-base);">
+            <div style="position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border); background: var(--canvas-bg);">
+                <canvas id="qb-preview-canvas" style="max-width: 100%; max-height: 60vh; width: auto; height: auto; display: block; object-fit: contain;"></canvas>
+            </div>
+            <div id="qb-modal-stats-bar" style="margin-top: 0.75rem; width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary); padding: 0.45rem 0.85rem; background: var(--bg-surface); border-radius: 6px; border: 1px solid var(--border); box-sizing: border-box;"></div>
         </div>
     </div>
 </div>
@@ -2342,6 +2491,7 @@
             } catch(e) { console.warn("collectionGroup 讀取略過:", e); }
 
             quizDatabase = Array.from(loadedMap.values());
+            window.quizDatabase = quizDatabase;
             
             // 讀取作答進度
             const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
@@ -2352,6 +2502,7 @@
                 const qId = data.quizId || d.id.replace(`${currentUser.uid}_`, '');
                 userProgress[qId] = { ...data, quizId: qId };
             });
+            window.userProgress = userProgress;
 
             // 讀取個人統計
             try {
@@ -4218,6 +4369,7 @@
         });
 
         window.cachedTopWeakTerms = topWeak;
+        renderQuestionBankExplorer();
     }
 
     window.startSingleTermDrill = (termName) => {
@@ -4244,6 +4396,285 @@
         alert(`⚡ 已啟動 Top ${window.cachedTopWeakTerms.length} 弱點多視角綜合特訓！\n共匯入 ${weakDrillPool.length} 道跨角度題目進行高強度轟炸！`);
         window.switchMode('quiz');
     };
+
+
+    
+    // === 🗂️ 全題庫名詞檢索與圖鑑辭典 (Question Bank Explorer) 核心邏輯 ===
+    const QB_FRIENDLY_CAT_NAMES = {
+        'head_skull': '頭部頭骨',
+        'spine_trunk': '軀幹脊椎',
+        'vertebrae': '脊椎骨骼',
+        'forelimb': '前肢骨骼',
+        'hindlimb': '後肢骨骼',
+        'pelvis': '骨盆骨骼',
+        'ribs': '肋骨胸廓'
+    };
+
+    function getQbFriendlyCategoryName(rawCat) {
+        if (!rawCat) return '一般部位';
+        return QB_FRIENDLY_CAT_NAMES[rawCat] || rawCat;
+    }
+
+    function getActiveQuizPool() {
+        if (typeof quizDatabase !== 'undefined' && quizDatabase && quizDatabase.length > 0) return quizDatabase;
+        if (window.quizDatabase && window.quizDatabase.length > 0) return window.quizDatabase;
+        return (typeof quizDatabase !== 'undefined' && quizDatabase) ? quizDatabase : (window.quizDatabase || []);
+    }
+
+    function getActiveUserProgress() {
+        if (typeof userProgress !== 'undefined' && userProgress && Object.keys(userProgress).length > 0) return userProgress;
+        if (window.userProgress && Object.keys(window.userProgress).length > 0) return window.userProgress;
+        return (typeof userProgress !== 'undefined' && userProgress) ? userProgress : (window.userProgress || {});
+    }
+
+    function renderQuestionBankExplorer() {
+        const qPool = getActiveQuizPool();
+        const catSelect = document.getElementById('qb-category-filter');
+        if (catSelect) {
+            const currentVal = catSelect.value;
+            catSelect.innerHTML = '<option value="all">📁 全部部位分類</option>';
+            const categories = Array.from(new Set(qPool.map(q => q.category || 'head_skull'))).sort();
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                const count = qPool.filter(q => (q.category || 'head_skull') === cat).length;
+                opt.innerText = `📁 ${getQbFriendlyCategoryName(cat)} (${count} 題)`;
+                catSelect.appendChild(opt);
+            });
+            if (categories.includes(currentVal)) catSelect.value = currentVal;
+        }
+
+        filterQuestionBank();
+    }
+    window.renderQuestionBankExplorer = renderQuestionBankExplorer;
+
+    function filterQuestionBank() {
+        const qPool = getActiveQuizPool();
+        const progMap = getActiveUserProgress();
+
+        const kw = (document.getElementById('qb-search-input')?.value || '').trim().toLowerCase();
+        const cat = document.getElementById('qb-category-filter')?.value || 'all';
+        const status = document.getElementById('qb-status-filter')?.value || 'all';
+
+        const container = document.getElementById('qb-cards-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const filtered = qPool.filter(q => {
+            if (kw) {
+                const matchTerm = (q.term || '').toLowerCase().includes(kw);
+                const matchImg = (q.image || '').toLowerCase().includes(kw);
+                const matchCat = (q.category || '').toLowerCase().includes(kw);
+                if (!matchTerm && !matchImg && !matchCat) return false;
+            }
+
+            if (cat !== 'all' && (q.category || 'head_skull') !== cat) return false;
+
+            if (status !== 'all') {
+                const p = progMap[q.id];
+                const total = p ? (p.totalAnswered ?? p.repetitions ?? (p.nextReviewDate ? 1 : 0)) : 0;
+                const wrg = p ? (p.wrongCount || 0) : 0;
+                const corr = p ? ((p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg)) : 0;
+                const rate = total > 0 ? (corr / total) : 0;
+
+                if (status === 'untested' && total > 0) return false;
+                if (status === 'mastered' && (total < 2 || rate < 0.8)) return false;
+                if (status === 'weak' && (wrg < 2 && (total < 2 || rate >= 0.5))) return false;
+                if (status === 'learning' && (total === 0 || (total >= 2 && rate >= 0.8) || (wrg >= 2 || (total >= 2 && rate < 0.5)))) return false;
+            }
+
+            return true;
+        });
+
+        const filteredCountEl = document.getElementById('qb-filtered-count');
+        const totalBadgeEl = document.getElementById('qb-total-badge');
+        if (filteredCountEl) filteredCountEl.innerText = filtered.length;
+        if (totalBadgeEl) totalBadgeEl.innerText = `共 ${qPool.length} 題`;
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 2.5rem; text-align: center; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+                    <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">無符合條件的題目</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.25rem;">請嘗試更換關鍵字或重設篩選分類</div>
+                </div>
+            `;
+            return;
+        }
+
+        filtered.forEach((q, idx) => {
+            const p = progMap[q.id];
+            const total = p ? (p.totalAnswered ?? p.repetitions ?? (p.nextReviewDate ? 1 : 0)) : 0;
+            const wrg = p ? (p.wrongCount || 0) : 0;
+            const corr = p ? ((p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg)) : 0;
+            const rate = total > 0 ? Math.round((corr / total) * 100) : null;
+
+            let badgeHtml = '';
+            if (total === 0) {
+                badgeHtml = `<span class="qb-badge-untested">⚪ 未測驗</span>`;
+            } else if (wrg >= 2 || (total >= 2 && rate < 50)) {
+                badgeHtml = `<span class="qb-badge-weak">⚠️ 錯 ${wrg} 次 (${rate}%)</span>`;
+            } else if (rate >= 80 && total >= 2) {
+                badgeHtml = `<span class="qb-badge-mastered">🌟 熟記 (${rate}%)</span>`;
+            } else {
+                badgeHtml = `<span class="qb-badge-learning">🔄 學習中 (${rate}%)</span>`;
+            }
+
+            const catName = getQbFriendlyCategoryName(q.category || 'head_skull');
+            const card = document.createElement('div');
+            card.className = 'qb-card';
+            card.innerHTML = `
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; gap: 4px;">
+                        <span class="qb-tag" style="color:var(--accent); font-weight:700;">${catName}</span>
+                        ${badgeHtml}
+                    </div>
+                    <div style="margin: 0.35rem 0;">
+                        <strong style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.35; display: block;">#${idx + 1} ${q.term}</strong>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 0.35rem;">
+                        <span class="qb-tag" style="font-size:0.7rem; color:var(--text-muted);">🖼️ ${q.image}</span>
+                        ${q.sidedness && q.sidedness !== 'unpaired' ? `<span class="qb-tag" style="font-size:0.7rem;">${q.sidedness === 'left' ? '👈 左側' : '👉 右側'}</span>` : ''}
+                        ${q.viewAngle && q.viewAngle !== 'general' ? `<span class="qb-tag" style="font-size:0.7rem;">視角: ${q.viewAngle}</span>` : ''}
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed var(--border);">
+                    <button type="button" class="btn-sm" style="color: var(--accent); border-color: var(--border); background: var(--bg-surface); padding: 3px 8px; cursor: pointer;" onclick="openQbPreviewModal('${q.id}')">
+                        👁️ 檢視解剖圖
+                    </button>
+                    <button type="button" class="btn-sm" style="background: var(--accent); color: white; border-color: var(--accent); padding: 3px 9px; cursor: pointer;" onclick="startSingleQuestionDrill('${q.id}')">
+                        🎯 單題特訓
+                    </button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+    window.filterQuestionBank = filterQuestionBank;
+
+    window.openQbPreviewModal = (qId) => {
+        const qPool = getActiveQuizPool();
+        const progMap = getActiveUserProgress();
+        const q = qPool.find(item => item.id === qId);
+        if (!q) return alert("找不到此題目！");
+
+        const modal = document.getElementById('qb-preview-modal');
+        document.getElementById('qb-modal-term').innerText = q.term;
+        const catLabel = getQbFriendlyCategoryName(q.category);
+        document.getElementById('qb-modal-sub').innerText = `部位：${catLabel} · 檔案：${q.image} · 視角：${q.viewAngle || '一般'} · 側性：${q.sidedness || '非成對'}`;
+
+        const practiceBtn = document.getElementById('qb-modal-practice-btn');
+        if (practiceBtn) {
+            practiceBtn.onclick = () => window.startSingleQuestionDrill(q.id);
+        }
+
+        const p = progMap[q.id];
+        const total = p ? (p.totalAnswered ?? p.repetitions ?? (p.nextReviewDate ? 1 : 0)) : 0;
+        const wrg = p ? (p.wrongCount || 0) : 0;
+        const corr = p ? ((p.correctCount !== undefined && p.correctCount !== null) ? p.correctCount : Math.max(0, total - wrg)) : 0;
+        const rate = total > 0 ? Math.round((corr / total) * 100) : null;
+        const ef = p && p.easeFactor ? p.easeFactor.toFixed(2) : '2.50';
+        const interval = p && p.interval ? `${p.interval} 天` : '未排程';
+
+        const statsBar = document.getElementById('qb-modal-stats-bar');
+        if (statsBar) {
+            statsBar.innerHTML = `
+                <span>📊 個人學習狀況：已作答 <strong>${total}</strong> 次 · 正確 <strong>${corr}</strong> 次 · 錯誤 <strong style="color:var(--danger);">${wrg}</strong> 次 ${rate !== null ? `(勝率 <strong>${rate}%</strong>)` : '(⚪ 尚未測驗)'}</span>
+                <span style="color:var(--text-muted); font-size:0.75rem;">SM-2 難易度: ${ef} · 複習間隔: ${interval}</span>
+            `;
+        }
+
+        const canvas = document.getElementById('qb-preview-canvas');
+        const ctx = canvas.getContext('2d');
+        const imgData = getImageDataSmart(q.image);
+
+        if (imgData) {
+            const img = new Image();
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                qPool.forEach(item => {
+                    if (item.image === q.image || (item.image && q.image && item.image.trim().toLowerCase() === q.image.trim().toLowerCase())) {
+                        if (item.id !== q.id) {
+                            const otherMasks = getItemMasks(item);
+                            ctx.fillStyle = "rgba(15, 23, 42, 0.35)";
+                            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+                            ctx.lineWidth = 1;
+                            otherMasks.forEach(m => {
+                                const nx = m.w < 0 ? m.x + m.w : m.x;
+                                const ny = m.h < 0 ? m.y + m.h : m.y;
+                                const nw = Math.abs(m.w);
+                                const nh = Math.abs(m.h);
+                                ctx.fillRect(nx, ny, nw, nh);
+                                ctx.strokeRect(nx, ny, nw, nh);
+                            });
+                        }
+                    }
+                });
+
+                const targetMasks = getItemMasks(q);
+                ctx.fillStyle = "rgba(231, 76, 60, 0.45)";
+                ctx.strokeStyle = "#e74c3c";
+                ctx.lineWidth = 3;
+                targetMasks.forEach((m, idx) => {
+                    const nx = m.w < 0 ? m.x + m.w : m.x;
+                    const ny = m.h < 0 ? m.y + m.h : m.y;
+                    const nw = Math.abs(m.w);
+                    const nh = Math.abs(m.h);
+                    ctx.fillRect(nx, ny, nw, nh);
+                    ctx.strokeRect(nx, ny, nw, nh);
+
+                    ctx.fillStyle = "#e74c3c";
+                    const labelText = targetMasks.length > 1 ? `★ ${q.term} #${idx+1}` : `★ ${q.term}`;
+                    ctx.font = "bold 15px sans-serif";
+                    const textW = ctx.measureText(labelText).width;
+                    const badgeH = 24;
+                    const badgeY = Math.max(0, ny - badgeH);
+                    ctx.fillRect(nx, badgeY, textW + 14, badgeH);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillText(labelText, nx + 7, badgeY + 17);
+                });
+            };
+            img.src = imgData;
+        } else {
+            canvas.width = 600;
+            canvas.height = 300;
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(0, 0, 600, 300);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "16px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("未找到對應解剖圖快取 (" + q.image + ")", 300, 150);
+            ctx.textAlign = "start";
+        }
+
+        modal.classList.add('show');
+    };
+
+    window.closeQbPreviewModal = () => {
+        const modal = document.getElementById('qb-preview-modal');
+        if (modal) modal.classList.remove('show');
+    };
+
+    window.startSingleQuestionDrill = (qId) => {
+        const qPool = getActiveQuizPool();
+        const q = qPool.find(item => item.id === qId);
+        if (!q) return alert("找不到此題目！");
+        weakDrillPool = [q];
+        drillModeName = `【${q.term}】單題特訓`;
+        window.closeQbPreviewModal();
+        alert(`🎯 已啟動【${q.term}】單題快練特訓！`);
+        window.switchMode('quiz');
+    };
+
+    // ESC 鍵關閉題庫預覽 Modal
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            window.closeQbPreviewModal();
+        }
+    });
 
 
     // 🚀 初始化主題與矩形選擇控制
