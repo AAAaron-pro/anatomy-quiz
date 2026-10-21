@@ -1712,18 +1712,41 @@
     }
 
     // 智慧圖檔讀取 (大小寫不拘容錯)
+    // 🛡️ 全域大小寫與副檔名完全免疫圖檔註冊與讀取引擎
+    function registerImageDataImmune(name, dataUrl) {
+        if (!name || !dataUrl) return;
+        imagesData[name] = dataUrl;
+        const upper = name.replace(/\.png$/i, '.PNG');
+        const lower = name.replace(/\.PNG$/i, '.png');
+        const base = name.replace(/\.[a-zA-Z0-9]+$/, '');
+        imagesData[upper] = dataUrl;
+        imagesData[lower] = dataUrl;
+        imagesData[base] = dataUrl;
+    }
+    window.registerImageDataImmune = registerImageDataImmune;
+
     function getImageDataSmart(imgName) {
-        if (!imgName) return null;
-        if (imagesData[imgName]) return imagesData[imgName];
-        const lower = imgName.toLowerCase();
-        const upper = imgName.toUpperCase();
+        if (!imgName || typeof imgName !== 'string') return null;
+        const trimmed = imgName.trim();
+        if (imagesData[trimmed]) return imagesData[trimmed];
+
+        const lower = trimmed.toLowerCase();
         for (const k of Object.keys(imagesData)) {
-            if (k.toLowerCase() === lower || k.toUpperCase() === upper) {
+            if (k.trim().toLowerCase() === lower) {
+                return imagesData[k];
+            }
+        }
+
+        // 脫敏比對主檔名 (排除副檔名 .png/.PNG/.jpg 等大小寫差異)
+        const baseName = trimmed.replace(/\.[a-zA-Z0-9]+$/, '').toLowerCase();
+        for (const k of Object.keys(imagesData)) {
+            if (k.trim().replace(/\.[a-zA-Z0-9]+$/, '').toLowerCase() === baseName) {
                 return imagesData[k];
             }
         }
         return null;
     }
+    window.getImageDataSmart = getImageDataSmart;
 
     const firebaseConfig = {
       apiKey: "AIzaSyAwObWPvCT4yBHcW6NiXLvPIEn4r96Wq8s",
@@ -1897,6 +1920,7 @@
     // --- 全域變數 ---
     let currentUser = null;
     let imagesData = {};
+    window.imagesData = imagesData;
     let currentImage = null;
     let quizDatabase = [];
     let userProgress = {};
@@ -2190,26 +2214,32 @@
 
     
     const BUNDLED_IMAGE_NAMES = [
-        "3rd_caudal_ver.PNG","4th_caudal_ver.PNG","6th_caudal_ver.PNG","atlantoaxial(C1+C2).png",
-        "atlas_dorsal(C1).png","axis_left_lateral (C2).png","C5_craniolateral.png","C7_caudal.png",
+        "3rd_caudal_ver.PNG","4th_caudal_ver.PNG","6th_caudal_ver.PNG","atlantoaxial(C1+C2).PNG",
+        "atlas_dorsal(C1).PNG","axis_left_lateral (C2).PNG","C5_craniolateral.PNG","C7_caudal.PNG",
         "disarticulated_skull_ventral.PNG","IMG_1955.PNG","IMG_1956.PNG","IMG_1957.PNG","IMG_1958.PNG",
-        "L4+L5+ Intervertebral_disc.png","L_femur.PNG","L_hip.PNG","L_hip_lateral.PNG","L_hip_medial.PNG",
+        "L4+L5+ Intervertebral_disc.PNG","L_femur.PNG","L_hip.PNG","L_hip_lateral.PNG","L_hip_medial.PNG",
         "L_humerus.PNG","L_radius_caudal.PNG","L_scapula.PNG","L_scapula_ventral.PNG","L_tibia+fibula.PNG",
         "L_ulna.PNG","mandibles_dorsal_lateral.PNG","paw_dorsal.PNG","paw_palmar.PNG",
         "pelvis+sacrum_caudodorsal.PNG","rib_lateral.PNG","rib_ventral.PNG","sacrum.PNG",
         "sacrum_caudal_lateral.PNG","sacrum_dorsal.PNG","sagittal_skull_medial.PNG","skullbone_ventral.PNG",
-        "skull_dorsal.PNG","skull_ventral_view.PNG","T6+T12_13.png","vomer_ethmoid_lateral.PNG"
+        "skull_dorsal.PNG","skull_ventral_view.PNG","T6+T12_13.PNG","vomer_ethmoid_lateral.PNG"
     ];
 
     async function autoLoadBundledImagesIfMissing() {
-        const missing = BUNDLED_IMAGE_NAMES.filter(name => !imagesData[name]);
+        const missing = BUNDLED_IMAGE_NAMES.filter(name => !getImageDataSmart(name));
         if (missing.length === 0) return;
         const statusEl = document.getElementById('idb-cache-status');
         if (statusEl) statusEl.innerHTML = "⏳ 正在自動載入圖庫至本機快取 (免手動選取)...";
         let loadedCount = 0;
         await Promise.all(missing.map(async (name) => {
             try {
-                const paths = ['./images/' + encodeURIComponent(name), './參考資料/用好了/' + encodeURIComponent(name)];
+                const lowerName = name.replace(/\.PNG$/i, '.png');
+                const paths = [
+                    './images/' + encodeURIComponent(name),
+                    './images/' + encodeURIComponent(lowerName),
+                    './參考資料/用好了/' + encodeURIComponent(name),
+                    './參考資料/用好了/' + encodeURIComponent(lowerName)
+                ];
                 let res = null;
                 for (const p of paths) {
                     try {
@@ -2223,7 +2253,7 @@
                         const reader = new FileReader();
                         reader.onload = async (ev) => {
                             const dataUrl = ev.target.result;
-                            imagesData[name] = dataUrl;
+                            registerImageDataImmune(name, dataUrl);
                             await cacheImage(name, dataUrl);
                             loadedCount++;
                             resolve();
@@ -2265,6 +2295,7 @@
             const statusEl = document.getElementById('idb-cache-status');
             if (cachedCount > 0) {
                 imagesData = cached;
+                Object.keys(cached).forEach(k => registerImageDataImmune(k, cached[k]));
                 statusEl.innerHTML = `💾 已從本機快取成功載入 <strong>${cachedCount}</strong> 張解剖圖 (無需重複上傳！)`;
                 statusEl.style.color = "#27ae60";
             } else {
@@ -2976,7 +3007,7 @@
         listDiv.innerHTML = '';
         if (!currentImage) return;
 
-        const termsOnImg = quizDatabase.filter(q => q.image === currentImage);
+        const termsOnImg = quizDatabase.filter(q => q.image === currentImage || (q.image && currentImage && q.image.trim().toLowerCase() === currentImage.trim().toLowerCase()));
         if (termsOnImg.length === 0) {
             listDiv.innerHTML = '<span style="color:#94a3b8;">此圖尚未標註任何構造</span>';
             return;
@@ -3262,8 +3293,8 @@
         const radios = document.getElementsByName('sheet-order');
         for (const r of radios) if (r.checked) sheetOrderMode = r.value;
         if (quizType === 'sheet' && sheetCurrentImg) {
-            const unresolved = quizDatabase.filter(q => q.image === sheetCurrentImg && !sheetResolved.has(q.id));
-            const resolvedList = quizDatabase.filter(q => q.image === sheetCurrentImg && sheetResolved.has(q.id));
+            const unresolved = quizDatabase.filter(q => (q.image === sheetCurrentImg || (q.image && sheetCurrentImg && q.image.trim().toLowerCase() === sheetCurrentImg.trim().toLowerCase())) && !sheetResolved.has(q.id));
+            const resolvedList = quizDatabase.filter(q => (q.image === sheetCurrentImg || (q.image && sheetCurrentImg && q.image.trim().toLowerCase() === sheetCurrentImg.trim().toLowerCase())) && sheetResolved.has(q.id));
             sheetQuestions = [...resolvedList, ...sortSheetQuestionsByOrder(unresolved, sheetOrderMode)];
             sheetIndex = resolvedList.length;
             currentQuestion = sheetQuestions[sheetIndex];
@@ -3352,7 +3383,7 @@
                 const reader = new FileReader();
                 reader.onload = async (event) => {
                     const dataUrl = event.target.result;
-                    imagesData[file.name] = dataUrl;
+                    registerImageDataImmune(file.name, dataUrl);
                     await cacheImage(file.name, dataUrl);
                     if(loaded === 0) loadEditorImage(file.name);
                     loaded++;
@@ -3380,6 +3411,7 @@
         editorHighlightQuestionId = null;
         document.getElementById('term-input').value = '';
         
+        const imgData = getImageDataSmart(filename);
         cachedEditorImg = new Image();
         cachedEditorImg.onload = () => {
             renderEditorCanvas();
@@ -3387,7 +3419,7 @@
             renderEditorImageTree();
             if (typeof onLoadedCallback === 'function') onLoadedCallback();
         };
-        cachedEditorImg.src = imagesData[filename];
+        cachedEditorImg.src = imgData || '';
     }
 
     function renderEditorCanvas() {
@@ -3485,7 +3517,7 @@
 
         // 關鍵修復：若正在微調既有題目 (editorHighlightQuestionId)，或同圖已有相同名詞，直接沿用原題 ID 原地覆寫，保留作答歷史且絕不分裂雙胞胎題目！
         const existingEditingQ = (editorHighlightQuestionId ? quizDatabase.find(q => q.id === editorHighlightQuestionId) : null)
-            || quizDatabase.find(q => q.image === currentImage && normalizeAnatomyTerm(q.term) === normalizeAnatomyTerm(term));
+            || quizDatabase.find(q => (q.image === currentImage || (q.image && currentImage && q.image.trim().toLowerCase() === currentImage.trim().toLowerCase())) && normalizeAnatomyTerm(q.term) === normalizeAnatomyTerm(term));
         const docId = existingEditingQ ? existingEditingQ.id : `${sanitizeId(category)}_${sanitizeId(currentImage)}_${sanitizeId(term)}`;
         const oldCategory = existingEditingQ ? (existingEditingQ.category || "head_skull") : category;
 
@@ -3553,7 +3585,7 @@
 
     function drawExistingMasks() {
         quizDatabase.forEach(item => {
-            if (item.image === currentImage) {
+            if (item.image === currentImage || (item.image && currentImage && item.image.trim().toLowerCase() === currentImage.trim().toLowerCase())) {
                 // 若此題正被載入至 editorPendingMasks 進行微調透視，由 renderEditorCanvas 負責繪製半透明青色框，避免雙重繪製疊色！
                 if (item.id === editorHighlightQuestionId) return;
                 const masks = getItemMasks(item);
@@ -3693,7 +3725,7 @@
             if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length) {
                 const availableImages = Array.from(new Set(activePool.map(q => q.image)));
                 sheetCurrentImg = availableImages[Math.floor(Math.random() * availableImages.length)];
-                sheetQuestions = sortSheetQuestionsByOrder(quizDatabase.filter(q => q.image === sheetCurrentImg), sheetOrderMode);
+                sheetQuestions = sortSheetQuestionsByOrder(quizDatabase.filter(q => q.image === sheetCurrentImg || (q.image && sheetCurrentImg && q.image.trim().toLowerCase() === sheetCurrentImg.trim().toLowerCase())), sheetOrderMode);
                 sheetIndex = 0;
                 sheetResolved.clear();
             }
@@ -3767,14 +3799,15 @@
     };
 
     function drawCanvasForQuestion(q, revealCurrent = false) {
-        if (!q || !imagesData[q.image]) return;
+        const qImgData = getImageDataSmart(q ? q.image : null);
+        if (!q || !qImgData) return;
         const img = new Image();
         img.onload = () => {
             quizCanvas.width = img.width; quizCanvas.height = img.height;
             qCtx.drawImage(img, 0, 0);
             
             quizDatabase.forEach(item => {
-                if (item.image === q.image) {
+                if (item.image === q.image || (item.image && q.image && item.image.trim().toLowerCase() === q.image.trim().toLowerCase())) {
                     const masks = getItemMasks(item);
                     if (quizType === 'sheet') {
                         if (revealCurrent && item.id === q.id) {
@@ -3795,7 +3828,7 @@
                 }
             });
         };
-        img.src = getImageDataSmart(q.image) || imagesData[q.image];
+        img.src = qImgData;
     }
 
 
@@ -3881,8 +3914,9 @@
     }
 
     function renderQuestion(q) {
-        if(!imagesData[q.image]) {
-            alert("找不到這題的圖片，請確認載入資料夾包含 " + q.image);
+        const qImgData = getImageDataSmart(q ? q.image : null);
+        if(!qImgData) {
+            alert("找不到這題的圖片，請確認載入資料夾包含 " + (q ? q.image : ''));
             return;
         }
 
