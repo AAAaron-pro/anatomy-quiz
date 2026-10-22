@@ -1356,7 +1356,7 @@
             border: 1px solid var(--border);
         }
     
-        /* 💡 常駐「使用方法？」微型膠囊按鈕 */
+        /* 💡 常駐「使用方法？」微型膠囊按鈕 (每 15 秒溫和邊框微光提醒) */
         .help-capsule-btn {
             display: inline-flex;
             align-items: center;
@@ -1370,48 +1370,79 @@
             background: var(--bg-surface);
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s ease;
             vertical-align: middle;
             box-shadow: var(--shadow-sm);
             user-select: none;
+            animation: subtleHelpRing 15s infinite ease-in-out;
         }
         .help-capsule-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: var(--bg-surface-raised);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2);
+            animation-play-state: paused;
         }
 
-        /* 🔷 深色模式專屬「蔚藍火焰」COMBO 連勝特效 */
+        /* 每 15 秒柔和提示一次外圈微光 (維持低調微光，淡雅不刺眼) */
+        @keyframes subtleHelpRing {
+            0%, 90%, 100% {
+                border-color: var(--border);
+                box-shadow: var(--shadow-sm);
+                color: var(--text-secondary);
+            }
+            94% {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.22), 0 0 6px rgba(2, 132, 199, 0.15);
+                color: var(--accent);
+            }
+            97% {
+                border-color: var(--border);
+                box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.08);
+                color: var(--text-secondary);
+            }
+        }
+
+        /* 🔷 深色模式專屬「蔚藍火焰」COMBO 連勝特效 (柔和護眼·降低亮度與閃爍頻率) */
         [data-theme="dark"] .combo-tier-1 {
-            background: linear-gradient(135deg, #0284c7, #38bdf8) !important;
+            background: linear-gradient(135deg, #0369a1, #0284c7) !important;
             color: #ffffff !important;
-            animation: blueFlamePulse 1.4s infinite !important;
-            box-shadow: 0 0 12px rgba(2, 132, 199, 0.6) !important;
+            animation: blueFlamePulse 2.4s infinite ease-in-out !important;
+            box-shadow: 0 0 8px rgba(2, 132, 199, 0.35) !important;
         }
         [data-theme="dark"] .combo-tier-2 {
-            background: linear-gradient(135deg, #0284c7, #38bdf8, #00f2fe) !important;
+            background: linear-gradient(135deg, #075985, #0284c7, #0284c7) !important;
             color: #ffffff !important;
-            animation: blueFlamePulse 0.85s infinite !important;
-            box-shadow: 0 0 18px rgba(56, 189, 248, 0.85) !important;
+            animation: blueFlamePulse 1.8s infinite ease-in-out !important;
+            box-shadow: 0 0 12px rgba(2, 132, 199, 0.45), 0 0 4px rgba(56, 189, 248, 0.25) !important;
         }
         [data-theme="dark"] .combo-tier-3 {
-            background: linear-gradient(135deg, #0284c7, #00f2fe, #38bdf8) !important;
+            background: linear-gradient(135deg, #0c4a6e, #0284c7, #0369a1) !important;
             color: #ffffff !important;
-            animation: blueGodlikeFlicker 0.55s infinite !important;
-            box-shadow: 0 0 26px rgba(0, 242, 254, 0.95), 0 0 40px rgba(2, 132, 199, 0.6) !important;
+            animation: blueGodlikeFlicker 1.4s infinite ease-in-out !important;
+            box-shadow: 0 0 14px rgba(2, 132, 199, 0.5), 0 0 8px rgba(56, 189, 248, 0.3) !important;
         }
 
         @keyframes blueFlamePulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px #0284c7); }
-            50% { transform: scale(1.08); filter: drop-shadow(0 0 16px #00f2fe); }
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.4));
+            }
+            50% {
+                transform: scale(1.03);
+                filter: drop-shadow(0 0 7px rgba(56, 189, 248, 0.5));
+            }
         }
         @keyframes blueGodlikeFlicker {
-            0%, 100% { transform: scale(1.06); filter: drop-shadow(0 0 10px #00f2fe) drop-shadow(0 0 20px #38bdf8); }
-            25% { transform: scale(1.12); filter: drop-shadow(0 0 14px #38bdf8) drop-shadow(0 0 26px #0284c7); }
-            50% { transform: scale(1.04); filter: drop-shadow(0 0 8px #00f2fe); }
-            75% { transform: scale(1.10); filter: drop-shadow(0 0 18px #00f2fe) drop-shadow(0 0 24px #38bdf8); }
+            0%, 100% {
+                transform: scale(1.02);
+                filter: drop-shadow(0 0 5px rgba(2, 132, 199, 0.5)) drop-shadow(0 0 8px rgba(56, 189, 248, 0.3));
+            }
+            50% {
+                transform: scale(1.05);
+                filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.6)) drop-shadow(0 0 12px rgba(56, 189, 248, 0.4));
+            }
         }
 
         /* 🧭 新用戶首次導覽系統 (Interactive Onboarding Tour) 樣式 */
@@ -3689,10 +3720,22 @@
         }
     });
 
+    const ONBOARDING_V10_KEY = 'vet_anatomy_onboarding_v10';
+
     window.finishSetup = () => {
         if (Object.keys(imagesData).length === 0) return alert("請先選取圖片資料夾或確認本機快取！");
         document.getElementById('setup-zone').style.display = 'none';
         window.switchMode('quiz');
+
+        // 🚀 關鍵優化：在點擊「開始使用」且切換至測驗主畫面、DOM與畫布完全排版穩定後才檢查觸發
+        // 有登入紀錄的用戶在本次 V10 更新後只會自動彈出一次，日後不再每次開都彈出干擾
+        const hasShownV10 = localStorage.getItem(ONBOARDING_V10_KEY);
+        if (!hasShownV10) {
+            setTimeout(() => {
+                window.startOnboardingTour();
+                localStorage.setItem(ONBOARDING_V10_KEY, 'true');
+            }, 400);
+        }
     };
 
     function loadEditorImage(filename, onLoadedCallback = null) {
@@ -4888,7 +4931,7 @@
         isOnboardingActive = false;
         const overlay = document.getElementById('onboarding-tour-overlay');
         if (overlay) overlay.style.display = 'none';
-        localStorage.setItem('vet_anatomy_onboarding_done', 'true');
+        localStorage.setItem(ONBOARDING_V10_KEY, 'true');
         // Restore to quiz mode
         if (window.switchMode) window.switchMode('quiz');
     };
@@ -5017,13 +5060,7 @@
         }
     }, true);
 
-    // 首次造訪自動啟動檢查
-    setTimeout(() => {
-        const hasDone = localStorage.getItem('vet_anatomy_onboarding_done');
-        if (!hasDone) {
-            window.startOnboardingTour();
-        }
-    }, 1200);
+    // （導覽自動彈出已改至 finishSetup「開始使用」點擊後觸發，避免開場跑位）
 
     // 🚀 初始化主題與矩形選擇控制
     applyTheme(currentTheme);
