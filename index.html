@@ -2,7 +2,7 @@
 <html lang="zh-TW" data-theme="dark"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>獸醫解剖學專業圖鑑與記憶分析系統 (V10-ZEN 臨床紙感·左圖右題雙欄旗艦版)</title>
+    <title>🦴 獸醫解剖學記憶分析系統 [V10旗艦版]</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root, [data-theme="dark"] {
@@ -1355,11 +1355,162 @@
             border-radius: 4px;
             border: 1px solid var(--border);
         }
+    
+        /* 💡 常駐「使用方法？」微型膠囊按鈕 */
+        .help-capsule-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 2px 9px;
+            margin-left: 8px;
+            border-radius: 9999px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            vertical-align: middle;
+            box-shadow: var(--shadow-sm);
+            user-select: none;
+        }
+        .help-capsule-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--bg-surface-raised);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+        }
+
+        /* 🔷 深色模式專屬「蔚藍火焰」COMBO 連勝特效 */
+        [data-theme="dark"] .combo-tier-1 {
+            background: linear-gradient(135deg, #0284c7, #38bdf8) !important;
+            color: #ffffff !important;
+            animation: blueFlamePulse 1.4s infinite !important;
+            box-shadow: 0 0 12px rgba(2, 132, 199, 0.6) !important;
+        }
+        [data-theme="dark"] .combo-tier-2 {
+            background: linear-gradient(135deg, #0284c7, #38bdf8, #00f2fe) !important;
+            color: #ffffff !important;
+            animation: blueFlamePulse 0.85s infinite !important;
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.85) !important;
+        }
+        [data-theme="dark"] .combo-tier-3 {
+            background: linear-gradient(135deg, #0284c7, #00f2fe, #38bdf8) !important;
+            color: #ffffff !important;
+            animation: blueGodlikeFlicker 0.55s infinite !important;
+            box-shadow: 0 0 26px rgba(0, 242, 254, 0.95), 0 0 40px rgba(2, 132, 199, 0.6) !important;
+        }
+
+        @keyframes blueFlamePulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px #0284c7); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 16px #00f2fe); }
+        }
+        @keyframes blueGodlikeFlicker {
+            0%, 100% { transform: scale(1.06); filter: drop-shadow(0 0 10px #00f2fe) drop-shadow(0 0 20px #38bdf8); }
+            25% { transform: scale(1.12); filter: drop-shadow(0 0 14px #38bdf8) drop-shadow(0 0 26px #0284c7); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 8px #00f2fe); }
+            75% { transform: scale(1.10); filter: drop-shadow(0 0 18px #00f2fe) drop-shadow(0 0 24px #38bdf8); }
+        }
+
+        /* 🧭 新用戶首次導覽系統 (Interactive Onboarding Tour) 樣式 */
+        .onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            pointer-events: auto;
+            user-select: none;
+            transition: opacity 0.25s ease;
+        }
+        .onboarding-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #spotlight-cutout, #spotlight-border {
+            transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes spotlightGlow {
+            0%, 100% { stroke: #00f2fe; stroke-width: 2.5px; filter: drop-shadow(0 0 4px #00f2fe); }
+            50% { stroke: #38bdf8; stroke-width: 3.5px; filter: drop-shadow(0 0 10px #38bdf8); }
+        }
+        #spotlight-border {
+            animation: spotlightGlow 1.8s infinite ease-in-out;
+        }
+        .onboarding-card {
+            position: absolute;
+            width: 380px;
+            max-width: 90vw;
+            background: var(--bg-surface);
+            border: 1.5px solid var(--accent);
+            border-radius: 12px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border);
+            padding: 1.15rem 1.3rem;
+            z-index: 100000;
+            transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-sizing: border-box;
+        }
+        .onboarding-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.65rem;
+        }
+        .onboarding-step-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--accent);
+            background: var(--accent-subtle);
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid var(--accent);
+        }
+        .onboarding-step-title {
+            margin: 0;
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .onboarding-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+        .onboarding-close-btn:hover {
+            color: var(--danger);
+        }
+        .onboarding-step-desc {
+            margin: 0;
+            font-size: 0.86rem;
+            line-height: 1.58;
+            color: var(--text-secondary);
+        }
+        .onboarding-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.95rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+        .onboarding-keys-tip {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
     </style></head>
 <body>
 
 <header>
-    <h2>🦴 獸醫解剖學記憶分析系統 <span class="version-badge">V10-ZEN 臨床紙感旗艦</span></h2>
+    <h2>🦴 獸醫解剖學記憶分析系統 <span class="version-badge">V10旗艦版</span> <button type="button" id="help-tour-btn" class="help-capsule-btn" onclick="startOnboardingTour()" title="隨時喚起新手使用導覽">💡 使用方法？</button></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem; font-weight: bold; color: var(--text-primary);"></span>
@@ -1367,7 +1518,7 @@
             <button id="nav-editor" onclick="switchMode('editor')" class="">🛠️ 編輯器</button>
             <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗</button>
             <button id="nav-analytics" onclick="switchMode('analytics')" class="">📊 分析</button>
-            <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="切換白天與黑夜模式"><span id="theme-icon">🌙</span> <span id="theme-text">深色高階</span></button>
+            <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="切換日間與深色模式"><span id="theme-icon">🌙</span> <span id="theme-text">深色模式</span></button>
             <button onclick="logout()" style="border-color: var(--danger); color: var(--danger); background: var(--danger-bg);">登出</button>
         </div>
     </div>
@@ -1671,67 +1822,19 @@
             </div>
 
             <div>
-                <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                    <h4 style="margin: 0.4rem 0; color: var(--danger);">⚠️ Top 10 弱點單字排行榜</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h4 style="margin: 0; color: var(--danger); font-size: 1.05rem;">⚠️ 弱點單字</h4>
+                        <button type="button" id="weak-terms-toggle-btn" class="btn-sm" style="padding: 2px 8px; font-size: 0.74rem; background: var(--bg-surface-raised); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; border-radius: 4px;" onclick="toggleWeakTerms()">展開 ▾</button>
+                    </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">(依單字聚合多角度)</span>
                 </div>
-                <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
-                <ul class="weak-list" id="weak-terms-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.6rem; list-style: none; padding: 0px; margin-top: 0.6rem;"><li class="weak-item" style="margin-bottom: 0px; padding: 0.55rem 0.85rem; border-radius: 8px; background: var(--danger-bg); border-left: 4px solid var(--danger); border-top: 1px solid var(--danger-border); border-right: 1px solid var(--danger-border); border-bottom: 1px solid var(--danger-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <div style="min-width: 0; flex: 1; padding-right: 0.5rem;">
-                <strong style="color: var(--text-primary); font-size: 0.9rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">#1 caudal articular process</strong>
-                <small style="color: var(--text-secondary); font-size: 0.76rem;">跨 3 個視角</small>
-            </div>
-            <div style="text-align: right; flex-shrink: 0;">
-                <span style="color: var(--danger); font-weight: bold; font-size: 0.85rem;">錯 5 次</span>
-                <br><small style="color: var(--text-muted); font-size: 0.74rem;">勝率 45%</small>
-            </div>
-        </li><li class="weak-item" style="margin-bottom: 0px; padding: 0.55rem 0.85rem; border-radius: 8px; background: var(--danger-bg); border-left: 4px solid var(--danger); border-top: 1px solid var(--danger-border); border-right: 1px solid var(--danger-border); border-bottom: 1px solid var(--danger-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <div style="min-width: 0; flex: 1; padding-right: 0.5rem;">
-                <strong style="color: var(--text-primary); font-size: 0.9rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">#2 foramen magnum</strong>
-                <small style="color: var(--text-secondary); font-size: 0.76rem;">跨 2 個視角</small>
-            </div>
-            <div style="text-align: right; flex-shrink: 0;">
-                <span style="color: var(--danger); font-weight: bold; font-size: 0.85rem;">錯 4 次</span>
-                <br><small style="color: var(--text-muted); font-size: 0.74rem;">勝率 50%</small>
-            </div>
-        </li><li class="weak-item" style="margin-bottom: 0px; padding: 0.55rem 0.85rem; border-radius: 8px; background: var(--danger-bg); border-left: 4px solid var(--danger); border-top: 1px solid var(--danger-border); border-right: 1px solid var(--danger-border); border-bottom: 1px solid var(--danger-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <div style="min-width: 0; flex: 1; padding-right: 0.5rem;">
-                <strong style="color: var(--text-primary); font-size: 0.9rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">#3 accessory process</strong>
-                <small style="color: var(--text-secondary); font-size: 0.76rem;">跨 2 個視角</small>
-            </div>
-            <div style="text-align: right; flex-shrink: 0;">
-                <span style="color: var(--danger); font-weight: bold; font-size: 0.85rem;">錯 4 次</span>
-                <br><small style="color: var(--text-muted); font-size: 0.74rem;">勝率 40%</small>
-            </div>
-        </li><li class="weak-item" style="margin-bottom: 0px; padding: 0.55rem 0.85rem; border-radius: 8px; background: var(--danger-bg); border-left: 4px solid var(--danger); border-top: 1px solid var(--danger-border); border-right: 1px solid var(--danger-border); border-bottom: 1px solid var(--danger-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <div style="min-width: 0; flex: 1; padding-right: 0.5rem;">
-                <strong style="color: var(--text-primary); font-size: 0.9rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">#4 trochlea of humerus</strong>
-                <small style="color: var(--text-secondary); font-size: 0.76rem;">跨 1 個視角</small>
-            </div>
-            <div style="text-align: right; flex-shrink: 0;">
-                <span style="color: var(--danger); font-weight: bold; font-size: 0.85rem;">錯 3 次</span>
-                <br><small style="color: var(--text-muted); font-size: 0.74rem;">勝率 60%</small>
-            </div>
-        </li><li class="weak-item" style="margin-bottom: 0px; padding: 0.55rem 0.85rem; border-radius: 8px; background: var(--danger-bg); border-left: 4px solid var(--danger); border-top: 1px solid var(--danger-border); border-right: 1px solid var(--danger-border); border-bottom: 1px solid var(--danger-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <div style="min-width: 0; flex: 1; padding-right: 0.5rem;">
-                <strong style="color: var(--text-primary); font-size: 0.9rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">#5 mammillary process</strong>
-                <small style="color: var(--text-secondary); font-size: 0.76rem;">跨 2 個視角</small>
-            </div>
-            <div style="text-align: right; flex-shrink: 0;">
-                <span style="color: var(--danger); font-weight: bold; font-size: 0.85rem;">錯 3 次</span>
-                <br><small style="color: var(--text-muted); font-size: 0.74rem;">勝率 55%</small>
-            </div>
-        </li><li class="weak-item" style="margin-bottom: 0px; padding: 0.55rem 0.85rem; border-radius: 8px; background: var(--danger-bg); border-left: 4px solid var(--danger); border-top: 1px solid var(--danger-border); border-right: 1px solid var(--danger-border); border-bottom: 1px solid var(--danger-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <div style="min-width: 0; flex: 1; padding-right: 0.5rem;">
-                <strong style="color: var(--text-primary); font-size: 0.9rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">#6 supratrochlear foramen</strong>
-                <small style="color: var(--text-secondary); font-size: 0.76rem;">跨 1 個視角</small>
-            </div>
-            <div style="text-align: right; flex-shrink: 0;">
-                <span style="color: var(--danger); font-weight: bold; font-size: 0.85rem;">錯 2 次</span>
-                <br><small style="color: var(--text-muted); font-size: 0.74rem;">勝率 67%</small>
-            </div>
-        </li></ul>
-                <button class="btn-primary" style="background: var(--warning);" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
+                <div id="weak-terms-collapsible" style="display: none;">
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
+                    <ul class="weak-list" id="weak-terms-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.6rem; list-style: none; padding: 0px; margin-top: 0.6rem;">
+                    </ul>
+                    <button id="weak-drill-btn" class="btn-primary" style="background: var(--warning); margin-top: 0.6rem;" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
+                </div>
             </div>
         </div>
 
@@ -1782,6 +1885,7 @@
             </div>
         </div>
     </div>
+</div>
 
 <!-- 🩺 題庫拼字健檢與挑選修正 Modal -->
 <div id="typo-audit-modal" class="modal-overlay">
@@ -1835,6 +1939,42 @@
                 <canvas id="qb-preview-canvas" style="max-width: 100%; max-height: 60vh; width: auto; height: auto; display: block; object-fit: contain;"></canvas>
             </div>
             <div id="qb-modal-stats-bar" style="margin-top: 0.75rem; width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary); padding: 0.45rem 0.85rem; background: var(--bg-surface); border-radius: 6px; border: 1px solid var(--border); box-sizing: border-box;"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 🧭 新用戶首次導覽系統 (Interactive Onboarding Tour) -->
+<div id="onboarding-tour-overlay" class="onboarding-overlay" style="display: none;">
+    <svg id="onboarding-svg" class="onboarding-svg" width="100%" height="100%">
+        <defs>
+            <mask id="spotlight-mask">
+                <rect width="100%" height="100%" fill="white" />
+                <rect id="spotlight-cutout" x="0" y="0" width="0" height="0" rx="10" ry="10" fill="black" />
+            </mask>
+        </defs>
+        <rect width="100%" height="100%" fill="rgba(11, 15, 25, 0.78)" mask="url(#spotlight-mask)" />
+        <rect id="spotlight-border" x="0" y="0" width="0" height="0" rx="10" ry="10" fill="none" stroke="#00f2fe" stroke-width="2.5" stroke-dasharray="6 3" />
+    </svg>
+
+    <div id="onboarding-card" class="onboarding-card">
+        <div class="onboarding-card-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="onboarding-step-badge" class="onboarding-step-badge">第 1 / 6 步</span>
+                <h4 id="onboarding-step-title" class="onboarding-step-title">頂部導航與模式切換</h4>
+            </div>
+            <button type="button" class="onboarding-close-btn" onclick="finishOnboardingTour()" title="跳過導覽 (Esc)">✕</button>
+        </div>
+        <div class="onboarding-card-body">
+            <p id="onboarding-step-desc" class="onboarding-step-desc"></p>
+        </div>
+        <div class="onboarding-card-footer">
+            <span class="onboarding-keys-tip">鍵盤快捷：Enter / ➔ 前進 · ◀ 後退 · Esc 跳過</span>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" id="onboarding-prev-btn" class="btn-sm" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; cursor: pointer;" onclick="prevOnboardingStep()">◀ 上一步</button>
+                <button type="button" id="onboarding-next-btn" class="btn-sm" style="background: var(--accent); color: white; border: 1px solid var(--accent); padding: 4px 14px; border-radius: 6px; font-weight: 700; cursor: pointer;" onclick="nextOnboardingStep()">下一步 ➔</button>
+                <button type="button" id="onboarding-finish-btn" class="btn-sm" style="background: var(--success); color: white; border: 1px solid var(--success); padding: 4px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; display: none;" onclick="finishOnboardingTour()">開始體驗 ✨</button>
+            </div>
         </div>
     </div>
 </div>
@@ -2101,10 +2241,10 @@
         if (icon && text) {
             if (t === 'dark') {
                 icon.innerText = '🌙';
-                text.innerText = '深色高階';
+                text.innerText = '深色模式';
             } else {
                 icon.innerText = '☀️';
-                text.innerText = '簡約日間';
+                text.innerText = '日間模式';
             }
         }
     }
@@ -4679,6 +4819,211 @@
         }
     });
 
+
+    
+    // === ⚠️ 弱點單字縮放切換（預設收縮）===
+    window.toggleWeakTerms = () => {
+        const box = document.getElementById('weak-terms-collapsible');
+        const btn = document.getElementById('weak-terms-toggle-btn');
+        if (!box || !btn) return;
+        const isHidden = (box.style.display === 'none');
+        box.style.display = isHidden ? 'block' : 'none';
+        btn.innerText = isHidden ? '收合 ▴' : '展開 ▾';
+        btn.style.borderColor = isHidden ? 'var(--accent)' : 'var(--border)';
+        btn.style.color = isHidden ? 'var(--accent)' : 'var(--text-secondary)';
+    };
+
+    // === 🧭 新用戶首次導覽系統 (Interactive Onboarding Tour) ===
+    const ONBOARDING_STEPS = [
+        {
+            title: '頂部導航與模式切換',
+            mode: 'quiz',
+            target: '.nav-btns',
+            desc: '隨時自由切換【📝 測驗】精準記憶實戰、【📊 分析】掌握成效與查閱題庫，以及【🛠️ 編輯器】管理解剖標註。點擊【🌙 深色模式】可即時切換深淺雙主題！'
+        },
+        {
+            title: '解剖畫布區與紅色目標遮罩',
+            mode: 'quiz',
+            target: '#canvas-container',
+            desc: '畫面呈現 1080p 超高清標本圖譜。每道題目會以鮮豔紅色框高亮突顯需要辨識的目標解剖構造，其餘無關構造自動以半透明暗黑遮罩覆蓋，幫您快速聚焦！'
+        },
+        {
+            title: '題型切換與鍵盤快捷鍵',
+            mode: 'quiz',
+            target: '#question-box',
+            desc: '支援「多選題」與「填空題」無縫切換。選擇題可按鍵盤 1~6 數字鍵秒答；填空題支援 Tab 鍵階梯式提示，並內建 Levenshtein 差一字拼字容錯保護！'
+        },
+        {
+            title: '連勝 COMBO 與 HUD',
+            mode: 'quiz',
+            target: '#combo-badge',
+            desc: '答對即累積連勝點燃火焰特效（深色模式下為專屬科幻蔚藍火焰！）。答錯自動加入即刻強化佇列重練，並結合標準 SM-2 間隔複習演算法守護長效記憶。'
+        },
+        {
+            title: '弱點單字分析',
+            mode: 'analytics',
+            target: '#weak-terms-toggle-btn',
+            desc: '自動將跨視角錯題依專有名詞聚合，精準揪出常錯盲點。支援點擊一鍵啟動「專項特訓」，且具備「預設收折 [展開 ▾]」設計，讓分析介面保持清爽高效！'
+        },
+        {
+            title: '全題庫檢索與圖鑑辭典',
+            mode: 'analytics',
+            target: '.qb-explorer-card',
+            desc: '學生端專屬背書辭典！免測驗自由翻閱全部 468 題，支援即時中英拉丁關鍵字搜尋、部位篩選與熟練度過濾，點擊「👁️ 檢視解剖圖」即可查看原圖紅框標記，點擊「🎯 單題特訓」即可一鍵實測！'
+        }
+    ];
+
+    let currentOnboardingStep = 0;
+    let isOnboardingActive = false;
+
+    window.startOnboardingTour = () => {
+        isOnboardingActive = true;
+        currentOnboardingStep = 0;
+        const overlay = document.getElementById('onboarding-tour-overlay');
+        if (overlay) overlay.style.display = 'block';
+        renderOnboardingStep();
+    };
+
+    window.finishOnboardingTour = () => {
+        isOnboardingActive = false;
+        const overlay = document.getElementById('onboarding-tour-overlay');
+        if (overlay) overlay.style.display = 'none';
+        localStorage.setItem('vet_anatomy_onboarding_done', 'true');
+        // Restore to quiz mode
+        if (window.switchMode) window.switchMode('quiz');
+    };
+
+    window.nextOnboardingStep = () => {
+        if (currentOnboardingStep < ONBOARDING_STEPS.length - 1) {
+            currentOnboardingStep++;
+            renderOnboardingStep();
+        } else {
+            finishOnboardingTour();
+        }
+    };
+
+    window.prevOnboardingStep = () => {
+        if (currentOnboardingStep > 0) {
+            currentOnboardingStep--;
+            renderOnboardingStep();
+        }
+    };
+
+    function renderOnboardingStep() {
+        const step = ONBOARDING_STEPS[currentOnboardingStep];
+        if (!step) return;
+
+        // Switch to the step's designated mode
+        if (step.mode && window.switchMode) {
+            window.switchMode(step.mode);
+        }
+
+        document.getElementById('onboarding-step-badge').innerText = `第 ${currentOnboardingStep + 1} / ${ONBOARDING_STEPS.length} 步`;
+        document.getElementById('onboarding-step-title').innerText = step.title;
+        document.getElementById('onboarding-step-desc').innerText = step.desc;
+
+        const prevBtn = document.getElementById('onboarding-prev-btn');
+        const nextBtn = document.getElementById('onboarding-next-btn');
+        const finishBtn = document.getElementById('onboarding-finish-btn');
+
+        if (prevBtn) prevBtn.style.display = currentOnboardingStep === 0 ? 'none' : 'inline-block';
+        if (currentOnboardingStep === ONBOARDING_STEPS.length - 1) {
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (finishBtn) finishBtn.style.display = 'inline-block';
+        } else {
+            if (nextBtn) nextBtn.style.display = 'inline-block';
+            if (finishBtn) finishBtn.style.display = 'none';
+        }
+
+        setTimeout(() => {
+            updateSpotlightPosition(step.target);
+        }, 120);
+    }
+
+    function updateSpotlightPosition(selector) {
+        let el = document.querySelector(selector);
+        if (!el || el.offsetParent === null) {
+            // Fallback to card or main view
+            el = document.querySelector('#mode-quiz') || document.body;
+        }
+
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => {
+            const rect = el.getBoundingClientRect();
+            const pad = 8;
+            const x = Math.max(4, rect.left - pad);
+            const y = Math.max(4, rect.top - pad);
+            const w = Math.min(window.innerWidth - 8, rect.width + pad * 2);
+            const h = Math.min(window.innerHeight - 8, rect.height + pad * 2);
+
+            const cutout = document.getElementById('spotlight-cutout');
+            const border = document.getElementById('spotlight-border');
+            if (cutout) {
+                cutout.setAttribute('x', x);
+                cutout.setAttribute('y', y);
+                cutout.setAttribute('width', w);
+                cutout.setAttribute('height', h);
+            }
+            if (border) {
+                border.setAttribute('x', x);
+                border.setAttribute('y', y);
+                border.setAttribute('width', w);
+                border.setAttribute('height', h);
+            }
+
+            // Position card
+            const card = document.getElementById('onboarding-card');
+            if (!card) return;
+
+            const cardW = 380;
+            const cardH = card.offsetHeight || 200;
+
+            let cardLeft = x + (w / 2) - (cardW / 2);
+            cardLeft = Math.max(16, Math.min(window.innerWidth - cardW - 16, cardLeft));
+
+            let cardTop;
+            if (y + h + cardH + 20 < window.innerHeight) {
+                cardTop = y + h + 14;
+            } else if (y - cardH - 14 > 0) {
+                cardTop = y - cardH - 14;
+            } else {
+                cardTop = Math.max(16, (window.innerHeight - cardH) / 2);
+            }
+
+            card.style.left = cardLeft + 'px';
+            card.style.top = cardTop + 'px';
+        }, 150);
+    }
+
+    window.addEventListener('resize', () => {
+        if (isOnboardingActive) {
+            const step = ONBOARDING_STEPS[currentOnboardingStep];
+            if (step) updateSpotlightPosition(step.target);
+        }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (!isOnboardingActive) return;
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            window.finishOnboardingTour();
+        } else if (e.key === 'Enter' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            window.nextOnboardingStep();
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            window.prevOnboardingStep();
+        }
+    }, true);
+
+    // 首次造訪自動啟動檢查
+    setTimeout(() => {
+        const hasDone = localStorage.getItem('vet_anatomy_onboarding_done');
+        if (!hasDone) {
+            window.startOnboardingTour();
+        }
+    }, 1200);
 
     // 🚀 初始化主題與矩形選擇控制
     applyTheme(currentTheme);
