@@ -1,8 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW" data-theme="dark"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🦴 獸醫解剖學記憶分析系統 [V10旗艦版]</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root, [data-theme="dark"] {
@@ -1541,7 +1544,7 @@
 <body>
 
 <header>
-    <h2>🦴 獸醫解剖學記憶分析系統 <span class="version-badge">V10旗艦版</span> <button type="button" id="help-tour-btn" class="help-capsule-btn" onclick="startOnboardingTour()" title="隨時喚起新手使用導覽">💡 使用方法？</button></h2>
+    <h2><img src="favicon.png" alt="logo" style="width:28px;height:28px;vertical-align:middle;margin-right:8px;border-radius:7px;box-shadow:0 0 10px rgba(56,189,248,0.45);display:inline-block;">獸醫解剖學記憶分析系統 <span class="version-badge">V10旗艦版</span> <button type="button" id="help-tour-btn" class="help-capsule-btn" onclick="startOnboardingTour()" title="隨時喚起新手使用導覽">💡 使用方法？</button></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem; font-weight: bold; color: var(--text-primary);"></span>
@@ -1557,7 +1560,7 @@
 
 <div class="container">
     <div id="login-zone" class="card" style="display: block;">
-        <h3>歡迎使用解剖學專業記憶系統 (V9-PRO 旗艦版)</h3>
+        <h3>歡迎使用解剖學專業記憶系統 (V10 旗艦版)</h3>
         <p style="font-size: 0.9rem; color: var(--text-secondary);">嚴格遵循 NAV 解剖命名規範、真實 SM-2 間隔重複、錯題即刻強化、IndexedDB 本機持久化與 Firestore 批次安全防禦。<br>請登入 Google 帳號以連線雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
