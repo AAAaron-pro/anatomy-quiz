@@ -2323,8 +2323,10 @@
     let userDailyStats = { date: '', count: 0 };
     let sessionAnswerCount = 0;
 
-    // 🔁 當次錯題重測佇列 (Intra-session Relearning Queue)
-    let relearnQueue = [];
+    // 🔁 SM-2 動態滑動冷卻與本輪錯題二次鞏固 (SM-2 Scheduler 2.0)
+    let recentQuestionHistory = [];
+    let sessionWrongCardSet = new Set();
+    let relearnQueue = []; // 保留相容變數
 
     // 📐 編輯器多遮蓋與圖片快取
     let editorMaskMode = 'single';
@@ -2730,9 +2732,10 @@
         const hud = document.getElementById('relearn-hud');
         const count = document.getElementById('relearn-count');
         if (!hud || !count) return;
-        if (relearnQueue.length > 0) {
+        const size = (typeof sessionWrongCardSet !== 'undefined') ? sessionWrongCardSet.size : relearnQueue.length;
+        if (size > 0) {
             hud.style.display = 'inline-flex';
-            count.innerText = relearnQueue.length;
+            count.innerText = size;
         } else {
             hud.style.display = 'none';
         }
@@ -4076,19 +4079,6 @@
             return;
         }
 
-        let relearnTargetIdx = relearnQueue.findIndex(item => item.targetIndex <= sessionAnswerCount);
-        if (relearnTargetIdx >= 0) {
-            const item = relearnQueue.splice(relearnTargetIdx, 1)[0];
-            currentQuestion = item.question;
-            currentQuestion._isRelearning = true;
-            currentQuestion._retryCount = item.retryCount;
-            titleTag.innerHTML = `🔁 <span style="color:var(--relearn); font-weight:bold;">錯題強化 (第 ${item.retryCount} 次重測)</span>`;
-            renderQuestion(currentQuestion);
-            updateDailyHUD();
-            updateRelearnHUD();
-            return;
-        }
-
         if (weakDrillPool && weakDrillPool.length > 0) {
             activePool = weakDrillPool;
             titleTag.title = "";
@@ -4107,28 +4097,71 @@
         }
 
         const now = Date.now();
-        let dueCards = activePool.filter(q => {
+
+        // 3. 計算動態滑動冷卻長度 (池子大時至少冷卻 8 題；池子小時佔池子的 60%)
+        const cooldownLimit = Math.max(1, Math.min(8, Math.floor(activePool.length * 0.6)));
+        while (recentQuestionHistory.length > cooldownLimit) {
+            recentQuestionHistory.shift();
+        }
+
+        // 4. 候選池：排除冷卻中的題目
+        let availablePool = activePool.filter(q => !recentQuestionHistory.includes(q.id));
+        if (availablePool.length === 0) {
+            availablePool = activePool; // 超小題庫保底降級
+        }
+
+        // 5. 分類題目池 (三階層嚴格優先權)
+        // 層級 A：真正到期的複習題 (Due)
+        const dueCards = availablePool.filter(q => {
             const prog = userProgress[q.id];
-            return !prog || prog.nextReviewDate <= now;
+            return prog && prog.nextReviewDate && prog.nextReviewDate <= now;
         });
 
+        // 層級 B：本輪答錯過、已冷卻完畢之鞏固題 (Lapsed)
+        const lapsedCards = availablePool.filter(q => sessionWrongCardSet.has(q.id));
+
+        // 層級 C：全新從未作答過的題目 (New)
+        const newCards = availablePool.filter(q => !userProgress[q.id]);
+
+        // 6. 依優先級嚴格挑選
+        let pickedQuestion = null;
+        let modeNotice = "";
+
         if (dueCards.length > 0) {
+            // 第一優先：到期複習題（依逾期時長降序排列，逾期越久越優先搶救）
             dueCards.sort((a, b) => {
-                const dateA = (userProgress[a.id] && userProgress[a.id].nextReviewDate) || 0;
-                const dateB = (userProgress[b.id] && userProgress[b.id].nextReviewDate) || 0;
-                return dateA - dateB;
+                const diffA = now - (userProgress[a.id]?.nextReviewDate || now);
+                const diffB = now - (userProgress[b.id]?.nextReviewDate || now);
+                return diffB - diffA; // 逾期最嚴重者在前
             });
-            const pickPool = dueCards.slice(0, Math.min(3, dueCards.length));
-            currentQuestion = pickPool[Math.floor(Math.random() * pickPool.length)];
-        } else if (relearnQueue.length > 0) {
-            const item = relearnQueue.shift();
-            currentQuestion = item.question;
-            currentQuestion._isRelearning = true;
-            currentQuestion._retryCount = item.retryCount;
-            titleTag.innerHTML = `🔁 <span style="color:var(--relearn); font-weight:bold;">錯題提前強化 (第 ${item.retryCount} 次重測)</span>`;
+            const slicePool = dueCards.slice(0, Math.min(3, dueCards.length));
+            pickedQuestion = slicePool[Math.floor(Math.random() * slicePool.length)];
+            pickedQuestion._isRelearning = false;
+            modeNotice = `⏰ <span style="color:#38bdf8; font-weight:bold;">到期複習</span>`;
+        } else if (lapsedCards.length > 0) {
+            // 第二優先：錯題二次鞏固（冷卻完畢後深度檢驗）
+            pickedQuestion = lapsedCards[Math.floor(Math.random() * lapsedCards.length)];
+            pickedQuestion._isRelearning = true;
+            modeNotice = `🔁 <span style="color:var(--relearn); font-weight:bold;">錯題深度強化 (冷卻後重測)</span>`;
+        } else if (newCards.length > 0) {
+            // 第三優先：全新探勘題
+            pickedQuestion = newCards[Math.floor(Math.random() * newCards.length)];
+            pickedQuestion._isRelearning = false;
+            modeNotice = `🌱 <span style="color:#10b981; font-weight:bold;">新知識學習</span>`;
         } else {
-            currentQuestion = activePool[Math.floor(Math.random() * activePool.length)];
+            // 全數已學過且尚未到期：熟練度鞏固
+            pickedQuestion = availablePool[Math.floor(Math.random() * availablePool.length)];
+            pickedQuestion._isRelearning = false;
+            modeNotice = `🎯 <span style="color:#94a3b8; font-weight:bold;">熟練度鞏固</span>`;
         }
+
+        currentQuestion = pickedQuestion;
+        if (titleTag && modeNotice) {
+            titleTag.innerHTML = `${modeNotice}`;
+        }
+
+        // 登記進冷卻隊列
+        recentQuestionHistory.push(currentQuestion.id);
 
         renderQuestion(currentQuestion);
         updateDailyHUD();
@@ -4346,6 +4379,12 @@
             saveUserStats();
             updateComboHUD(false);
 
+            // 若此題先前曾答錯，冷卻後重測答對即從待鞏固集合解除
+            if (typeof sessionWrongCardSet !== 'undefined' && sessionWrongCardSet.has(currentQuestion.id)) {
+                sessionWrongCardSet.delete(currentQuestion.id);
+                updateRelearnHUD();
+            }
+
             let feedbackDetails = '';
             if (evaluation.reason === 'synonym') {
                 feedbackDetails = `<br><span class="synonym-tag">📖 NAV 同義詞判定通過 (您輸入拉丁/英文通用名)</span>`;
@@ -4359,15 +4398,14 @@
             saveUserStats();
             updateComboHUD(true);
             
-            relearnQueue.push({
-                question: currentQuestion,
-                targetIndex: sessionAnswerCount + 3,
-                retryCount: ((currentQuestion && currentQuestion._retryCount) || 0) + 1
-            });
+            // 加入本輪待二次鞏固 Set (由調度引擎在冷卻 8~12 題後出題，絕不再以 +3 題短記憶強插)
+            if (typeof sessionWrongCardSet !== 'undefined') {
+                sessionWrongCardSet.add(currentQuestion.id);
+            }
             updateRelearnHUD();
 
             const diffHtml = (quizType !== 'mcq' && selected) ? '<br>' + buildCharDiffHtml(selected, correct) : '';
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span>${diffHtml}<br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 系統已將此題排入當次即刻重測佇列)</small></span>`;
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span>${diffHtml}<br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 系統已排入記憶冷卻隊列，稍後深度重測)</small></span>`;
         }
 
         if (quizType === 'sheet') {
@@ -4391,10 +4429,13 @@
         prog.correctCount = (prog.correctCount || 0) + (isCorrect ? 1 : 0);
         prog.wrongCount = (prog.wrongCount || 0) + (isCorrect ? 0 : 1);
 
-        // 【補丁 3：真實反映記憶提取品質的 SM-2 Grade 評分】
+        // 【補丁 3：真實反映記憶提取品質的 SM-2 Grade 評分與防短記憶污染】
         let grade = 1;
         if (isCorrect) {
-            if ((currentQuestion && currentQuestion._usedNearMissRetry) || currentHintLevel >= 2) {
+            if (currentQuestion && currentQuestion._isRelearning) {
+                // ⚠️ 關鍵保護：同輪重測答對，最高只給 Grade 3 (及格邊緣)，絕不膨脹為 5！
+                grade = 3;
+            } else if ((currentQuestion && currentQuestion._usedNearMissRetry) || currentHintLevel >= 2) {
                 grade = 3; // 靠重試或二階提示才答對：僅給及格邊緣 Grade 3 (EF 小幅下修，縮短間隔)
             } else if (currentHintLevel === 1 || evaluation.reason !== 'exact') {
                 grade = 4; // 靠一階首字母提示、同義詞或輕微筆誤容錯通過：給 Grade 4
@@ -4403,6 +4444,13 @@
             }
         }
         calculateSM2(prog, grade);
+
+        // ⚠️ 關鍵保護：若為重測題，即便答對，首次間隔維持 1 天，明日必須重新檢定！
+        if (currentQuestion && currentQuestion._isRelearning && isCorrect) {
+            prog.repetitions = 1;
+            prog.interval = 1;
+            prog.nextReviewDate = Date.now() + 24 * 60 * 60 * 1000;
+        }
 
         prog.userId = currentUser.uid;
         prog.quizId = quizId;
