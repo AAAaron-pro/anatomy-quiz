@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW" data-theme="dark"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -2327,6 +2327,7 @@
     let recentQuestionHistory = [];
     let sessionWrongCardSet = new Set();
     let relearnQueue = []; // 保留相容變數
+    let cloudImageCategories = {}; // 雲端 categories/*/images 已註冊之圖片清單
 
     // 📐 編輯器多遮蓋與圖片快取
     let editorMaskMode = 'single';
@@ -2667,6 +2668,18 @@
                     loadedMap.set(d.id, { id: d.id, ...data, category: cat });
                 });
             } catch(e) { console.warn("collectionGroup 讀取略過:", e); }
+
+            // 3. 讀取階層化第 2 層已註冊圖片 images (讓 0 題的新圖也能在編輯器對應分類中正常顯示)
+            cloudImageCategories = {};
+            try {
+                const imgSnap = await getDocs(collectionGroup(db, "images"));
+                imgSnap.docs.forEach(d => {
+                    const data = d.data();
+                    const cat = data.category || 'head_skull';
+                    const fname = data.filename || d.id.replace(/_PNG$/i, '.PNG');
+                    cloudImageCategories[fname] = cat;
+                });
+            } catch(e) { console.warn("讀取 images 集合略過:", e); }
 
             quizDatabase = Array.from(loadedMap.values());
             window.quizDatabase = quizDatabase;
@@ -3201,6 +3214,15 @@
             imageToCat[q.image] = cat;
             imageTermCount[q.image] = (imageTermCount[q.image] || 0) + 1;
         });
+
+        // 融合從雲端讀取的已註冊圖片（即使目前尚無題目，也能在所屬分類中看見並標註）
+        if (typeof cloudImageCategories !== 'undefined') {
+            for (const [img, cat] of Object.entries(cloudImageCategories)) {
+                if (!catMap[cat]) catMap[cat] = new Set();
+                catMap[cat].add(img);
+                if (!imageToCat[img]) imageToCat[img] = cat;
+            }
+        }
 
         const allLoadedImages = Object.keys(imagesData);
         const uncategorizedImages = allLoadedImages.filter(img => !imageToCat[img]);
@@ -3753,9 +3775,10 @@
         editorHighlightQuestionId = null;
         document.getElementById('term-input').value = '';
         
-        const imgData = getImageDataSmart(filename);
+        const imgData = getImageDataSmart(filename) || ('./images/' + encodeURIComponent(filename));
         cachedEditorImg = new Image();
         cachedEditorImg.onload = () => {
+            if (!imagesData[filename]) registerImageDataImmune(filename, imgData);
             renderEditorCanvas();
             renderImageTermsList();
             renderEditorImageTree();
