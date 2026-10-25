@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW" data-theme="dark"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -2602,6 +2602,7 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
+            try { await setDoc(doc(db, 'users', user.uid), { email: user.email, displayName: user.displayName || '未知學生', lastLogin: Date.now() }, { merge: true }); } catch (e) { console.warn('登入軌跡寫入略過:', e); }
             document.getElementById('login-zone').style.display = 'none';
             document.getElementById('setup-zone').style.display = 'block';
             document.getElementById('user-info').style.display = 'flex';
@@ -3730,7 +3731,7 @@
     const ONBOARDING_V10_KEY = 'vet_anatomy_onboarding_v10';
 
     window.finishSetup = () => {
-        if (Object.keys(imagesData).length === 0) return alert("請先選取圖片資料夾或確認本機快取！");
+        if (Object.keys(imagesData).length === 0) { const el = document.getElementById('idb-cache-status'); if (el) { el.innerHTML = '⚠️ <span style="color:var(--danger); font-weight:700;">請先選取圖片資料夾或確認本機快取！</span>'; el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } return; }
         document.getElementById('setup-zone').style.display = 'none';
         window.switchMode('quiz');
 
@@ -4317,7 +4318,7 @@
             options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn'; 
-                btn.innerHTML = `<span class="key-badge">${idx + 1}</span>${opt}`;
+                btn.innerHTML = `<kbd class="key-badge">${idx + 1}</kbd>${opt}`;
                 btn.onclick = () => window.checkAnswer(opt, q.term);
                 optionsGrid.appendChild(btn);
             });
