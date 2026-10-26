@@ -2,7 +2,7 @@
 <html lang="zh-TW" data-theme="dark"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🦴 獸醫解剖學記憶分析系統 [V10旗艦版]</title>
+    <title>🦴 獸醫解剖學記憶分析系統</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="favicon.png">
@@ -722,14 +722,14 @@
         .combo-tier-0 { background: var(--bg-surface-raised); color: var(--text-muted); border: 1px solid var(--border); filter: none; }
         .combo-tier-1 { background: linear-gradient(135deg, #ff9800, #ff5722); color: white; animation: flamePulse 1.4s infinite; }
         .combo-tier-2 { background: linear-gradient(135deg, #f44336, #e91e63, #ff9800); color: #fff; animation: flamePulse 0.85s infinite; box-shadow: 0 0 14px rgba(255, 87, 34, 0.7); }
-        .combo-tier-3 { background: linear-gradient(135deg, #ffd700, #ff5722, #9c27b0); color: #fff; animation: godlikeFlicker 0.55s infinite; box-shadow: 0 0 22px rgba(255, 215, 0, 0.95); }
+        .combo-tier-3 { background: linear-gradient(135deg, #ffd700, #ff5722, #9c27b0); color: #fff; animation: comboGlow 0.55s infinite; box-shadow: 0 0 22px rgba(255, 215, 0, 0.95); }
         .combo-shake { animation: comboShake 0.4s ease-in-out !important; background: var(--border-highlight) !important; color: var(--text-secondary) !important; }
 
         @keyframes flamePulse {
             0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #ff5722); }
             50% { transform: scale(1.08); filter: drop-shadow(0 0 14px #ff9800); }
         }
-        @keyframes godlikeFlicker {
+        @keyframes comboGlow {
             0%, 100% { transform: scale(1.06); filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 18px #ff5722); }
             25% { transform: scale(1.1) rotate(-1.5deg); }
             75% { transform: scale(1.1) rotate(1.5deg); }
@@ -864,7 +864,7 @@
     
     </style>
 <style id="v10-zen-styles">
-    /* === V10-ZEN 臨床紙感·左圖右題雙欄分流旗艦規範 === */
+    /* === 介面排版規範 === */
     :root {
         --bg-base: #f8fafc;
         --bg-surface: #ffffff;
@@ -1544,7 +1544,7 @@
 <body>
 
 <header>
-    <h2><img src="favicon.png" alt="logo" style="width:28px;height:28px;vertical-align:middle;margin-right:8px;border-radius:7px;box-shadow:0 0 10px rgba(56,189,248,0.45);display:inline-block;">獸醫解剖學記憶分析系統 <span class="version-badge">V10旗艦版</span> <button type="button" id="help-tour-btn" class="help-capsule-btn" onclick="startOnboardingTour()" title="隨時喚起新手使用導覽">💡 使用方法？</button></h2>
+    <h2><img src="favicon.png" alt="logo" style="width:28px;height:28px;vertical-align:middle;margin-right:8px;border-radius:7px;box-shadow:0 0 10px rgba(56,189,248,0.45);display:inline-block;">獸醫解剖學記憶分析系統 <span class="version-badge">v10.0</span> <button type="button" id="help-tour-btn" class="help-capsule-btn" onclick="startOnboardingTour()" title="使用導覽">💡 使用方法？</button></h2>
     <div class="user-info" id="user-info" style="display: none;">
         <img id="user-avatar" src="" alt="avatar">
         <span id="user-name" style="font-size: 0.9rem; font-weight: bold; color: var(--text-primary);"></span>
@@ -1560,7 +1560,7 @@
 
 <div class="container">
     <div id="login-zone" class="card" style="display: block;">
-        <h3>歡迎使用解剖學專業記憶系統 (V10 旗艦版)</h3>
+        <h3>歡迎使用獸醫解剖學記憶分析系統</h3>
         <p style="font-size: 0.9rem; color: var(--text-secondary);">嚴格遵循 NAV 解剖命名規範、真實 SM-2 間隔重複、錯題即刻強化、IndexedDB 本機持久化與 Firestore 批次安全防禦。<br>請登入 Google 帳號以連線雲端題庫。</p>
         <button class="btn-primary" style="width: auto; margin-top: 0.8rem;" onclick="login()">🌐 使用 Google 登入</button>
     </div>
@@ -1705,7 +1705,7 @@
                     📅 待複習: <span id="daily-due-count" style="color:var(--danger); font-weight:900; margin:0 2px;">0</span> 題 · 已做: <span id="daily-done-count" style="color:var(--success); font-weight:900; margin:0 2px;">0</span> 題
                 </div>
 
-                <!-- 浮誇火焰 Combo 連擊顯示器 -->
+                <!-- 連續答對計數器 -->
                 <div id="combo-hud" class="combo-badge combo-tier-0">🔥 COMBO <span id="combo-count" style="margin-left:4px;">0</span></div>
             </div>
 
@@ -1748,7 +1748,7 @@
                     </label>
                     <label class="rect-segment-item" id="seg-type-sheet">
                         <input type="radio" name="quiz-type" value="sheet" onchange="onQuizTypeChanged()">
-                        <span>🗺️ 全圖地毯</span>
+                        <span>🗺️ 全圖模式</span>
                     </label>
                 </div>
                 
@@ -1790,7 +1790,7 @@
                 <div class="options-grid grid-4" id="quiz-options"></div>
             </div>
 
-            <!-- 填空題區 (單題與全圖地毯共用) -->
+            <!-- 填空題區 (單題與全圖模式共用) -->
             <div id="fill-container" style="display: none; margin-top: 0.5rem;">
                 <div id="hint-scaffold" class="hint-scaffold-box"></div>
                 <div class="form-group" style="margin-bottom: 0.4rem;">
@@ -1799,7 +1799,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem; font-size:0.78rem; color:var(--text-secondary); flex-wrap:wrap; gap:4px;">
                     <label class="rect-toggle-chip">
                         <input type="checkbox" id="near-miss-retry-toggle" checked="">
-                        <span>🛡️ 差一字重試保連勝 (Near-Miss Retry)</span>
+                        <span>🛡️ 差一字重試 (Near-Miss Retry)</span>
                     </label>
                     <button type="button" class="btn-sm" style="padding:2px 8px; font-size:0.76rem; background:var(--accent-subtle); border-color:var(--accent); color:var(--accent);" onclick="triggerFillHint()">💡 首字母提示 (Tab)</button>
                 </div>
@@ -1815,14 +1815,14 @@
     <div id="mode-analytics" class="card" style="display: none !important;">
         <h3 style="text-align: left; margin-top: 0; color:var(--text-primary);">📊 學習成效分析儀表板</h3>
         
-        <!-- 最上排 4 欄榮譽大看板 -->
+        <!-- 統計數據看板 -->
         <div class="hero-banner">
             <div class="hero-card">
-                <div class="hero-label">🏆 歷史最高連續答對 (Max Streak)</div>
+                <div class="hero-label">🏆 最高連續答對 (Max Streak)</div>
                 <div class="hero-val" id="stat-max-combo" style="color: #d97706;">0 題</div>
             </div>
             <div class="hero-card">
-                <div class="hero-label">🔥 當前燃燒連擊 (Current Streak)</div>
+                <div class="hero-label">🔥 目前連續答對 (Current Streak)</div>
                 <div class="hero-val" id="stat-current-combo" style="color: #ea580c;">0 題</div>
             </div>
             <div class="hero-card">
@@ -1830,7 +1830,7 @@
                 <div class="hero-val" id="stat-daily-progress" style="color: #10b981;">0 <small style="font-size:0.85rem; color:var(--text-muted);">(待複習: 0)</small></div>
             </div>
             <div class="hero-card">
-                <div class="hero-label">📈 歷史累積總答題量</div>
+                <div class="hero-label">📈 累積總答題量</div>
                 <div class="hero-val" id="stat-total-answered" style="color: var(--accent);">0 次</div>
             </div>
         </div>
@@ -1839,7 +1839,6 @@
             <div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h4 style="margin: 0.4rem 0; color: var(--text-primary);">各檔案分類掌握度總覽</h4>
-                    <button class="btn-sm" style="background:var(--accent); color:white; border-color:var(--accent);" onclick="migrateToHierarchySafe()">🚀 安全升級至 Firestore 3層目錄 (防500限制)</button>
                 </div>
                 <table class="stats-table">
                     <thead>
@@ -1867,7 +1866,7 @@
                     <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.4rem 0;">💡 提示：點擊任一單字即可單獨展開該單字的「全視角專項特訓」！</p>
                     <ul class="weak-list" id="weak-terms-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.6rem; list-style: none; padding: 0px; margin-top: 0.6rem;">
                     </ul>
-                    <button id="weak-drill-btn" class="btn-primary" style="background: var(--warning); margin-top: 0.6rem;" onclick="startWeakDrill()">⚡ 啟動 Top 10 多視角綜合特訓</button>
+                    <button id="weak-drill-btn" class="btn-primary" style="background: var(--warning); margin-top: 0.6rem;" onclick="startWeakDrill()">⚡ 啟動弱點綜合練習</button>
                 </div>
             </div>
         </div>
@@ -1881,7 +1880,7 @@
                         <span id="qb-total-badge" class="version-badge" style="background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); font-size: 0.75rem;">共 468 題</span>
                     </h4>
                     <p style="margin: 0.35rem 0 0 0; color: var(--text-muted); font-size: 0.82rem;">
-                        💡 學生端解剖背書辭典：免測驗自由翻閱全部題目、即時搜尋專有名詞、檢視解剖圖遮罩正解與個人熟練度。
+                        💡 題目辭典：可檢索全部題目、查詢專有名詞、對照原圖與個人學習紀錄。
                     </p>
                 </div>
                 <!-- 快捷搜尋與分類過濾列 -->
@@ -1901,7 +1900,7 @@
                         <option value="all">🎯 全部掌握狀態</option>
                         <option value="mastered">🌟 已掌握 (正確率 ≥ 80%)</option>
                         <option value="learning">🔄 學習中 (正確率 50-79%)</option>
-                        <option value="weak">⚠️ 常錯弱點 (錯誤 ≥ 2 或勝率 < 50%)</option>
+                        <option value="weak">⚠️ 常錯弱點 (錯誤 ≥ 2 或正確率 < 50%)</option>
                         <option value="untested">⚪ 尚未測驗</option>
                     </select>
                 </div>
@@ -2335,7 +2334,7 @@
     let editorActiveCategory = 'head_skull';
     let cachedEditorImg = null;
 
-    // 🗺️ 全圖地毯模式
+    // 🗺️ 全圖模式
     let sheetQuestions = [];
     let sheetIndex = 0;
     let sheetResolved = new Set();
@@ -4078,7 +4077,7 @@
 
         if (quizType === 'sheet') {
             if (activePool.length === 0) {
-                titleTag.innerText = "🗺️ 全圖地毯模式 (請選範圍)";
+                titleTag.innerText = "🗺️ 全圖模式 (請選範圍)";
                 document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請先展開「出題範圍」並勾選至少一張圖片！</span>';
                 return;
             }
@@ -4097,7 +4096,7 @@
 
             currentQuestion = sheetQuestions[sheetIndex];
             titleTag.title = sheetCurrentImg;
-            titleTag.innerHTML = `🗺️ 全圖地毯 <small style="color:#64748b;">(進度: ${sheetIndex + 1}/${sheetQuestions.length})</small>`;
+            titleTag.innerHTML = `🗺️ 全圖模式 <small style="color:#64748b;">(進度: ${sheetIndex + 1}/${sheetQuestions.length})</small>`;
             renderQuestion(currentQuestion);
             updateDailyHUD();
             updateRelearnHUD();
@@ -4107,7 +4106,7 @@
         if (weakDrillPool && weakDrillPool.length > 0) {
             activePool = weakDrillPool;
             titleTag.title = "";
-            titleTag.innerHTML = `⚡ <span style="color:#e67e22;">${drillModeName || '弱點特訓中'}</span>`;
+            titleTag.innerHTML = `⚡ <span style="color:#e67e22;">${drillModeName || '弱點練習中'}</span>`;
         } else {
             titleTag.title = "";
             titleTag.innerText = "🎯 測驗進行中";
@@ -4164,20 +4163,20 @@
             pickedQuestion._isRelearning = false;
             modeNotice = `⏰ <span style="color:#38bdf8; font-weight:bold;">到期複習</span>`;
         } else if (lapsedCards.length > 0) {
-            // 第二優先：錯題二次鞏固（冷卻完畢後深度檢驗）
+            // 第二優先：錯題複習
             pickedQuestion = lapsedCards[Math.floor(Math.random() * lapsedCards.length)];
             pickedQuestion._isRelearning = true;
-            modeNotice = `🔁 <span style="color:var(--relearn); font-weight:bold;">錯題深度強化 (冷卻後重測)</span>`;
+            modeNotice = `🔁 <span style="color:var(--relearn); font-weight:bold;">錯題複習</span>`;
         } else if (newCards.length > 0) {
-            // 第三優先：全新探勘題
+            // 第三優先：新題目
             pickedQuestion = newCards[Math.floor(Math.random() * newCards.length)];
             pickedQuestion._isRelearning = false;
-            modeNotice = `🌱 <span style="color:#10b981; font-weight:bold;">新知識學習</span>`;
+            modeNotice = `🌱 <span style="color:#10b981; font-weight:bold;">新題目</span>`;
         } else {
-            // 全數已學過且尚未到期：熟練度鞏固
+            // 尚未到期題目練習
             pickedQuestion = availablePool[Math.floor(Math.random() * availablePool.length)];
             pickedQuestion._isRelearning = false;
-            modeNotice = `🎯 <span style="color:#94a3b8; font-weight:bold;">熟練度鞏固</span>`;
+            modeNotice = `🎯 <span style="color:#94a3b8; font-weight:bold;">題目練習</span>`;
         }
 
         currentQuestion = pickedQuestion;
@@ -4391,7 +4390,7 @@
                 const fillInput = document.getElementById('fill-input');
                 fillInput.disabled = false;
                 document.getElementById('fill-submit-btn').disabled = false;
-                feedback.innerHTML = `<span style="color:#d97706;">⚡ 拼字非常接近（僅差 ${dist} 個字母）！已為您保留 🔥 COMBO ${currentCombo}，請根據診斷修正後再試一次：</span><br>${buildCharDiffHtml(selected, correct, true)}`;
+                feedback.innerHTML = `<span style="color:#d97706;">⚡ 拼字非常接近（僅差 ${dist} 個字母），已保留 COMBO ${currentCombo}，請修正後再試一次：</span><br>${buildCharDiffHtml(selected, correct, true)}`;
                 setTimeout(() => { fillInput.focus(); fillInput.select(); }, 40);
                 return;
             }
@@ -4430,14 +4429,14 @@
             updateRelearnHUD();
 
             const diffHtml = (quizType !== 'mcq' && selected) ? '<br>' + buildCharDiffHtml(selected, correct) : '';
-            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span>${diffHtml}<br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 系統已排入記憶冷卻隊列，稍後深度重測)</small></span>`;
+            feedback.innerHTML = `<span class="incorrect">❌ 答錯了！正確答案是：<span style="text-decoration:underline;">${correct}</span>${diffHtml}<br><small style="color:#555;">(您輸入: ${selected || '未填寫'} · 已排入複習隊列)</small></span>`;
         }
 
         if (quizType === 'sheet') {
             sheetResolved.add(currentQuestion.id);
             drawCanvasForQuestion(currentQuestion, true);
             if (sheetIndex + 1 >= sheetQuestions.length) {
-                feedback.innerHTML += `<br><span style="color:#d97706; font-size:1.05rem;">🎉 恭喜！本張圖片的所有構造已全數解開！</span>`;
+                feedback.innerHTML += `<br><span style="color:#d97706; font-size:1.05rem;">🎉 本張圖片所有構造已作答完成！</span>`;
             }
         }
         
@@ -4611,7 +4610,7 @@
                 : 0;
             const imgList = Array.from(item.images).join(', ');
 
-            li.title = `點擊啟動【${item.displayTerm}】的 ${item.images.size} 個多視角專項特訓！`;
+            li.title = `點擊開始【${item.displayTerm}】的多視角練習（共 ${item.images.size} 張圖片）`;
             li.onclick = () => window.startSingleTermDrill(item.displayTerm);
 
             li.innerHTML = `
@@ -4621,7 +4620,7 @@
                 </div>
                 <div style="text-align:right; flex-shrink:0;">
                     <span style="color:var(--danger); font-weight:bold; font-size:0.85rem;">累計錯 ${item.wrongCount} 次</span>
-                    <br><small style="color:var(--text-muted); font-size:0.74rem;">勝率 ${rate}%</small>
+                    <br><small style="color:var(--text-muted); font-size:0.74rem;">正確率 ${rate}%</small>
                 </div>
             `;
             weakList.appendChild(li);
@@ -4637,8 +4636,8 @@
         if (weakDrillPool.length === 0) return alert("找不到此單字的對應題目！");
 
         const imgCount = new Set(weakDrillPool.map(q => q.image)).size;
-        drillModeName = `【${termName}】跨 ${imgCount} 視角特訓`;
-        alert(`⚡ 已啟動【${termName}】專項特訓！\n將由 ${imgCount} 張不同視角的圖片輪流出題，考驗您的立體特徵辨識！`);
+        drillModeName = `【${termName}】多視角練習`;
+        alert(`⚡ 已啟動【${termName}】多視角練習（共 ${imgCount} 張圖片）。`);
         window.switchMode('quiz');
     };
 
@@ -4651,8 +4650,8 @@
         weakDrillPool = quizDatabase.filter(q => targetTerms.has(q.term.trim().toLowerCase()));
 
         if (weakDrillPool.length === 0) return alert("題目池為空！");
-        drillModeName = `Top ${window.cachedTopWeakTerms.length} 弱點多視角特訓`;
-        alert(`⚡ 已啟動 Top ${window.cachedTopWeakTerms.length} 弱點多視角綜合特訓！\n共匯入 ${weakDrillPool.length} 道跨角度題目進行高強度轟炸！`);
+        drillModeName = `弱點多視角練習`;
+        alert(`⚡ 已啟動弱點綜合練習（共 ${weakDrillPool.length} 題）。`);
         window.switchMode('quiz');
     };
 
@@ -4805,7 +4804,7 @@
                         👁️ 檢視解剖圖
                     </button>
                     <button type="button" class="btn-sm" style="background: var(--accent); color: white; border-color: var(--accent); padding: 3px 9px; cursor: pointer;" onclick="startSingleQuestionDrill('${q.id}')">
-                        🎯 單題特訓
+                        🎯 單題練習
                     </button>
                 </div>
             `;
@@ -4841,7 +4840,7 @@
         const statsBar = document.getElementById('qb-modal-stats-bar');
         if (statsBar) {
             statsBar.innerHTML = `
-                <span>📊 個人學習狀況：已作答 <strong>${total}</strong> 次 · 正確 <strong>${corr}</strong> 次 · 錯誤 <strong style="color:var(--danger);">${wrg}</strong> 次 ${rate !== null ? `(勝率 <strong>${rate}%</strong>)` : '(⚪ 尚未測驗)'}</span>
+                <span>📊 個人學習狀況：已作答 <strong>${total}</strong> 次 · 正確 <strong>${corr}</strong> 次 · 錯誤 <strong style="color:var(--danger);">${wrg}</strong> 次 ${rate !== null ? `(正確率 <strong>${rate}%</strong>)` : '(⚪ 尚未測驗)'}</span>
                 <span style="color:var(--text-muted); font-size:0.75rem;">SM-2 難易度: ${ef} · 複習間隔: ${interval}</span>
             `;
         }
@@ -4925,9 +4924,9 @@
         const q = qPool.find(item => item.id === qId);
         if (!q) return alert("找不到此題目！");
         weakDrillPool = [q];
-        drillModeName = `【${q.term}】單題特訓`;
+        drillModeName = `【${q.term}】單題練習`;
         window.closeQbPreviewModal();
-        alert(`🎯 已啟動【${q.term}】單題快練特訓！`);
+        alert(`🎯 已開啟【${q.term}】單題練習。`);
         window.switchMode('quiz');
     };
 
@@ -4958,37 +4957,37 @@
             title: '頂部導航與模式切換',
             mode: 'quiz',
             target: '.nav-btns',
-            desc: '隨時自由切換【📝 測驗】精準記憶實戰、【📊 分析】掌握成效與查閱題庫，以及【🛠️ 編輯器】管理解剖標註。點擊【🌙 深色模式】可即時切換深淺雙主題！'
+            desc: '隨時切換【📝 測驗】專注作答與【📊 分析】掌握學習成效。點擊【🌙 深色模式】可即時切換深淺雙主題！'
         },
         {
             title: '解剖畫布區與紅色目標遮罩',
             mode: 'quiz',
             target: '#canvas-container',
-            desc: '畫面呈現 1080p 超高清標本圖譜。每道題目會以鮮豔紅色框高亮突顯需要辨識的目標解剖構造，其餘無關構造自動以半透明暗黑遮罩覆蓋，幫您快速聚焦！'
+            desc: '每道題目會以鮮豔紅色框標示需要辨識的目標解剖構造，其餘無關構造自動以半透明遮罩覆蓋，協助聚焦作答。'
         },
         {
             title: '題型切換與鍵盤快捷鍵',
             mode: 'quiz',
             target: '#question-box',
-            desc: '支援「多選題」與「填空題」無縫切換。選擇題可按鍵盤 1~6 數字鍵秒答；填空題支援 Tab 鍵階梯式提示，並內建 Levenshtein 差一字拼字容錯保護！'
+            desc: '支援「多選題」與「填空題」切換。選擇題可按鍵盤 1~6 數字鍵作答；填空題支援 Tab 鍵提示與輕微拼字容錯。'
         },
         {
-            title: '連勝 COMBO 與 HUD',
+            title: '連續答對與複習排程',
             mode: 'quiz',
             target: '#combo-badge',
-            desc: '答對即累積連勝點燃火焰特效（深色模式下為專屬科幻蔚藍火焰！）。答錯自動加入即刻強化佇列重練，並結合標準 SM-2 間隔複習演算法守護長效記憶。'
+            desc: '答對即累計連續答對次數；答錯則自動排入複習隊列，依 SM-2 間隔重複排程定期複習。'
         },
         {
             title: '弱點單字分析',
             mode: 'analytics',
             target: '#weak-terms-toggle-btn',
-            desc: '自動將跨視角錯題依專有名詞聚合，精準揪出常錯盲點。支援點擊一鍵啟動「專項特訓」，且具備「預設收折 [展開 ▾]」設計，讓分析介面保持清爽高效！'
+            desc: '自動將跨視角錯題依專有名詞聚合，點擊可開啟該單字的多視角練習。'
         },
         {
             title: '全題庫檢索與圖鑑辭典',
             mode: 'analytics',
             target: '.qb-explorer-card',
-            desc: '學生端專屬背書辭典！免測驗自由翻閱全部 468 題，支援即時中英拉丁關鍵字搜尋、部位篩選與熟練度過濾，點擊「👁️ 檢視解剖圖」即可查看原圖紅框標記，點擊「🎯 單題特訓」即可一鍵實測！'
+            desc: '可自由檢索全部題目，支援關鍵字搜尋、部位篩選與熟練度過濾，點擊「👁️ 檢視解剖圖」可查看原圖標記，點擊「🎯 單題練習」即可直接練習！'
         }
     ];
 

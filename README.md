@@ -1,15 +1,15 @@
 # 🦴 獸醫解剖學專業圖鑑與記憶分析系統
-### Veterinary Anatomy Mastery & Spaced Repetition System (V9-PRO Flagship Edition)
+### Veterinary Anatomy Mastery & Spaced Repetition System
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![NAV Version](https://img.shields.io/badge/NAV-6th%20Edition%20Compliant-16a085.svg)](#-nav-解剖命名與同義詞標準)
 [![Algorithm](https://img.shields.io/badge/Memory%20Engine-SuperMemo%20SM--2-f39c12.svg)](#-真正的-supermemo-sm-2-記憶週期引擎)
-[![UI Theme](https://img.shields.io/badge/UI-Slate--Blue%20Cyber%20%26%20Light-0284c7.svg)](#-俐落高階灰藍旗艦視覺介面)
+[![UI Theme](https://img.shields.io/badge/UI-Slate--Blue%20Cyber%20%26%20Light-0284c7.svg)](#-俐落灰藍視覺介面)
 [![Architecture](https://img.shields.io/badge/Deploy-Single--File%20%2F%20GitHub%20Pages-27ae60.svg)](#-快速開始與部署)
 
-一套專為獸醫學系學生、獸醫師與解剖學研究者打造的**高階犬體骨骼解剖圖鑑標註、測驗與間隔重複（Spaced Repetition）記憶分析系統**。
+一套專為獸醫學系學生、獸醫師與解剖學研究者打造的**犬體骨骼解剖圖鑑標註、測驗與間隔重複（Spaced Repetition）記憶分析系統**。
 
-嚴格依循國際獸醫解剖命名權威規範 **《Nomina Anatomica Veterinaria (NAV)》** 與權威圖譜 **《Miller's Guide to the Dissection of the Dog (8th Ed.)》**，整合了真實 SM-2 遺忘曲線演算法、本機端 AI-OCR 智慧辨識引擎、全圖地毯巡航模考以及高階深淺灰藍旗艦視覺介面。
+嚴格依循國際獸醫解剖命名權威規範 **《Nomina Anatomica Veterinaria (NAV)》** 與權威圖譜 **《Miller's Guide to the Dissection of the Dog (8th Ed.)》**，整合了真實 SM-2 遺忘曲線演算法、本機端 AI-OCR 智慧辨識引擎、全圖模式循序測驗以及深淺雙色視覺介面。
 
 ---
 
@@ -30,7 +30,7 @@ flowchart TD
         Roman["🏛️ 羅馬數字保護機制 (I ~ XII)<br>(保護犬狼爪 Proximal phalanx I 等)"]
     end
 
-    subgraph Modern_UI["🎨 高階灰藍旗艦視覺介面"]
+    subgraph Modern_UI["🎨 灰藍視覺介面"]
         DarkLight["☀️ 日間臨床白 / 🌙 夜間黑耀石灰藍<br>(localStorage 偏好記憶)"]
         LaserBeam["💫 畫布外圍 60fps 環繞雷射光軌<br>(Conic-Gradient / 零遮擋)"]
         RectSegment["▱ 全面矩形分段切換晶片<br>(告別風格不一的圓形 radio)"]
@@ -90,7 +90,7 @@ $$I(n) = \begin{cases} 1 & n = 1 \\ 6 & n = 2 \\ \text{round}(I(n-1) \cdot EF) &
 
 ---
 
-### 5. 🎨 俐落高階灰藍旗艦視覺介面
+### 5. 🎨 俐落灰藍視覺介面
 * **日夜雙模式**：
   * 🌙 **夜間黑耀石灰藍（Obsidian Slate-Blue）**：底層 `#0b0f19`，卡片 `#151e2e`，天藍亮點 `#38bdf8`。長時間刷題眼壓極低。
   * ☀️ **日間臨床白（Medical Slate-White）**：底層 `#f8fafc`，純白卡片搭配醫學湛藍 `#0284c7`。
