@@ -7,6 +7,10 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Three.js 3D 渲染核心庫與控制器 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         :root, [data-theme="dark"] {
             --bg-base: #0b0f19;
@@ -1000,15 +1004,39 @@
         box-sizing: border-box !important;
         min-height: calc(100vh - 75px) !important;
     }
-    #mode-analytics.active {
+    #mode-analytics.active,
+    #mode-atlas3d.active {
         display: block !important;
         max-width: 1400px !important;
         margin: 0.8rem auto !important;
     }
     #mode-quiz:not(.active),
     #mode-editor:not(.active),
-    #mode-analytics:not(.active) {
+    #mode-analytics:not(.active),
+    #mode-atlas3d:not(.active) {
         display: none !important;
+    }
+
+    .atlas-region-chip {
+        padding: 4px 11px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .atlas-region-chip:hover {
+        border-color: var(--accent);
+        color: var(--text-primary);
+    }
+    .atlas-region-chip.active {
+        background: var(--accent-subtle) !important;
+        border-color: var(--accent) !important;
+        color: var(--accent) !important;
+        box-shadow: 0 0 8px var(--accent-glow);
     }
 
     /* === 雙欄緊湊弱點矩陣 (WCAG AAA 對比 + 高密度空間排版) === */
@@ -1234,14 +1262,16 @@
             box-sizing: border-box !important;
             min-height: calc(100vh - 75px) !important;
         }
-        #mode-analytics.active {
+        #mode-analytics.active,
+        #mode-atlas3d.active {
             display: block !important;
             max-width: 1400px !important;
             margin: 0.8rem auto !important;
         }
         #mode-quiz:not(.active),
         #mode-editor:not(.active),
-        #mode-analytics:not(.active) {
+        #mode-analytics:not(.active),
+        #mode-atlas3d:not(.active) {
             display: none !important;
         }
 
@@ -1551,6 +1581,7 @@
         <div class="nav-btns">
             <button id="nav-editor" onclick="switchMode('editor')" class="">🛠️ 編輯器</button>
             <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗</button>
+            <button id="nav-atlas3d" onclick="switchMode('atlas3d')" class="">🧊 3D 圖鑑</button>
             <button id="nav-analytics" onclick="switchMode('analytics')" class="">📊 分析</button>
             <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="切換日間與深色模式"><span id="theme-icon">🌙</span> <span id="theme-text">深色模式</span></button>
             <button onclick="logout()" style="border-color: var(--danger); color: var(--danger); background: var(--danger-bg);">登出</button>
@@ -1916,6 +1947,79 @@
             <div id="qb-cards-container" class="qb-cards-grid">
                 <!-- 動態注入題目卡片 -->
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. 🧊 3D 犬體骨骼解剖圖鑑 (3D Canine Skeletal Atlas) -->
+<div id="mode-atlas3d" class="card" style="display: none !important; padding: 1.25rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.85rem;">
+        <div>
+            <h3 style="margin: 0; color: var(--text-primary); font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                <span>🧊 犬體骨骼 3D 互動解剖空間</span>
+                <span class="version-badge" style="background: var(--accent-subtle); color: var(--accent); border-color: var(--accent);">Interactive 3D Engine</span>
+            </h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.82rem; color: var(--text-secondary);">
+                支援 360° 自由旋轉、腹側仰視胸骨全景、解剖區域隔離檢視與單骨 X-Ray 半透明/單一還原。
+            </p>
+        </div>
+        <!-- 視角快速切換 -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-right: 2px;">相機視角：</span>
+            <button type="button" class="btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface-raised); border: 1px solid var(--border); color: var(--text-primary); cursor: pointer; border-radius: 6px;" onclick="set3DCameraView('lateral')">側面 (Lateral)</button>
+            <button type="button" class="btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface-raised); border: 1px solid var(--border); color: var(--text-primary); cursor: pointer; border-radius: 6px;" onclick="set3DCameraView('dorsal')">背側 (Dorsal)</button>
+            <button type="button" class="btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface-raised); border: 1px solid var(--border); color: var(--text-primary); cursor: pointer; border-radius: 6px;" onclick="set3DCameraView('ventral')" title="正腹側仰視胸骨柄、胸骨體節與劍突">腹側仰視 (Ventral)</button>
+            <button type="button" class="btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface-raised); border: 1px solid var(--border); color: var(--text-primary); cursor: pointer; border-radius: 6px;" onclick="set3DCameraView('cranial')">顱側 (Cranial)</button>
+            <button type="button" id="btn-3d-rotate" class="btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface-raised); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; border-radius: 6px;" onclick="toggle3DAutoRotate()">🔄 360° 旋轉</button>
+        </div>
+    </div>
+
+    <!-- 解剖區域過濾晶片 (Region Chips) + 單骨操作工具列 (Single Bone Toolbar) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.85rem; background: var(--bg-surface-raised); padding: 0.65rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+        <!-- 解剖分區 Chips -->
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">分區隔離：</span>
+            <button type="button" class="atlas-region-chip active" id="chip-region-all" onclick="filter3DRegion('all')">🦴 全部骨架</button>
+            <button type="button" class="atlas-region-chip" id="chip-region-head" onclick="filter3DRegion('head')">💀 頭部頭骨</button>
+            <button type="button" class="atlas-region-chip" id="chip-region-spine" onclick="filter3DRegion('spine')">🦴 脊柱與胸廓</button>
+            <button type="button" class="atlas-region-chip" id="chip-region-forelimb" onclick="filter3DRegion('forelimb')">🐾 前肢骨骼</button>
+            <button type="button" class="atlas-region-chip" id="chip-region-hindlimb" onclick="filter3DRegion('hindlimb')">🦿 後肢骨骼</button>
+        </div>
+
+        <!-- 單骨操作工具列 -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btn-hide-bone" class="btn-sm" style="padding: 4px 11px; font-size: 0.78rem; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-muted); cursor: not-allowed; border-radius: 6px;" onclick="hideSelectedBone()" disabled title="隱藏當前選取的骨骼">👁️ 隱藏此骨</button>
+            <button type="button" id="btn-trans-bone" class="btn-sm" style="padding: 4px 11px; font-size: 0.78rem; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-muted); cursor: not-allowed; border-radius: 6px;" onclick="toggleTransparentSelectedBone()" disabled title="切換當前選取骨骼為半透明或單一還原">🧊 X-Ray 半透明</button>
+            <button type="button" id="btn-isolate-bone" class="btn-sm" style="padding: 4px 11px; font-size: 0.78rem; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-muted); cursor: not-allowed; border-radius: 6px;" onclick="isolateSelectedBone()" disabled title="僅保留此骨骼獨立檢視">🎯 獨立檢視</button>
+            <button type="button" id="btn-reset-bones" class="btn-sm" style="padding: 4px 11px; font-size: 0.78rem; background: var(--accent-subtle); border: 1px solid var(--accent); color: var(--accent); font-weight: 600; cursor: pointer; border-radius: 6px;" onclick="resetAllBones()" title="還原所有骨骼的顯示與透明狀態">↩️ 還原全部骨骼</button>
+        </div>
+    </div>
+
+    <!-- 當前選取骨骼狀態條 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0.85rem; background: var(--bg-surface); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 0.75rem; font-size: 0.84rem;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: var(--text-muted);">選取骨骼：</span>
+            <span id="atlas3d-selected-bone-name" style="font-weight: 700; color: var(--accent);">點擊下方 3D 空間內的骨骼即可選取並操作</span>
+        </div>
+        <div id="atlas3d-status-hint" style="font-size: 0.76rem; color: var(--text-muted);">
+            🖱️ 滑鼠操作：左鍵旋轉 · 右鍵平移 · 滾輪縮放
+        </div>
+    </div>
+
+    <!-- 3D 畫布主容器 -->
+    <div id="threejs-canvas-wrapper" style="position: relative; width: 100%; height: 640px; background: #070b14; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
+        <div id="threejs-canvas-container" style="width: 100%; height: 100%;"></div>
+        
+        <!-- 載入中動畫遮罩 -->
+        <div id="threejs-loading-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 11, 20, 0.88); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.4s ease;">
+            <div style="width: 36px; height: 36px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <div style="margin-top: 12px; font-size: 0.88rem; color: var(--text-primary); font-weight: 600;">正在啟動 3D 解剖渲染引擎...</div>
+            <div style="margin-top: 4px; font-size: 0.76rem; color: var(--text-muted);">載入犬體骨骼高擬真幾何模型架構</div>
+        </div>
+
+        <!-- 視角方向指標與快捷小工具 -->
+        <div style="position: absolute; bottom: 12px; right: 12px; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.75rem; color: var(--text-secondary); pointer-events: none;">
+            🐕 Canine Skeletal Model · NAV 規範
         </div>
     </div>
 </div>
@@ -2639,6 +2743,8 @@
             document.getElementById('user-info').style.display = 'none';
             document.querySelectorAll('.workspace').forEach(w => w.classList.remove('active'));
             document.getElementById('mode-analytics').style.display = 'none';
+            const mAtlas = document.getElementById('mode-atlas3d');
+            if (mAtlas) { mAtlas.classList.remove('active'); mAtlas.style.display = 'none'; }
         }
     });
 
@@ -3988,22 +4094,27 @@
         const modeQuiz = document.getElementById('mode-quiz');
         const modeEditor = document.getElementById('mode-editor');
         const modeAnalytics = document.getElementById('mode-analytics');
+        const modeAtlas3D = document.getElementById('mode-atlas3d');
 
         if (mode === 'quiz') {
             modeQuiz.classList.add('active');
             modeEditor.classList.remove('active');
             modeAnalytics.classList.remove('active');
+            if (modeAtlas3D) modeAtlas3D.classList.remove('active');
             modeQuiz.style.setProperty('display', 'grid', 'important');
             modeEditor.style.setProperty('display', 'none', 'important');
             modeAnalytics.style.setProperty('display', 'none', 'important');
+            if (modeAtlas3D) modeAtlas3D.style.setProperty('display', 'none', 'important');
             if (window.nextQuestion) window.nextQuestion();
         } else if (mode === 'editor') {
             modeEditor.classList.add('active');
             modeQuiz.classList.remove('active');
             modeAnalytics.classList.remove('active');
+            if (modeAtlas3D) modeAtlas3D.classList.remove('active');
             modeEditor.style.setProperty('display', 'grid', 'important');
             modeQuiz.style.setProperty('display', 'none', 'important');
             modeAnalytics.style.setProperty('display', 'none', 'important');
+            if (modeAtlas3D) modeAtlas3D.style.setProperty('display', 'none', 'important');
             ensureOcrWorker();
             renderEditorImageTree();
             if (currentImage && window.loadEditorImage) loadEditorImage(currentImage);
@@ -4011,10 +4122,24 @@
             modeAnalytics.classList.add('active');
             modeQuiz.classList.remove('active');
             modeEditor.classList.remove('active');
+            if (modeAtlas3D) modeAtlas3D.classList.remove('active');
             modeAnalytics.style.setProperty('display', 'block', 'important');
             modeQuiz.style.setProperty('display', 'none', 'important');
             modeEditor.style.setProperty('display', 'none', 'important');
+            if (modeAtlas3D) modeAtlas3D.style.setProperty('display', 'none', 'important');
             renderAnalytics();
+        } else if (mode === 'atlas3d') {
+            if (modeAtlas3D) {
+                modeAtlas3D.classList.add('active');
+                modeAtlas3D.style.setProperty('display', 'block', 'important');
+            }
+            modeQuiz.classList.remove('active');
+            modeEditor.classList.remove('active');
+            modeAnalytics.classList.remove('active');
+            modeQuiz.style.setProperty('display', 'none', 'important');
+            modeEditor.style.setProperty('display', 'none', 'important');
+            modeAnalytics.style.setProperty('display', 'none', 'important');
+            if (window.init3DAtlas) window.init3DAtlas();
         }
 
         window.scrollTo({ top: 0, behavior: 'instant' });
@@ -5198,6 +5323,465 @@
     applyTheme(currentTheme);
     updateSegmentActiveStyles();
 
+</script>
+
+<!-- === 🧊 3D 犬體骨骼解剖圖鑑渲染引擎 (Canine Skeletal Atlas Engine) === -->
+<script>
+    let atlas3DScene = null;
+    let atlas3DCamera = null;
+    let atlas3DRenderer = null;
+    let atlas3DControls = null;
+    let atlas3DBonesGroup = null;
+    const atlas3DAllBones = [];
+    let atlas3DSelectedMesh = null;
+    let atlas3DAutoRotate = false;
+    let atlas3DInitialized = false;
+    let atlas3DAnimFrameId = null;
+    let atlas3DRaycaster = null;
+    let atlas3DMouse = null;
+
+    window.init3DAtlas = function() {
+        if (typeof THREE === 'undefined') {
+            console.warn('Three.js CDN 尚未就緒');
+            return;
+        }
+
+        const container = document.getElementById('threejs-canvas-container');
+        if (!container) return;
+
+        if (atlas3DInitialized) {
+            onAtlas3DResize();
+            return;
+        }
+
+        const rect = container.getBoundingClientRect();
+        const width = rect.width || container.clientWidth || 900;
+        const height = rect.height || container.clientHeight || 640;
+
+        atlas3DScene = new THREE.Scene();
+        atlas3DScene.background = new THREE.Color(0x070b14);
+        atlas3DScene.fog = new THREE.FogExp2(0x070b14, 0.0022);
+
+        atlas3DCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        atlas3DCamera.position.set(95, 30, 45);
+
+        atlas3DRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+        atlas3DRenderer.setSize(width, height);
+        atlas3DRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        if (THREE.ACESFilmicToneMapping) {
+            atlas3DRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+            atlas3DRenderer.toneMappingExposure = 1.05;
+        }
+        container.innerHTML = '';
+        container.appendChild(atlas3DRenderer.domElement);
+
+        atlas3DControls = new THREE.OrbitControls(atlas3DCamera, atlas3DRenderer.domElement);
+        atlas3DControls.enableDamping = true;
+        atlas3DControls.dampingFactor = 0.08;
+        atlas3DControls.target.set(0, 10, 0);
+        atlas3DControls.maxDistance = 350;
+        atlas3DControls.minDistance = 15;
+
+        // 燈光系統
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        atlas3DScene.add(ambientLight);
+
+        const dirLight1 = new THREE.DirectionalLight(0xfff7ed, 0.95);
+        dirLight1.position.set(100, 120, 80);
+        atlas3DScene.add(dirLight1);
+
+        const dirLight2 = new THREE.DirectionalLight(0xbae6fd, 0.55);
+        dirLight2.position.set(-100, 60, -80);
+        atlas3DScene.add(dirLight2);
+
+        // 腹側專屬向上補光 (由下往上仰視胸骨與胸腹腔)
+        const ventralLight = new THREE.DirectionalLight(0xffffff, 0.65);
+        ventralLight.position.set(0, -90, 0);
+        atlas3DScene.add(ventralLight);
+
+        // 地面輕量參考網格
+        const grid = new THREE.GridHelper(160, 20, 0x1e293b, 0x0f172a);
+        grid.position.y = -22.5;
+        atlas3DScene.add(grid);
+
+        // 射線檢測器
+        atlas3DRaycaster = new THREE.Raycaster();
+        atlas3DMouse = new THREE.Vector2();
+
+        // 骨骼主群組
+        atlas3DBonesGroup = new THREE.Group();
+        atlas3DScene.add(atlas3DBonesGroup);
+
+        buildProceduralCanineSkeleton(atlas3DBonesGroup);
+        setupAtlas3DInteraction(container);
+
+        window.addEventListener('resize', onAtlas3DResize);
+        animateAtlas3D();
+
+        atlas3DInitialized = true;
+
+        setTimeout(() => {
+            const overlay = document.getElementById('threejs-loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.display = 'none'; }, 400);
+            }
+        }, 300);
+    };
+
+    function onAtlas3DResize() {
+        if (!atlas3DRenderer || !atlas3DCamera) return;
+        const container = document.getElementById('threejs-canvas-container');
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+        const w = rect.width || container.clientWidth;
+        const h = rect.height || container.clientHeight;
+        if (w > 0 && h > 0) {
+            atlas3DCamera.aspect = w / h;
+            atlas3DCamera.updateProjectionMatrix();
+            atlas3DRenderer.setSize(w, h);
+        }
+    }
+
+    function animateAtlas3D() {
+        atlas3DAnimFrameId = requestAnimationFrame(animateAtlas3D);
+        if (atlas3DControls) atlas3DControls.update();
+        if (atlas3DRenderer && atlas3DScene && atlas3DCamera) {
+            atlas3DRenderer.render(atlas3DScene, atlas3DCamera);
+        }
+    }
+
+    function createBoneMesh(geometry, name, region, pos, rot, scale) {
+        const mat = new THREE.MeshStandardMaterial({
+            color: 0xede8dc,
+            roughness: 0.42,
+            metalness: 0.06,
+            transparent: false,
+            opacity: 1.0,
+            depthWrite: true,
+            side: THREE.DoubleSide
+        });
+        const mesh = new THREE.Mesh(geometry, mat);
+        if (pos) mesh.position.set(pos[0], pos[1], pos[2]);
+        if (rot) mesh.rotation.set(rot[0], rot[1], rot[2]);
+        if (scale) mesh.scale.set(scale[0], scale[1], scale[2]);
+        mesh.userData = { name, region };
+        atlas3DAllBones.push(mesh);
+        atlas3DBonesGroup.add(mesh);
+        return mesh;
+    }
+
+    function buildProceduralCanineSkeleton(group) {
+        // === 1. 頭顱骨骼區 (Head & Skull) ===
+        createBoneMesh(new THREE.SphereGeometry(7, 24, 18), 'Cranium (頭蓋骨/腦顱)', 'head', [-42, 23, 0], [0, 0, 0], [1.3, 0.95, 0.9]);
+        createBoneMesh(new THREE.CylinderGeometry(2.5, 4.5, 12, 16), 'Maxilla & Nasal Bone (上頜骨與鼻骨)', 'head', [-52, 20, 0], [0, 0, Math.PI / 2 + 0.1]);
+        createBoneMesh(new THREE.BoxGeometry(11, 2.2, 5.5), 'Mandible (下頜骨)', 'head', [-50, 16.5, 0], [0, 0, 0.12]);
+        createBoneMesh(new THREE.SphereGeometry(4.2, 16, 12), 'Frontal Bone (額骨)', 'head', [-45, 25.5, 0]);
+        createBoneMesh(new THREE.TorusGeometry(3.6, 0.55, 8, 16, Math.PI), 'Left Zygomatic Arch (左側顴弓)', 'head', [-44, 21.5, 6.2], [0, 0.2, 0]);
+        createBoneMesh(new THREE.TorusGeometry(3.6, 0.55, 8, 16, Math.PI), 'Right Zygomatic Arch (右側顴弓)', 'head', [-44, 21.5, -6.2], [0, -0.2, 0]);
+        createBoneMesh(new THREE.SphereGeometry(1.8, 12, 10), 'Left Tympanic Bulla (左側耳泡)', 'head', [-38, 19, 4.5]);
+        createBoneMesh(new THREE.SphereGeometry(1.8, 12, 10), 'Right Tympanic Bulla (右側耳泡)', 'head', [-38, 19, -4.5]);
+        createBoneMesh(new THREE.BoxGeometry(7, 1.8, 0.8), 'Occipital Crest (枕外嵴與矢狀嵴)', 'head', [-36, 25.5, 0], [0, 0, -0.2]);
+
+        // === 2. 脊椎與胸廓區 (Spine & Thorax) ===
+        createBoneMesh(new THREE.CylinderGeometry(3.2, 3.2, 6, 14), 'Atlas & Axis (寰椎與樞椎 C1-C2)', 'spine', [-31, 23.5, 0], [0, 0, Math.PI / 2 - 0.2]);
+        createBoneMesh(new THREE.CylinderGeometry(2.8, 3.0, 14, 14), 'Cervical Vertebrae C3-C7 (頸椎)', 'spine', [-21, 23.8, 0], [0, 0, Math.PI / 2 - 0.15]);
+        createBoneMesh(new THREE.BoxGeometry(32, 3.2, 4.2), 'Thoracic Vertebrae T1-T13 (胸椎體)', 'spine', [0, 23.5, 0]);
+        createBoneMesh(new THREE.BoxGeometry(26, 4.5, 0.8), 'Thoracic Spinous Processes (胸椎背側棘突群)', 'spine', [-2, 26.5, 0]);
+        createBoneMesh(new THREE.BoxGeometry(22, 3.4, 5.5), 'Lumbar Vertebrae L1-L7 (腰椎體與橫突)', 'spine', [26, 21.5, 0]);
+        createBoneMesh(new THREE.BoxGeometry(9, 3.5, 7.5), 'Sacrum (薦骨 / S1-S3 融合薦椎)', 'spine', [40, 19.5, 0]);
+        createBoneMesh(new THREE.CylinderGeometry(0.8, 2.0, 24, 10), 'Caudal Vertebrae (尾椎連貫骨節)', 'spine', [53, 13, 0], [0, 0, Math.PI / 2 + 0.3]);
+        createBoneMesh(new THREE.TorusGeometry(8.5, 1.1, 10, 24, Math.PI * 0.95), 'Left Ribs 1-13 (左側肋骨弧拱群)', 'spine', [-2, 14.5, 5.5], [0, Math.PI / 2, -0.2]);
+        createBoneMesh(new THREE.TorusGeometry(8.5, 1.1, 10, 24, Math.PI * 0.95), 'Right Ribs 1-13 (右側肋骨弧拱群)', 'spine', [-2, 14.5, -5.5], [0, -Math.PI / 2, -0.2]);
+
+        // 胸骨三大結構 (Sternum: Manubrium, Sternebrae, Xiphoid Process) - 腹側仰視對焦重點
+        createBoneMesh(new THREE.CylinderGeometry(1.6, 1.8, 6.5, 12), 'Manubrium (胸骨柄 - 最前腹側節)', 'spine', [-17, 7, 0], [0, 0, Math.PI / 2 + 0.15]);
+        createBoneMesh(new THREE.BoxGeometry(17, 1.7, 2.8), 'Sternebrae (胸骨體節 2-8 節)', 'spine', [-5, 6, 0]);
+        createBoneMesh(new THREE.ConeGeometry(1.8, 7, 12), 'Xiphoid Process (劍突與劍突軟骨 - 尾端)', 'spine', [7, 6.2, 0], [0, 0, -Math.PI / 2 - 0.1]);
+
+        // === 3. 前肢骨骼區 (Forelimb) ===
+        createBoneMesh(new THREE.BoxGeometry(11, 15, 1.4), 'Left Scapula (左肩胛骨與肩胛岡)', 'forelimb', [-18, 17, 11], [0.15, -0.35, -0.55]);
+        createBoneMesh(new THREE.BoxGeometry(11, 15, 1.4), 'Right Scapula (右肩胛骨與肩胛岡)', 'forelimb', [-18, 17, -11], [-0.15, 0.35, -0.55]);
+        createBoneMesh(new THREE.CylinderGeometry(1.8, 2.2, 17, 12), 'Left Humerus (左肱骨)', 'forelimb', [-13, 5, 11.5], [0.1, 0, 0.5]);
+        createBoneMesh(new THREE.CylinderGeometry(1.8, 2.2, 17, 12), 'Right Humerus (右肱骨)', 'forelimb', [-13, 5, -11.5], [-0.1, 0, 0.5]);
+        createBoneMesh(new THREE.CylinderGeometry(1.4, 1.6, 18, 12), 'Left Radius & Ulna (左橈骨與尺骨/鷹嘴)', 'forelimb', [-8, -10, 11], [0, 0, -0.15]);
+        createBoneMesh(new THREE.CylinderGeometry(1.4, 1.6, 18, 12), 'Right Radius & Ulna (右橈骨與尺骨/鷹嘴)', 'forelimb', [-8, -10, -11], [0, 0, -0.15]);
+        createBoneMesh(new THREE.BoxGeometry(4.2, 2.2, 3.8), 'Left Carpus & Forepaw (左腕骨與前趾骨)', 'forelimb', [-6.5, -20.5, 11]);
+        createBoneMesh(new THREE.BoxGeometry(4.2, 2.2, 3.8), 'Right Carpus & Forepaw (右腕骨與前趾骨)', 'forelimb', [-6.5, -20.5, -11]);
+
+        // === 4. 後肢與骨盆區 (Hindlimb & Pelvis) ===
+        createBoneMesh(new THREE.BoxGeometry(16, 7, 2.2), 'Left Pelvis: Ilium & Ischium (左骨盆: 腸骨與坐骨)', 'hindlimb', [36, 18.5, 6], [0.2, -0.2, 0.2]);
+        createBoneMesh(new THREE.BoxGeometry(16, 7, 2.2), 'Right Pelvis: Ilium & Ischium (右骨盆: 腸骨與坐骨)', 'hindlimb', [36, 18.5, -6], [-0.2, 0.2, 0.2]);
+        createBoneMesh(new THREE.CylinderGeometry(1.9, 2.3, 19, 12), 'Left Femur (左股骨)', 'hindlimb', [32, 7.5, 11.5], [0.15, 0, -0.45]);
+        createBoneMesh(new THREE.CylinderGeometry(1.9, 2.3, 19, 12), 'Right Femur (右股骨)', 'hindlimb', [32, 7.5, -11.5], [-0.15, 0, -0.45]);
+        createBoneMesh(new THREE.SphereGeometry(1.2, 10, 10), 'Left Patella (左膝蓋骨)', 'hindlimb', [27, -0.5, 12]);
+        createBoneMesh(new THREE.SphereGeometry(1.2, 10, 10), 'Right Patella (右膝蓋骨)', 'hindlimb', [27, -0.5, -12]);
+        createBoneMesh(new THREE.CylinderGeometry(1.5, 1.8, 19, 12), 'Left Tibia & Fibula (左脛骨與腓骨)', 'hindlimb', [32, -9.5, 11.5], [0.1, 0, 0.38]);
+        createBoneMesh(new THREE.CylinderGeometry(1.5, 1.8, 19, 12), 'Right Tibia & Fibula (右脛骨與腓骨)', 'hindlimb', [32, -9.5, -11.5], [-0.1, 0, 0.38]);
+        createBoneMesh(new THREE.BoxGeometry(4.5, 2.4, 4.0), 'Left Tarsus & Hindpaw (左跗骨/跟骨與後趾骨)', 'hindlimb', [37.5, -20.5, 11.5]);
+        createBoneMesh(new THREE.BoxGeometry(4.5, 2.4, 4.0), 'Right Tarsus & Hindpaw (右跗骨/跟骨與後趾骨)', 'hindlimb', [37.5, -20.5, -11.5]);
+    }
+
+    function setupAtlas3DInteraction(container) {
+        let downTime = 0;
+        let downPos = { x: 0, y: 0 };
+
+        container.addEventListener('pointerdown', (e) => {
+            downTime = Date.now();
+            downPos = { x: e.clientX, y: e.clientY };
+        });
+
+        container.addEventListener('pointerup', (e) => {
+            const dist = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
+            if (Date.now() - downTime > 300 || dist > 6) return;
+
+            const rect = container.getBoundingClientRect();
+            atlas3DMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            atlas3DMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            atlas3DRaycaster.setFromCamera(atlas3DMouse, atlas3DCamera);
+            const visibleBones = atlas3DAllBones.filter(b => b.visible);
+            const intersects = atlas3DRaycaster.intersectObjects(visibleBones, false);
+
+            if (intersects.length > 0) {
+                selectBoneMesh(intersects[0].object);
+            } else {
+                selectBoneMesh(null);
+            }
+        });
+    }
+
+    function selectBoneMesh(mesh) {
+        if (atlas3DSelectedMesh && atlas3DSelectedMesh !== mesh) {
+            atlas3DSelectedMesh.material.emissive.setHex(0x000000);
+        }
+        atlas3DSelectedMesh = mesh;
+
+        const nameEl = document.getElementById('atlas3d-selected-bone-name');
+        const btnHide = document.getElementById('btn-hide-bone');
+        const btnTrans = document.getElementById('btn-trans-bone');
+        const btnIso = document.getElementById('btn-isolate-bone');
+
+        if (!mesh) {
+            if (nameEl) nameEl.innerText = '點擊下方 3D 空間內的骨骼即可選取並操作';
+            if (btnHide) { btnHide.disabled = true; btnHide.style.color = 'var(--text-muted)'; btnHide.style.cursor = 'not-allowed'; }
+            if (btnTrans) {
+                btnTrans.disabled = true;
+                btnTrans.style.color = 'var(--text-muted)';
+                btnTrans.style.cursor = 'not-allowed';
+                btnTrans.innerText = '🧊 X-Ray 半透明';
+                btnTrans.style.background = 'var(--bg-surface)';
+                btnTrans.style.borderColor = 'var(--border)';
+            }
+            if (btnIso) { btnIso.disabled = true; btnIso.style.color = 'var(--text-muted)'; btnIso.style.cursor = 'not-allowed'; }
+            return;
+        }
+
+        // 高亮當前選取骨骼
+        mesh.material.emissive.setHex(0x0284c7);
+        mesh.material.emissiveIntensity = 0.55;
+
+        if (nameEl) nameEl.innerText = mesh.userData.name || '未命名骨骼構造';
+
+        if (btnHide) {
+            btnHide.disabled = false;
+            btnHide.style.color = 'var(--danger)';
+            btnHide.style.cursor = 'pointer';
+        }
+        if (btnIso) {
+            btnIso.disabled = false;
+            btnIso.style.color = 'var(--accent)';
+            btnIso.style.cursor = 'pointer';
+        }
+
+        // === 關鍵功能：選取骨骼時動態判斷「🧊 X-Ray 半透明」或「↩️ 還原此骨」 ===
+        if (btnTrans) {
+            btnTrans.disabled = false;
+            btnTrans.style.cursor = 'pointer';
+            const isTrans = mesh.material.transparent && mesh.material.opacity < 0.9;
+            if (isTrans) {
+                btnTrans.innerText = '↩️ 還原此骨';
+                btnTrans.title = '點擊將此骨骼單一還原為 100% 實心不透明';
+                btnTrans.style.color = 'var(--success)';
+                btnTrans.style.borderColor = 'var(--success)';
+                btnTrans.style.background = 'var(--success-bg)';
+            } else {
+                btnTrans.innerText = '🧊 X-Ray 半透明';
+                btnTrans.title = '點擊將此骨骼切換為 25% 半透明 (X-Ray 透視)';
+                btnTrans.style.color = 'var(--accent)';
+                btnTrans.style.borderColor = 'var(--accent)';
+                btnTrans.style.background = 'var(--accent-subtle)';
+            }
+        }
+    }
+
+    // 單一骨骼 X-Ray / 還原切換
+    window.toggleTransparentSelectedBone = function() {
+        if (!atlas3DSelectedMesh) return;
+        const mesh = atlas3DSelectedMesh;
+        const isTrans = mesh.material.transparent && mesh.material.opacity < 0.9;
+        const btnTrans = document.getElementById('btn-trans-bone');
+
+        if (isTrans) {
+            // === 單一還原此骨為實心不透明 ===
+            mesh.material.transparent = false;
+            mesh.material.opacity = 1.0;
+            mesh.material.depthWrite = true;
+            mesh.material.needsUpdate = true;
+
+            if (btnTrans) {
+                btnTrans.innerText = '🧊 X-Ray 半透明';
+                btnTrans.title = '點擊將此骨骼切換為 25% 半透明 (X-Ray 透視)';
+                btnTrans.style.color = 'var(--accent)';
+                btnTrans.style.borderColor = 'var(--accent)';
+                btnTrans.style.background = 'var(--accent-subtle)';
+            }
+        } else {
+            // === 切換此骨為 25% 半透明 ===
+            mesh.material.transparent = true;
+            mesh.material.opacity = 0.25;
+            mesh.material.depthWrite = false;
+            mesh.material.needsUpdate = true;
+
+            if (btnTrans) {
+                btnTrans.innerText = '↩️ 還原此骨';
+                btnTrans.title = '點擊將此骨骼單一還原為 100% 實心不透明';
+                btnTrans.style.color = 'var(--success)';
+                btnTrans.style.borderColor = 'var(--success)';
+                btnTrans.style.background = 'var(--success-bg)';
+            }
+        }
+    };
+
+    // 隱藏當前選取的骨骼
+    window.hideSelectedBone = function() {
+        if (!atlas3DSelectedMesh) return;
+        atlas3DSelectedMesh.visible = false;
+        selectBoneMesh(null);
+    };
+
+    // 獨立檢視當前骨骼
+    window.isolateSelectedBone = function() {
+        if (!atlas3DSelectedMesh) return;
+        atlas3DAllBones.forEach(b => {
+            b.visible = (b === atlas3DSelectedMesh);
+        });
+        const target = new THREE.Vector3();
+        atlas3DSelectedMesh.getWorldPosition(target);
+        smoothMoveCamera(atlas3DCamera.position, target);
+    };
+
+    // 一鍵還原所有骨骼的顯示與透明度
+    window.resetAllBones = function() {
+        atlas3DAllBones.forEach(b => {
+            b.visible = true;
+            b.material.transparent = false;
+            b.material.opacity = 1.0;
+            b.material.depthWrite = true;
+            b.material.emissive.setHex(0x000000);
+            b.material.needsUpdate = true;
+        });
+        document.querySelectorAll('.atlas-region-chip').forEach(c => c.classList.remove('active'));
+        const chipAll = document.getElementById('chip-region-all');
+        if (chipAll) chipAll.classList.add('active');
+        selectBoneMesh(null);
+    };
+
+    // 解剖區域隔離過濾
+    window.filter3DRegion = function(region) {
+        document.querySelectorAll('.atlas-region-chip').forEach(c => c.classList.remove('active'));
+        const activeChip = document.getElementById(`chip-region-${region}`);
+        if (activeChip) activeChip.classList.add('active');
+
+        atlas3DAllBones.forEach(b => {
+            if (region === 'all') {
+                b.visible = true;
+            } else {
+                b.visible = (b.userData.region === region);
+            }
+        });
+
+        if (atlas3DSelectedMesh && !atlas3DSelectedMesh.visible) {
+            selectBoneMesh(null);
+        }
+    };
+
+    // 相機視角切換
+    window.set3DCameraView = function(view) {
+        if (!atlas3DCamera || !atlas3DControls) return;
+        atlas3DAutoRotate = false;
+        atlas3DControls.autoRotate = false;
+        const btnRotate = document.getElementById('btn-3d-rotate');
+        if (btnRotate) {
+            btnRotate.style.background = 'var(--bg-surface-raised)';
+            btnRotate.style.color = 'var(--text-secondary)';
+            btnRotate.style.borderColor = 'var(--border)';
+        }
+
+        let pos = { x: 95, y: 30, z: 45 };
+        let target = { x: 0, y: 10, z: 0 };
+
+        switch (view) {
+            case 'lateral': // 側面觀
+                pos = { x: 5, y: 16, z: 92 };
+                target = { x: -4, y: 11, z: 0 };
+                break;
+            case 'dorsal': // 背側俯視觀
+                pos = { x: 0, y: 120, z: 1 };
+                target = { x: 0, y: 10, z: 0 };
+                break;
+            case 'ventral': // 腹側仰視觀 - 胸骨柄/體節/劍突全景
+                pos = { x: -6, y: -90, z: 2 };
+                target = { x: -6, y: 7, z: 0 };
+                break;
+            case 'cranial': // 顱側正面觀
+                pos = { x: -95, y: 22, z: 0 };
+                target = { x: -35, y: 20, z: 0 };
+                break;
+        }
+        smoothMoveCamera(pos, target);
+    };
+
+    function smoothMoveCamera(newPos, newTarget) {
+        if (!atlas3DCamera || !atlas3DControls) return;
+        const startPos = atlas3DCamera.position.clone();
+        const startTarget = atlas3DControls.target.clone();
+        const destPos = new THREE.Vector3(newPos.x, newPos.y, newPos.z);
+        const destTarget = new THREE.Vector3(newTarget.x, newTarget.y, newTarget.z);
+        let t = 0;
+        function animateStep() {
+            t += 0.055;
+            if (t < 1.0) {
+                atlas3DCamera.position.lerpVectors(startPos, destPos, t);
+                atlas3DControls.target.lerpVectors(startTarget, destTarget, t);
+                atlas3DControls.update();
+                requestAnimationFrame(animateStep);
+            } else {
+                atlas3DCamera.position.copy(destPos);
+                atlas3DControls.target.copy(destTarget);
+                atlas3DControls.update();
+            }
+        }
+        animateStep();
+    }
+
+    // 360° 自動旋轉切換
+    window.toggle3DAutoRotate = function() {
+        atlas3DAutoRotate = !atlas3DAutoRotate;
+        if (atlas3DControls) atlas3DControls.autoRotate = atlas3DAutoRotate;
+        const btn = document.getElementById('btn-3d-rotate');
+        if (btn) {
+            if (atlas3DAutoRotate) {
+                btn.style.background = 'var(--accent-subtle)';
+                btn.style.color = 'var(--accent)';
+                btn.style.borderColor = 'var(--accent)';
+            } else {
+                btn.style.background = 'var(--bg-surface-raised)';
+                btn.style.color = 'var(--text-secondary)';
+                btn.style.borderColor = 'var(--border)';
+            }
+        }
+    };
 </script>
 
 
