@@ -862,7 +862,34 @@
         }
     
     
-    </style>
+    
+        .canine-cat-tab {
+            padding: 5px 14px;
+            font-size: 0.83rem;
+            border-radius: 6px;
+            cursor: pointer;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .canine-cat-tab:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+        .canine-cat-tab.active {
+            background: var(--accent) !important;
+            color: #ffffff !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+        .canine-term-card:hover {
+            border-color: var(--accent) !important;
+            background: var(--bg-surface-higher) !important;
+            transform: translateY(-1px);
+        }
+</style>
 <style id="v10-zen-styles">
     /* === 介面排版規範 === */
     :root {
@@ -1551,6 +1578,7 @@
         <div class="nav-btns">
             <button id="nav-editor" onclick="switchMode('editor')" class="">🛠️ 編輯器</button>
             <button id="nav-quiz" class="active" onclick="switchMode('quiz')">📝 測驗</button>
+            <button id="nav-atlas3d" onclick="switchMode('atlas3d')" class="">🧊 3D 圖鑑</button>
             <button id="nav-analytics" onclick="switchMode('analytics')" class="">📊 分析</button>
             <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="切換日間與深色模式"><span id="theme-icon">🌙</span> <span id="theme-text">深色模式</span></button>
             <button onclick="logout()" style="border-color: var(--danger); color: var(--danger); background: var(--danger-bg);">登出</button>
@@ -1919,6 +1947,133 @@
         </div>
     </div>
 </div>
+
+<!-- 4. 🧊 3D Canine Skeletal Atlas (Clean English Edition) -->
+<div id="mode-atlas3d" class="card" style="display: none !important; padding: 1.25rem;">
+    <!-- Top Header & Gesture Guide -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.4rem;">🦴</span>
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-primary); font-weight: 700; letter-spacing: 0.3px;">
+                    3D Canine Skeletal Atlas
+                </h3>
+                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                    Authentic 3D Canine Osteology · 100% Genuine Dog Anatomy
+                </div>
+            </div>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; background: var(--bg-surface-raised); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);">
+            <span>👆 Drag to Rotate</span>
+            <span>·</span>
+            <span>🤏 Pinch / Scroll to Zoom</span>
+            <span>·</span>
+            <span>✌️ Two-finger to Pan</span>
+        </div>
+    </div>
+
+    <!-- 5 Clean Categories Bar (0. Whole Body, 1. Skull, 2. Vertebral, 3. Forelimb, 4. Pelvic Limb) -->
+    <div style="margin-bottom: 0.85rem; background: var(--bg-surface-raised); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+        <!-- Tier 1 Category Tabs -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 0.65rem;" id="canine-cat-tabs">
+            <button type="button" class="btn-sm canine-cat-tab active" data-cat="0" onclick="selectCanineCategory('0', 'full_skeleton')">0. Whole Body</button>
+            <button type="button" class="btn-sm canine-cat-tab" data-cat="1" onclick="selectCanineCategory('1', 'upper_skull')">1. Skull</button>
+            <button type="button" class="btn-sm canine-cat-tab" data-cat="2" onclick="selectCanineCategory('2', 'atlas')">2. Vertebral</button>
+            <button type="button" class="btn-sm canine-cat-tab" data-cat="3" onclick="selectCanineCategory('3', 'scapula')">3. Forelimb</button>
+            <button type="button" class="btn-sm canine-cat-tab" data-cat="4" onclick="selectCanineCategory('4', 'pelvis')">4. Pelvic Limb</button>
+        </div>
+
+        <!-- Tier 2 Verified Individual Bone Chips -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;" id="canine-bone-chips">
+            <!-- 0. Whole Body -->
+            <button type="button" class="bone-b-chip active" data-cat="0" onclick="loadCanineBoneModel('full_skeleton')">🐕 Full Canine Skeleton (UZH)</button>
+
+            <!-- 1. Skull -->
+            <button type="button" class="bone-b-chip" data-cat="1" onclick="loadCanineBoneModel('upper_skull')">💀 Upper Skull (Cranium & Face)</button>
+            <button type="button" class="bone-b-chip" data-cat="1" onclick="loadCanineBoneModel('lower_jaw')">🦷 Lower Jaw (Mandible)</button>
+
+            <!-- 2. Vertebral -->
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('atlas')">🦴 Atlas (C1 Vertebra)</button>
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('axis')">🦴 Axis (C2 Vertebra)</button>
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('c7')">🦴 C7 & Cervical</button>
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('thoracic')">🦴 Thoracic Vertebrae</button>
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('l1')">🦴 L1 & Lumbar</button>
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('sacrum')">🦴 Sacrum</button>
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('caudal')">🦴 Caudal Vertebrae</button>
+            <button type="button" class="bone-b-chip" data-cat="2" onclick="loadCanineBoneModel('ribs_sternum')">🫁 Ribs & Sternum</button>
+
+            <!-- 3. Forelimb (Paw deleted) -->
+            <button type="button" class="bone-b-chip" data-cat="3" onclick="loadCanineBoneModel('scapula')">🦴 Scapula</button>
+            <button type="button" class="bone-b-chip" data-cat="3" onclick="loadCanineBoneModel('humerus')">🦴 Humerus</button>
+            <button type="button" class="bone-b-chip" data-cat="3" onclick="loadCanineBoneModel('radius')">🦴 Radius</button>
+            <button type="button" class="bone-b-chip" data-cat="3" onclick="loadCanineBoneModel('ulna')">🦴 Ulna</button>
+
+            <!-- 4. Pelvic Limb (tibia&fibula changed to tibia, paw deleted) -->
+            <button type="button" class="bone-b-chip" data-cat="4" onclick="loadCanineBoneModel('pelvis')">🦴 Hip Bone (Pelvis)</button>
+            <button type="button" class="bone-b-chip" data-cat="4" onclick="loadCanineBoneModel('femur')">🦴 Femur</button>
+            <button type="button" class="bone-b-chip" data-cat="4" onclick="loadCanineBoneModel('tibia')">🦴 Tibia</button>
+        </div>
+    </div>
+
+    <!-- 2-Column Clean Layout: 3D Canvas Left + Pure English Vocabulary Right -->
+    <div style="display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(320px, 1.15fr); gap: 1rem; align-items: start;">
+        <!-- 3D Viewer Container -->
+        <div id="canine-3d-frame-wrapper" style="position: relative; width: 100%; height: 680px; background: #070b14; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
+            <iframe id="canine-3d-iframe" title="Authentic Canine Skeletal Model" src="https://sketchfab.com/models/fb8e7afba65b439d86d404e37d6a0cc2/embed?autostart=1&preload=1&ui_theme=dark&ui_infos=0&ui_watermark=0&ui_hint=0&transparent=1" style="width: 100%; height: 100%; border: none; touch-action: none !important;" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share></iframe>
+
+            <!-- Fast-Load Spinner Overlay -->
+            <div id="canine-3d-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 11, 20, 0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5; transition: opacity 0.3s ease; pointer-events: none;">
+                <div style="width: 44px; height: 44px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <div id="canine-3d-loading-text" style="margin-top: 14px; font-size: 1rem; color: var(--text-primary); font-weight: 700;">Loading 3D specimen...</div>
+                <div id="canine-3d-loading-sub" style="margin-top: 5px; font-size: 0.78rem; color: var(--text-muted);">High-fidelity veterinary scan</div>
+            </div>
+
+            <!-- Model Badge -->
+            <div id="canine-model-badge" style="position: absolute; bottom: 12px; left: 14px; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(8px); padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.74rem; color: var(--text-secondary); pointer-events: none;">
+                🐕 Specimen: Full Canine Skeleton (UZH)
+            </div>
+        </div>
+
+        <!-- Pure English Vocabulary Panel (Zero Clutter · No Copy Buttons) -->
+        <div id="canine-landmark-card" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.15rem; height: 680px; display: flex; flex-direction: column;">
+            <!-- Header -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 0.65rem; margin-bottom: 0.65rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <span id="canine-card-latin" style="font-size: 0.76rem; color: var(--accent); font-family: monospace; font-weight: 600;">Canis lupus familiaris · Skeleton</span>
+                        <h4 id="canine-card-title" style="margin: 3px 0 0 0; color: var(--text-primary); font-size: 1.15rem; font-weight: 700;">Full Canine Skeleton</h4>
+                        <div id="canine-card-diagrams" style="margin-top: 4px; font-size: 0.74rem; color: var(--text-muted); font-family: monospace;"></div>
+                    </div>
+                    <span id="canine-card-count" style="font-size: 0.75rem; background: var(--accent-subtle); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 8px; border-radius: 12px; font-weight: 700; white-space: nowrap;">
+                        25 terms
+                    </span>
+                </div>
+            </div>
+
+            <!-- Search Filter Bar -->
+            <div style="margin-bottom: 0.65rem;">
+                <input type="text" id="canine-term-search" placeholder="🔍 Search English terms in this bone..." oninput="filterCanineTerms(this.value)" style="width: 100%; padding: 7px 11px; font-size: 0.83rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface-raised); color: var(--text-primary); outline: none;">
+            </div>
+
+            <!-- Term Cards List -->
+            <div style="flex: 1; overflow-y: auto; padding-right: 4px;" id="canine-terms-scroll-container">
+                <div id="canine-card-landmarks" style="display: flex; flex-direction: column; gap: 6px;">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="margin-top: 0.75rem; padding-top: 0.65rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.74rem; color: var(--text-muted);" id="canine-source-tag">3D Dog Bone Project</span>
+                <button type="button" class="btn-sm" style="background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); font-weight: 600; padding: 3px 10px;" onclick="selectCanineCategory('0', 'full_skeleton')">
+                    🐕 Reset View
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- 🩺 題庫拼字健檢與挑選修正 Modal -->
 <div id="typo-audit-modal" class="modal-overlay">
@@ -3996,6 +4151,7 @@
             modeQuiz.style.setProperty('display', 'grid', 'important');
             modeEditor.style.setProperty('display', 'none', 'important');
             modeAnalytics.style.setProperty('display', 'none', 'important');
+            const mAtlasQ = document.getElementById('mode-atlas3d'); if (mAtlasQ) { mAtlasQ.classList.remove('active'); mAtlasQ.style.setProperty('display', 'none', 'important'); }
             if (window.nextQuestion) window.nextQuestion();
         } else if (mode === 'editor') {
             modeEditor.classList.add('active');
@@ -4004,6 +4160,7 @@
             modeEditor.style.setProperty('display', 'grid', 'important');
             modeQuiz.style.setProperty('display', 'none', 'important');
             modeAnalytics.style.setProperty('display', 'none', 'important');
+            const mAtlasE = document.getElementById('mode-atlas3d'); if (mAtlasE) { mAtlasE.classList.remove('active'); mAtlasE.style.setProperty('display', 'none', 'important'); }
             ensureOcrWorker();
             renderEditorImageTree();
             if (currentImage && window.loadEditorImage) loadEditorImage(currentImage);
@@ -4011,10 +4168,21 @@
             modeAnalytics.classList.add('active');
             modeQuiz.classList.remove('active');
             modeEditor.classList.remove('active');
+            const mAtlas = document.getElementById('mode-atlas3d');
+            if (mAtlas) { mAtlas.classList.remove('active'); mAtlas.style.setProperty('display', 'none', 'important'); }
             modeAnalytics.style.setProperty('display', 'block', 'important');
             modeQuiz.style.setProperty('display', 'none', 'important');
             modeEditor.style.setProperty('display', 'none', 'important');
             renderAnalytics();
+        } else if (mode === 'atlas3d') {
+            const mAtlas = document.getElementById('mode-atlas3d');
+            if (mAtlas) { mAtlas.classList.add('active'); mAtlas.style.setProperty('display', 'block', 'important'); }
+            modeQuiz.classList.remove('active');
+            modeEditor.classList.remove('active');
+            modeAnalytics.classList.remove('active');
+            modeQuiz.style.setProperty('display', 'none', 'important');
+            modeEditor.style.setProperty('display', 'none', 'important');
+            modeAnalytics.style.setProperty('display', 'none', 'important');
         }
 
         window.scrollTo({ top: 0, behavior: 'instant' });
@@ -5197,6 +5365,735 @@
     // 🚀 初始化主題與矩形選擇控制
     applyTheme(currentTheme);
     updateSegmentActiveStyles();
+
+// ==================== 【3D Canine Skeletal Atlas (Exact Diagram Mapping · No Duplicates)】 ====================
+    const CANINE_ATLAS_MODELS = {
+    "full_skeleton": {
+        "id": "full_skeleton",
+        "cat": "0",
+        "name": "Full Canine Skeleton",
+        "latin": "Canis lupus familiaris · Skeleton",
+        "uid": "fb8e7afba65b439d86d404e37d6a0cc2",
+        "source": "University of Zurich (UZH)",
+        "images": [],
+        "terms": [
+            "Cranium (Skull)",
+            "Mandible",
+            "Atlas (C1)",
+            "Axis (C2)",
+            "Cervical Vertebrae (C3-C7)",
+            "Thoracic Vertebrae (T1-T13)",
+            "Lumbar Vertebrae (L1-L7)",
+            "Sacrum (S1-S3)",
+            "Caudal Vertebrae (Cd1-Cd20)",
+            "Ribs (Costae 1-13)",
+            "Sternum (Manubrium, Sternebrae, Xiphoid)",
+            "Scapula",
+            "Humerus",
+            "Radius",
+            "Ulna",
+            "Carpal Bones",
+            "Metacarpal Bones (I-V)",
+            "Phalanges",
+            "Pelvis / Os Coxae (Ilium, Ischium, Pubis)",
+            "Femur",
+            "Patella",
+            "Tibia",
+            "Fibula",
+            "Tarsal Bones",
+            "Metatarsal Bones (II-V)"
+        ]
+    },
+    "upper_skull": {
+        "id": "upper_skull",
+        "cat": "1",
+        "name": "Upper Skull (Cranium & Face)",
+        "latin": "Cranium & Ossa faciei",
+        "uid": "023e49c605fb4308ba1a240361e15c3e",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "disarticulated_skull_ventral.PNG",
+            "head_dorsal.PNG",
+            "head_lateral.PNG",
+            "sagittal_skull_medial.PNG",
+            "skull_dorsal.PNG",
+            "skull_foramina_lateral.PNG",
+            "skull_lateral.PNG",
+            "skull_nerve.PNG",
+            "skull_ventral_view.PNG",
+            "skullbone_ventral.PNG",
+            "vomer_ethmoid_lateral.PNG"
+        ],
+        "terms": [
+            "alveolar foramina",
+            "alveolar juga",
+            "basioccipital",
+            "basisphenoid",
+            "canal for temporal sinus",
+            "canal for trigeminal nerve",
+            "caudal alar foramen",
+            "caudal palatine foramen",
+            "cerebellar fossa",
+            "cochlear window",
+            "condyloid canal",
+            "cribriform plate",
+            "dorsal condyloid fossa",
+            "dorsal nasal concha",
+            "dorsum sellae",
+            "ectoturbinate\"3\"",
+            "entrance to maxillary recess",
+            "epihyoid",
+            "ethmoid",
+            "ethmoidal foramina",
+            "exoccipital",
+            "external acoustic meatus",
+            "external occipital protuberance",
+            "external sagittal crest",
+            "foramen lacerum",
+            "foramen magnum",
+            "fossa for lacrimal sac",
+            "frontal",
+            "frontal foramen",
+            "frontal process of zygomatic",
+            "groove for angularis oculi vein",
+            "groove for middle meningeal artery",
+            "hamulus of pterygoid bone",
+            "hypoglossal canal",
+            "hypophyseal fossa",
+            "ii",
+            "iii iv v vi",
+            "incisive",
+            "infraorbital foramen",
+            "inner table of frontal bone",
+            "internal acoustic meatus",
+            "internal table of frontal sinus",
+            "interparietal",
+            "interparietal process",
+            "ix x xi",
+            "jugular foramen",
+            "lacrimal",
+            "lateral part of frontal sinus",
+            "location of nasofrontal opening",
+            "major palatine foramen",
+            "mandible",
+            "mandibular fossa",
+            "mastoid foramen",
+            "mastoid process",
+            "maxilla",
+            "maxillary foramen",
+            "medial part of frontal sinus",
+            "minor palatine foramen",
+            "muscular process",
+            "muscular tubercle",
+            "nasal",
+            "nuchal crest",
+            "nuchal tubercle",
+            "occipital",
+            "occipital condyle",
+            "optic canal",
+            "orbital fissure",
+            "orbital lamina",
+            "outer table of frontal bone",
+            "oval foramen",
+            "palatine",
+            "palatine fissure",
+            "palatine process of maxilla",
+            "palatine sulcus",
+            "paracondylar process",
+            "parietal",
+            "perpendicular plate of palatine bone",
+            "petrooccipital fissure",
+            "petrosal crest",
+            "petrotympanic fissure",
+            "presphenoid",
+            "pterygoid",
+            "retroarticular foramen",
+            "retroarticular process",
+            "rostral alar foramen",
+            "rostral opening of pterygoid canal",
+            "round foramen",
+            "sphenoid complex",
+            "sphenoidal fossa",
+            "sphenopalatine foramen",
+            "stylohyoid",
+            "stylomastoid foramen",
+            "sulcus chiasmatis",
+            "tectorial lamina",
+            "temporal",
+            "temporal fossa",
+            "temporal line",
+            "tentorium osseum",
+            "transverse canal",
+            "transverse groove",
+            "tympanic bulla",
+            "tympanohyoid cartilage",
+            "tympanooccipital fissure",
+            "uncinate process",
+            "v",
+            "ventral condyloid fossa",
+            "ventral nasal concha",
+            "ventral orbital crest",
+            "vii",
+            "vomer",
+            "wing of vomer",
+            "xii",
+            "zygomatic",
+            "zygomatic (cut)",
+            "zygomatic process of frontal bone",
+            "zygomatic process of temporal"
+        ]
+    },
+    "lower_jaw": {
+        "id": "lower_jaw",
+        "cat": "1",
+        "name": "Lower Jaw (Mandible)",
+        "latin": "Mandibula",
+        "uid": "ae3ff7e355164b08959cbb03041dff34",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "mandibles_dorsal_lateral.PNG"
+        ],
+        "terms": [
+            "angular process",
+            "body of mandible",
+            "condyloid crest",
+            "condyloid process",
+            "coronoid crest",
+            "coronoid process",
+            "mandibular foramen",
+            "mandibular notch",
+            "masseteric fossa",
+            "masseteric line",
+            "mental foramina",
+            "mylohyoid line",
+            "ramus of mandible"
+        ]
+    },
+    "atlas": {
+        "id": "atlas",
+        "cat": "2",
+        "name": "Atlas (C1 Vertebra)",
+        "latin": "Atlas (Vertebra cervicalis I)",
+        "uid": "48a13b5abd6d478e8e508a2fd49ffbb6",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "atlas_dorsal(C1).PNG",
+            "atlantoaxial(C1+C2).PNG"
+        ],
+        "terms": [
+            "alar notch",
+            "arch",
+            "cranial articular fovea",
+            "dens",
+            "dorsal tubercle",
+            "lateral vertebral foramen",
+            "spinous process",
+            "transverse foramen",
+            "transverse process",
+            "vertebral arch",
+            "wing"
+        ]
+    },
+    "axis": {
+        "id": "axis",
+        "cat": "2",
+        "name": "Axis (C2 Vertebra)",
+        "latin": "Axis (Vertebra cervicalis II)",
+        "uid": "8a739d5c8b5a4a9096bbf2c7ba21946b",
+        "source": "Royal Veterinary College (RVC scan)",
+        "images": [
+            "axis_left_lateral (C2).PNG"
+        ],
+        "terms": [
+            "caudal articular process",
+            "caudal vertebral notch",
+            "cranial articular surface",
+            "dens",
+            "spinous process",
+            "transverse foramen",
+            "transverse process"
+        ]
+    },
+    "c7": {
+        "id": "c7",
+        "cat": "2",
+        "name": "C7 & Cervical Vertebrae",
+        "latin": "Vertebrae cervicales (C3-C7)",
+        "uid": "632bc673f669442baaf792995f1868f7",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "C7_caudal.PNG",
+            "C5_craniolateral.PNG"
+        ],
+        "terms": [
+            "caudal articular surface",
+            "caudal costal fovea",
+            "cranial articular surface",
+            "lamina",
+            "pedicle",
+            "spinous process",
+            "transverse foramen",
+            "transverse process",
+            "vertebral foramen"
+        ]
+    },
+    "thoracic": {
+        "id": "thoracic",
+        "cat": "2",
+        "name": "Thoracic Vertebrae (T1-T13)",
+        "latin": "Vertebrae thoracicae",
+        "uid": "54131e39abe440269108df253b1cd1cf",
+        "source": "Royal Veterinary College (RVC scan)",
+        "images": [
+            "T6+T12_13.PNG"
+        ],
+        "terms": [
+            "caudal articular surface",
+            "caudal costal fovea",
+            "caudal vertebral notch",
+            "costal fovea of transverse process",
+            "cranial articular process",
+            "cranial costal fovea",
+            "lamina",
+            "mamillary process",
+            "mammillary process",
+            "pedicle",
+            "spinous process",
+            "transverse fovea",
+            "transverse process"
+        ]
+    },
+    "l1": {
+        "id": "l1",
+        "cat": "2",
+        "name": "L1 & Lumbar Vertebrae",
+        "latin": "Vertebrae lumbales (L1-L7)",
+        "uid": "1e5f5b11eeb74609a60451c18a8cfcf7",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L4+L5+ Intervertebral_disc.PNG"
+        ],
+        "terms": [
+            "accessory process",
+            "anulus fibrosus",
+            "caudal articular process",
+            "caudal articular surface",
+            "caudal vertebral notch",
+            "cranial articular process",
+            "cranial articular surface",
+            "mamillary process",
+            "nucleus pulposus",
+            "spinous process",
+            "transverse process"
+        ]
+    },
+    "sacrum": {
+        "id": "sacrum",
+        "cat": "2",
+        "name": "Sacrum",
+        "latin": "Os sacrum",
+        "uid": "2d80f1dd8a8e49879281f538eeb5e93e",
+        "source": "Royal Veterinary College (RVC scan)",
+        "images": [
+            "sacrum.PNG",
+            "sacrum_caudal_lateral.PNG",
+            "sacrum_dorsal.PNG"
+        ],
+        "terms": [
+            "auricular surface",
+            "caudal articular process",
+            "caudal articular surface",
+            "cranial articular process",
+            "dorsal sacral foramina",
+            "intermediate sacral crest",
+            "lateral sacral crest",
+            "median sacral crest",
+            "pelvic sacral foramina",
+            "promontory",
+            "sacral canal",
+            "spinous process"
+        ]
+    },
+    "caudal": {
+        "id": "caudal",
+        "cat": "2",
+        "name": "Caudal Vertebrae",
+        "latin": "Vertebrae caudales",
+        "uid": "fb8e7afba65b439d86d404e37d6a0cc2",
+        "source": "University of Zurich (UZH)",
+        "images": [
+            "3rd_caudal_ver.PNG",
+            "4th_caudal_ver.PNG",
+            "6th_caudal_ver.PNG"
+        ],
+        "terms": [
+            "caudal articular process",
+            "cranial articular process",
+            "hemal arch",
+            "mamillary process",
+            "spinous process",
+            "transverse process",
+            "vertebral arch"
+        ]
+    },
+    "ribs_sternum": {
+        "id": "ribs_sternum",
+        "cat": "2",
+        "name": "Ribs & Sternum",
+        "latin": "Costae & Sternum",
+        "uid": "a147f379505d4bdd8be8a507d311bc24",
+        "source": "Royal Veterinary College (RVC scan)",
+        "images": [
+            "rib_lateral.PNG",
+            "rib_ventral.PNG"
+        ],
+        "terms": [
+            "angle of rib",
+            "costal arch",
+            "head of rib",
+            "intersternebral cartilage",
+            "manubrium of sternum",
+            "neck of rib",
+            "tubercle of rib",
+            "xiphoid cartilage",
+            "xiphoid process"
+        ]
+    },
+    "scapula": {
+        "id": "scapula",
+        "cat": "3",
+        "name": "Scapula (Shoulder Blade)",
+        "latin": "Scapula",
+        "uid": "6364669170a24b3d955acd88b9e01b6d",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L_scapula.PNG",
+            "L_scapula_ventral.PNG"
+        ],
+        "terms": [
+            "acromion",
+            "caudal angle",
+            "caudal border",
+            "coracoid process",
+            "cranial angle",
+            "cranial border",
+            "dorsal border",
+            "glenoid cavity",
+            "infraglenoid tubercle",
+            "infraspinous fossa",
+            "subscapular fossa",
+            "supraglenoid tubercle",
+            "supraspinous fossa"
+        ]
+    },
+    "humerus": {
+        "id": "humerus",
+        "cat": "3",
+        "name": "Humerus (Arm Bone)",
+        "latin": "Humerus",
+        "uid": "5fca41b29aad49dcb6d5f0b09c386783",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L_humerus.PNG"
+        ],
+        "terms": [
+            "capitulum",
+            "crest of greater tubercle",
+            "deltoid tuberosity",
+            "greater tubercle",
+            "intertubercular groove",
+            "lateral epicondyle",
+            "lesser tubercle",
+            "medial epicondyle",
+            "olecranon fossa",
+            "radial fossa",
+            "supratrochlear foramen",
+            "tricipital line",
+            "trochlea",
+            "tuberosity for teres major",
+            "tuberosity for teres minor"
+        ]
+    },
+    "radius": {
+        "id": "radius",
+        "cat": "3",
+        "name": "Radius",
+        "latin": "Radius",
+        "uid": "64119615c33743628b2f48a5a578e836",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L_radius_caudal.PNG"
+        ],
+        "terms": [
+            "capitular fovea",
+            "lateral border",
+            "medial border",
+            "styloid process"
+        ]
+    },
+    "ulna": {
+        "id": "ulna",
+        "cat": "3",
+        "name": "Ulna",
+        "latin": "Ulna",
+        "uid": "16dd5449ac7946a0bb5cde90a7aaca57",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L_ulna.PNG"
+        ],
+        "terms": [
+            "anconeal process",
+            "lateral coronoid process",
+            "medial coronoid process",
+            "olecranon",
+            "olecranon tuber",
+            "styloid process",
+            "trochlear notch"
+        ]
+    },
+    "pelvis": {
+        "id": "pelvis",
+        "cat": "4",
+        "name": "Hip Bone (Pelvis / Os Coxae)",
+        "latin": "Os coxae (Ilium, Ischium, Pubis)",
+        "uid": "360815910f8743deb4d63ea0b41f4089",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L_hip.PNG",
+            "L_hip_lateral.PNG",
+            "L_hip_medial.PNG",
+            "pelvis+sacrum_caudodorsal.PNG"
+        ],
+        "terms": [
+            "acetabular bone",
+            "acetabular fossa",
+            "arcuate line",
+            "auricular surface",
+            "caudal articular process",
+            "caudal dorsal iliac spine",
+            "cranial articular surface",
+            "cranial dorsal iliac spine",
+            "cranial ventral iliac spine",
+            "crest of ilium",
+            "gluteal surface",
+            "gluteal surface of ilium",
+            "greater ischiatic notch",
+            "iliac crest",
+            "iliopubic eminence",
+            "ilium",
+            "ischiatic arch",
+            "ischiatic spine",
+            "ischiatic table",
+            "ischiatic tuberosity",
+            "ischium",
+            "lesser ischiatic notch",
+            "median sacral crest",
+            "obturator foramen",
+            "pecten",
+            "pecten of pubic bone",
+            "pubic tubercle",
+            "pubis",
+            "sacropelvic surface",
+            "symphysis pelvis"
+        ]
+    },
+    "femur": {
+        "id": "femur",
+        "cat": "4",
+        "name": "Femur (Thigh Bone)",
+        "latin": "Femur",
+        "uid": "863aec077bf5434a8ada996c10532009",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L_femur.PNG"
+        ],
+        "terms": [
+            "great trochanter",
+            "intercondylar fossa",
+            "intertrochanteric crest",
+            "lateral condyle",
+            "lateral epicondyle",
+            "lesser trochanter",
+            "medial condyle",
+            "medial epicondyle",
+            "patellar surface",
+            "third trochanter",
+            "trochanteric fossa",
+            "trochlea"
+        ]
+    },
+    "tibia": {
+        "id": "tibia",
+        "cat": "4",
+        "name": "Tibia",
+        "latin": "Tibia",
+        "uid": "80b5ed41a62e4966aeda17395e227829",
+        "source": "3D Dog Bone Project (0.2mm scan)",
+        "images": [
+            "L_tibia+fibula.PNG"
+        ],
+        "terms": [
+            "caudal intercondylar area",
+            "cranial intercondylar area",
+            "head of fibula",
+            "intercondylar eminence",
+            "lateral condyle",
+            "lateral malleolus",
+            "medial condyle",
+            "medial malleolus",
+            "popliteal notch",
+            "tibial tuberosity"
+        ]
+    }
+};
+
+    let currentCanineModelKey = 'full_skeleton';
+    let currentCanineTerms = [];
+
+    // Switch Category (0. Whole Body, 1. Skull, 2. Vertebral, 3. Forelimb, 4. Pelvic Limb)
+    window.selectCanineCategory = function(catKey, defaultModel) {
+        // Highlight active category tab
+        document.querySelectorAll('#canine-cat-tabs .canine-cat-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-cat') === String(catKey));
+        });
+
+        // Filter bone chips
+        document.querySelectorAll('#canine-bone-chips .bone-b-chip').forEach(chip => {
+            const chipCat = chip.getAttribute('data-cat');
+            if (chipCat === String(catKey)) {
+                chip.style.display = 'inline-flex';
+            } else {
+                chip.style.display = 'none';
+            }
+        });
+
+        if (defaultModel) {
+            loadCanineBoneModel(defaultModel);
+        }
+    };
+
+    // Load Specific Bone Model
+    window.loadCanineBoneModel = function(modelKey) {
+        currentCanineModelKey = modelKey;
+        const data = CANINE_ATLAS_MODELS[modelKey] || CANINE_ATLAS_MODELS['full_skeleton'];
+        currentCanineTerms = data.terms || [];
+
+        // Highlight active bone chip
+        document.querySelectorAll('#canine-bone-chips .bone-b-chip').forEach(btn => {
+            const attr = btn.getAttribute('onclick') || '';
+            btn.classList.toggle('active', attr.includes(`'${modelKey}'`));
+        });
+
+        // Synchronize category tab
+        if (data.cat !== undefined) {
+            document.querySelectorAll('#canine-cat-tabs .canine-cat-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-cat') === String(data.cat));
+            });
+        }
+
+        // Stream 3D Model
+        const iframe = document.getElementById('canine-3d-iframe');
+        const overlay = document.getElementById('canine-3d-overlay');
+        const loadText = document.getElementById('canine-3d-loading-text');
+        const badge = document.getElementById('canine-model-badge');
+
+        if (badge) {
+            badge.innerText = `🐕 Specimen: ${data.name} (${data.source})`;
+        }
+
+        if (iframe) {
+            const currentSrc = iframe.getAttribute('src') || '';
+            const newSrc = `https://sketchfab.com/models/${data.uid}/embed?autostart=1&preload=1&ui_theme=dark&ui_infos=0&ui_watermark=0&ui_hint=0&transparent=1`;
+
+            if (!currentSrc.includes(data.uid)) {
+                if (overlay) {
+                    overlay.style.opacity = '1';
+                    overlay.style.display = 'flex';
+                }
+                if (loadText) loadText.innerText = `Loading ${data.name}...`;
+
+                iframe.src = newSrc;
+                iframe.onload = function() {
+                    setTimeout(() => {
+                        if (overlay) {
+                            overlay.style.opacity = '0';
+                            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                        }
+                    }, 1200);
+                };
+            }
+        }
+
+        // Update Right Panel Header
+        const titleEl = document.getElementById('canine-card-title');
+        const latinEl = document.getElementById('canine-card-latin');
+        const countEl = document.getElementById('canine-card-count');
+        const diagramsEl = document.getElementById('canine-card-diagrams');
+        const searchInput = document.getElementById('canine-term-search');
+        const sourceTag = document.getElementById('canine-source-tag');
+
+        if (titleEl) titleEl.innerText = data.name;
+        if (latinEl) latinEl.innerText = data.latin;
+        if (countEl) countEl.innerText = `${currentCanineTerms.length} terms`;
+        if (sourceTag) sourceTag.innerText = data.source;
+        if (searchInput) searchInput.value = '';
+
+        if (diagramsEl) {
+            if (data.images && data.images.length > 0) {
+                diagramsEl.innerText = `📷 Diagram: ${data.images.join(', ')}`;
+                diagramsEl.style.display = 'block';
+            } else {
+                diagramsEl.style.display = 'none';
+            }
+        }
+
+        renderCanineTermsList(currentCanineTerms);
+    };
+
+    // Backwards compatibility alias
+    window.loadCanineAtlasModel = window.loadCanineBoneModel;
+
+    // Render Clean English Terms List (No Copy Button · Clean & Distraction-Free)
+    function renderCanineTermsList(terms) {
+        const container = document.getElementById('canine-card-landmarks');
+        if (!container) return;
+
+        if (!terms || terms.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                    📭 No matching English terms found
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = terms.map((term, idx) => `
+            <div class="canine-term-card" style="display: flex; align-items: center; background: var(--bg-surface-raised); border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; transition: all 0.15s ease;">
+                <span style="font-size: 0.74rem; color: var(--accent); font-family: monospace; font-weight: 700; width: 28px; flex-shrink: 0;">#${idx + 1}</span>
+                <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--text-primary); letter-spacing: 0.2px; word-break: break-word;">${term}</span>
+            </div>
+        `).join('');
+    }
+
+    // Real-Time Search Filter
+    window.filterCanineTerms = function(query) {
+        const cleanQuery = (query || '').trim().toLowerCase();
+        if (!cleanQuery) {
+            renderCanineTermsList(currentCanineTerms);
+            const countEl = document.getElementById('canine-card-count');
+            if (countEl) countEl.innerText = `${currentCanineTerms.length} terms`;
+            return;
+        }
+        const filtered = currentCanineTerms.filter(t => t.toLowerCase().includes(cleanQuery));
+        renderCanineTermsList(filtered);
+        const countEl = document.getElementById('canine-card-count');
+        if (countEl) countEl.innerText = `${filtered.length} / ${currentCanineTerms.length} terms`;
+    };
+
+    // Initialize with 0. Whole Body (Full Canine Skeleton)
+    setTimeout(() => {
+        if (window.selectCanineCategory) window.selectCanineCategory('0', 'full_skeleton');
+    }, 150);
 
 </script>
 
