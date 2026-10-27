@@ -2339,6 +2339,7 @@
     let sheetIndex = 0;
     let sheetResolved = new Set();
     let sheetCurrentImg = null;
+    let recentSheetHistory = [];
     
     const canvas = document.getElementById('editor-canvas');
     const ctx = canvas.getContext('2d');
@@ -3565,6 +3566,7 @@
         sheetIndex = 0;
         sheetResolved.clear();
         sheetCurrentImg = null;
+        recentSheetHistory = [];
     }
 
     window.toggleAllScopes = (selectAll) => {
@@ -4086,10 +4088,65 @@
                 sheetIndex++;
             }
 
-            if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length) {
-                const availableImages = Array.from(new Set(activePool.map(q => q.image)));
-                sheetCurrentImg = availableImages[Math.floor(Math.random() * availableImages.length)];
-                sheetQuestions = sortSheetQuestionsByOrder(quizDatabase.filter(q => q.image === sheetCurrentImg || (q.image && sheetCurrentImg && q.image.trim().toLowerCase() === sheetCurrentImg.trim().toLowerCase())), sheetOrderMode);
+            const availableImages = Array.from(new Set(activePool.map(q => q.image)));
+
+            if (!sheetCurrentImg || sheetIndex >= sheetQuestions.length || !availableImages.includes(sheetCurrentImg)) {
+                const now = Date.now();
+
+                // ① 動態圖片防重冷卻：依選取圖片量自適應調整，保證公平輪轉
+                const cooldownLimit = availableImages.length <= 2 
+                    ? Math.max(1, availableImages.length - 1)
+                    : Math.min(6, Math.max(2, Math.floor(availableImages.length * 0.5)));
+
+                while (recentSheetHistory.length > cooldownLimit) { 
+                    recentSheetHistory.shift(); 
+                }
+
+                let candidateImages = availableImages.filter(img => !recentSheetHistory.includes(img));
+                if (candidateImages.length === 0) candidateImages = availableImages.filter(img => img !== sheetCurrentImg);
+                if (candidateImages.length === 0) candidateImages = availableImages;
+
+                // ② 精確權重計算（杜絕優先級顛倒）
+                const imgWeights = candidateImages.map(img => {
+                    const qs = quizDatabase.filter(q => q.image === img || (q.image && img && q.image.trim().toLowerCase() === img.trim().toLowerCase()));
+                    let wrg = 0, due = 0, isNew = 0;
+                    qs.forEach(q => {
+                        const p = userProgress[q.id];
+                        if (sessionWrongCardSet && sessionWrongCardSet.has(q.id)) {
+                            wrg++; // 本輪剛錯過待強化的題目
+                        }
+                        if (p && p.nextReviewDate && p.nextReviewDate <= now) {
+                            due++; // 真正已到期的複習題 (92題主要來源)
+                        } else if (!p) {
+                            isNew++; // 全新未做過的題目
+                        }
+                    });
+                    // 嚴格遵循 SM-2 優先級：錯題強化 (15) > 到期複習 (10) > 全新探勘 (3)
+                    const score = (wrg * 15) + (due * 10) + (isNew * 3);
+                    return { img, score };
+                });
+
+                imgWeights.sort((a, b) => b.score - a.score);
+
+                // ③ 智慧池抽樣（杜絕 slice(0, 2) 飢餓霸凌）
+                const topScore = imgWeights[0]?.score || 0;
+                let chosenImg = candidateImages[0];
+
+                if (topScore > 0) {
+                    // 取出權重達到最高分 80% 以上的所有高優先級圖庫池，隨機輪替
+                    const topPool = imgWeights.filter(i => i.score >= topScore * 0.8);
+                    chosenImg = topPool[Math.floor(Math.random() * topPool.length)].img;
+                } else {
+                    // 全庫無到期題時，在冷卻候補池中均勻隨機輪替
+                    chosenImg = candidateImages[Math.floor(Math.random() * candidateImages.length)];
+                }
+
+                sheetCurrentImg = chosenImg;
+                recentSheetHistory.push(sheetCurrentImg);
+                sheetQuestions = sortSheetQuestionsByOrder(
+                    quizDatabase.filter(q => q.image === sheetCurrentImg || (q.image && sheetCurrentImg && q.image.trim().toLowerCase() === sheetCurrentImg.trim().toLowerCase())),
+                    sheetOrderMode
+                );
                 sheetIndex = 0;
                 sheetResolved.clear();
             }
