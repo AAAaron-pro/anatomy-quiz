@@ -9,3 +9,9 @@ Thumbs.db
 
 audit_v10.js
 
+# Local 3D Atlas test files
+index_3d_test.html
+canine_skeleton.glb
+canine_skeleton_data.js
+
+
