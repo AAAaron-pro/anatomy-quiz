@@ -2863,15 +2863,21 @@
             window.quizDatabase = quizDatabase;
             
             // 讀取作答進度
-            const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
-            const pSnap = await getDocs(pQuery);
-            userProgress = {};
-            pSnap.forEach(d => {
-                const data = d.data();
-                const qId = data.quizId || d.id.replace(`${currentUser.uid}_`, '');
-                userProgress[qId] = { ...data, quizId: qId };
-            });
-            window.userProgress = userProgress;
+            try {
+                const pQuery = query(collection(db, "user_progress"), where("userId", "==", currentUser.uid));
+                const pSnap = await getDocs(pQuery);
+                userProgress = {};
+                pSnap.forEach(d => {
+                    const data = d.data();
+                    const qId = data.quizId || d.id.replace(`${currentUser.uid}_`, '');
+                    userProgress[qId] = { ...data, quizId: qId };
+                });
+                window.userProgress = userProgress;
+            } catch(e) {
+                console.warn("讀取作答進度略過 (權限受限):", e);
+                userProgress = {};
+                window.userProgress = userProgress;
+            }
 
             // 讀取個人統計
             try {
@@ -2899,9 +2905,21 @@
             updateCategorySuggestions();
             renderEditorImageTree();
             updateScopeSummary();
-            if (window.nextQuestion) window.nextQuestion();
+
+            if (quizDatabase.length === 0) {
+                const fbEl = document.getElementById('feedback');
+                if (fbEl) {
+                    fbEl.innerHTML = `⚠️ <strong style="color:var(--danger);">雲端題庫權限受阻 (Missing or insufficient permissions)</strong><br><span style="font-size:0.85rem; color:var(--text-secondary);">Firebase Firestore 的 30 天測試期安全規則已到期，請至 Firebase 控制台更新 Rules 即可立即恢復出題！</span>`;
+                }
+            } else {
+                if (window.nextQuestion) window.nextQuestion();
+            }
         } catch (error) {
             console.error("讀取雲端資料庫失敗:", error);
+            const fbEl = document.getElementById('feedback');
+            if (fbEl) {
+                fbEl.innerHTML = `⚠️ <strong style="color:var(--danger);">雲端題庫連線異常</strong><br><span style="font-size:0.85rem; color:var(--text-secondary);">${error.message || '請確認網路與資料庫權限'}</span>`;
+            }
         }
     }
 
