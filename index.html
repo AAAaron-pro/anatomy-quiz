@@ -2190,6 +2190,22 @@
 
     // 智慧圖檔讀取 (大小寫不拘容錯)
     // 🛡️ 全域大小寫與副檔名完全免疫圖檔註冊與讀取引擎
+    let imagesData = {};
+    window.imagesData = imagesData;
+
+    const BUNDLED_IMAGE_NAMES = [
+        "3rd_caudal_ver.PNG","4th_caudal_ver.PNG","6th_caudal_ver.PNG","atlantoaxial(C1+C2).PNG",
+        "atlas_dorsal(C1).PNG","axis_left_lateral (C2).PNG","C5_craniolateral.PNG","C7_caudal.PNG",
+        "disarticulated_skull_ventral.PNG","head_dorsal.PNG","head_lateral.PNG","skull_lateral.PNG","skull_foramina_lateral.PNG","skull_nerve.PNG",
+        "L4+L5+ Intervertebral_disc.PNG","L_femur.PNG","L_hip.PNG","L_hip_lateral.PNG","L_hip_medial.PNG",
+        "L_humerus.PNG","L_radius_caudal.PNG","L_scapula.PNG","L_scapula_ventral.PNG","L_tarsal_dorsal.PNG","L_tarsal_medial.PNG","L_tibia+fibula.PNG",
+        "L_ulna.PNG","mandibles_dorsal_lateral.PNG","paw_dorsal.PNG","paw_palmar.PNG",
+        "pelvis+sacrum_caudodorsal.PNG","rib_lateral.PNG","rib_ventral.PNG","sacrum.PNG",
+        "sacrum_caudal_lateral.PNG","sacrum_dorsal.PNG","sagittal_skull_medial.PNG","skullbone_ventral.PNG",
+        "skull_dorsal.PNG","skull_ventral_view.PNG","T6+T12_13.PNG","vomer_ethmoid_lateral.PNG"
+    ];
+    window.BUNDLED_IMAGE_NAMES = BUNDLED_IMAGE_NAMES;
+
     function registerImageDataImmune(name, dataUrl) {
         if (!name || !dataUrl) return;
         imagesData[name] = dataUrl;
@@ -2201,6 +2217,13 @@
         imagesData[base] = dataUrl;
     }
     window.registerImageDataImmune = registerImageDataImmune;
+
+    // 🚀 關鍵優化：頁面初始化時立即預載全部 42 張靜態圖庫路徑至 imagesData
+    // 杜絕任何未登入、快取建立延遲、IndexedDB 異常時的圖片載入失敗！
+    BUNDLED_IMAGE_NAMES.forEach(name => {
+        const url = './images/' + encodeURIComponent(name);
+        registerImageDataImmune(name, url);
+    });
 
     function getImageDataSmart(imgName) {
         if (!imgName || typeof imgName !== 'string') return null;
@@ -2221,7 +2244,16 @@
                 return imagesData[k];
             }
         }
-        return null;
+
+        // 🚀 關鍵靜態回退：比對 BUNDLED_IMAGE_NAMES 並回退至 ./images/
+        const matched = BUNDLED_IMAGE_NAMES.find(b => 
+            b.toLowerCase() === lower || 
+            b.replace(/\.[a-zA-Z0-9]+$/, '').toLowerCase() === baseName
+        );
+        const resolvedName = matched || trimmed;
+        const fallbackUrl = './images/' + encodeURIComponent(resolvedName);
+        registerImageDataImmune(resolvedName, fallbackUrl);
+        return fallbackUrl;
     }
     window.getImageDataSmart = getImageDataSmart;
 
@@ -2396,8 +2428,6 @@
 
     // --- 全域變數 ---
     let currentUser = null;
-    let imagesData = {};
-    window.imagesData = imagesData;
     let currentImage = null;
     let quizDatabase = [];
     let userProgress = {};
@@ -2695,23 +2725,14 @@
     window.logout = () => signOut(auth).then(() => location.reload());
 
     
-    const BUNDLED_IMAGE_NAMES = [
-        "3rd_caudal_ver.PNG","4th_caudal_ver.PNG","6th_caudal_ver.PNG","atlantoaxial(C1+C2).PNG",
-        "atlas_dorsal(C1).PNG","axis_left_lateral (C2).PNG","C5_craniolateral.PNG","C7_caudal.PNG",
-        "disarticulated_skull_ventral.PNG","head_dorsal.PNG","head_lateral.PNG","skull_lateral.PNG","skull_foramina_lateral.PNG","skull_nerve.PNG",
-        "L4+L5+ Intervertebral_disc.PNG","L_femur.PNG","L_hip.PNG","L_hip_lateral.PNG","L_hip_medial.PNG",
-        "L_humerus.PNG","L_radius_caudal.PNG","L_scapula.PNG","L_scapula_ventral.PNG","L_tarsal_dorsal.PNG","L_tarsal_medial.PNG","L_tibia+fibula.PNG",
-        "L_ulna.PNG","mandibles_dorsal_lateral.PNG","paw_dorsal.PNG","paw_palmar.PNG",
-        "pelvis+sacrum_caudodorsal.PNG","rib_lateral.PNG","rib_ventral.PNG","sacrum.PNG",
-        "sacrum_caudal_lateral.PNG","sacrum_dorsal.PNG","sagittal_skull_medial.PNG","skullbone_ventral.PNG",
-        "skull_dorsal.PNG","skull_ventral_view.PNG","T6+T12_13.PNG","vomer_ethmoid_lateral.PNG"
-    ];
-
     async function autoLoadBundledImagesIfMissing() {
-        const missing = BUNDLED_IMAGE_NAMES.filter(name => !getImageDataSmart(name));
+        const missing = BUNDLED_IMAGE_NAMES.filter(name => {
+            const val = imagesData[name];
+            return !val || !val.startsWith('data:');
+        });
         if (missing.length === 0) return;
         const statusEl = document.getElementById('idb-cache-status');
-        if (statusEl) statusEl.innerHTML = "⏳ 正在自動載入圖庫至本機快取 (免手動選取)...";
+        if (statusEl) statusEl.innerHTML = "⏳ 正在同步本機離線快取 (不影響立即作答)...";
         let loadedCount = 0;
         await Promise.all(missing.map(async (name) => {
             try {
@@ -2749,7 +2770,7 @@
         if (loadedCount > 0) {
             renderEditorImageTree();
             if (statusEl) {
-                statusEl.innerHTML = "💾 已自動完成 <strong>" + Object.keys(imagesData).length + "</strong> 張圖譜本機快取 (隨開即用！)";
+                statusEl.innerHTML = "💾 已完成 <strong>" + Object.keys(imagesData).length + "</strong> 張解剖圖本機離線快取！";
                 statusEl.style.color = "#27ae60";
             }
         }
@@ -2777,17 +2798,19 @@
             const cachedCount = Object.keys(cached).length;
             const statusEl = document.getElementById('idb-cache-status');
             if (cachedCount > 0) {
-                imagesData = cached;
+                Object.assign(imagesData, cached);
                 Object.keys(cached).forEach(k => registerImageDataImmune(k, cached[k]));
                 statusEl.innerHTML = `💾 已從本機快取成功載入 <strong>${cachedCount}</strong> 張解剖圖 (無需重複上傳！)`;
                 statusEl.style.color = "#27ae60";
             } else {
-                statusEl.innerHTML = `💾 本機尚未快取圖片，請選取您的參考資料資料夾。`;
-                statusEl.style.color = "#d97706";
+                statusEl.innerHTML = `💾 靜態圖庫已全數就緒 (共 ${BUNDLED_IMAGE_NAMES.length} 張)，可立即練習！`;
+                statusEl.style.color = "#27ae60";
             }
 
-            await autoLoadBundledImagesIfMissing();
-            await fetchCloudData();
+            // 🚀 關鍵架構優化：題庫與背景快取並行，杜絕 42 張圖轉 Base64 阻塞題庫載入
+            const cloudFetchPromise = fetchCloudData();
+            autoLoadBundledImagesIfMissing().catch(e => console.warn('背景快取圖檔略過:', e));
+            await cloudFetchPromise;
         } else {
             document.getElementById('login-zone').style.display = 'block';
             document.getElementById('setup-zone').style.display = 'none';
@@ -2876,6 +2899,7 @@
             updateCategorySuggestions();
             renderEditorImageTree();
             updateScopeSummary();
+            if (window.nextQuestion) window.nextQuestion();
         } catch (error) {
             console.error("讀取雲端資料庫失敗:", error);
         }
@@ -3909,7 +3933,11 @@
     const ONBOARDING_V10_KEY = 'vet_anatomy_onboarding_v10';
 
     window.finishSetup = () => {
-        if (Object.keys(imagesData).length === 0) { const el = document.getElementById('idb-cache-status'); if (el) { el.innerHTML = '⚠️ <span style="color:var(--danger); font-weight:700;">請先選取圖片資料夾或確認本機快取！</span>'; el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } return; }
+        if (Object.keys(imagesData).length === 0) {
+            BUNDLED_IMAGE_NAMES.forEach(name => {
+                registerImageDataImmune(name, './images/' + encodeURIComponent(name));
+            });
+        }
         document.getElementById('setup-zone').style.display = 'none';
         window.switchMode('quiz');
 
@@ -4239,8 +4267,24 @@
         return options.sort(() => Math.random() - 0.5);
     }
 
+    window.setQuizDatabase = (data) => {
+        quizDatabase = data;
+        window.quizDatabase = data;
+        data.forEach(q => selectedImages.add(q.image));
+        buildCategoryTree();
+        updateScopeSummary();
+    };
+    window.drawCanvasForQuestion = drawCanvasForQuestion;
+    window.renderQuestion = renderQuestion;
+
     window.nextQuestion = () => {
-        let activePool = quizDatabase.filter(q => selectedImages.has(q.image));
+        const poolSource = (quizDatabase && quizDatabase.length > 0) ? quizDatabase : (window.quizDatabase || []);
+        if (poolSource.length > 0 && selectedImages.size === 0) {
+            poolSource.forEach(q => selectedImages.add(q.image));
+            buildCategoryTree();
+            updateScopeSummary();
+        }
+        let activePool = poolSource.filter(q => selectedImages.has(q.image));
         const titleTag = document.getElementById('quiz-title-tag');
         const metaBadge = document.getElementById('question-meta-badge');
         metaBadge.innerText = '';
@@ -4338,9 +4382,20 @@
         }
 
         if (activePool.length === 0) {
+            if (quizDatabase.length > 0 && selectedImages.size === 0) {
+                quizDatabase.forEach(q => selectedImages.add(q.image));
+                activePool = quizDatabase.filter(q => selectedImages.has(q.image));
+                buildCategoryTree();
+                updateScopeSummary();
+            }
+        }
+
+        if (activePool.length === 0) {
             titleTag.innerText = "⚠️ 範圍為空";
             qCtx.clearRect(0, 0, quizCanvas.width, quizCanvas.height);
-            document.getElementById('feedback').innerHTML = '<span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span>';
+            document.getElementById('feedback').innerHTML = (!currentUser)
+                ? '<span style="color:#e67e22;">請先登入 Google 帳號以載入題庫，或展開「出題範圍」選取！</span>'
+                : '<span style="color:#e67e22;">請展開「出題範圍」並勾選圖片開始出題！</span>';
             document.getElementById('quiz-options').innerHTML = '';
             return;
         }
@@ -4418,9 +4473,20 @@
     };
 
     function drawCanvasForQuestion(q, revealCurrent = false) {
-        const qImgData = getImageDataSmart(q ? q.image : null);
+        let qImgData = getImageDataSmart(q ? q.image : null);
+        if (!qImgData && q && q.image) {
+            qImgData = './images/' + encodeURIComponent(q.image);
+        }
         if (!q || !qImgData) return;
         const img = new Image();
+        img.onerror = () => {
+            console.warn("測驗畫布圖片載入失敗，嘗試備用副檔名:", qImgData);
+            if (!img._retried && q && q.image) {
+                img._retried = true;
+                const alt = q.image.includes('.PNG') ? q.image.replace('.PNG', '.png') : q.image.replace('.png', '.PNG');
+                img.src = './images/' + encodeURIComponent(alt);
+            }
+        };
         img.onload = () => {
             quizCanvas.width = img.width; quizCanvas.height = img.height;
             qCtx.drawImage(img, 0, 0);
@@ -4533,7 +4599,11 @@
     }
 
     function renderQuestion(q) {
-        const qImgData = getImageDataSmart(q ? q.image : null);
+        let qImgData = getImageDataSmart(q ? q.image : null);
+        if (!qImgData && q && q.image) {
+            qImgData = './images/' + encodeURIComponent(q.image);
+            registerImageDataImmune(q.image, qImgData);
+        }
         if(!qImgData) {
             alert("找不到這題的圖片，請確認載入資料夾包含 " + (q ? q.image : ''));
             return;
