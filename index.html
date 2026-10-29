@@ -1899,6 +1899,72 @@
             </div>
         </div>
 
+        <!-- 👑 管理員專屬：全平台用戶總使用量與作答監控看板 (Global User Usage Dashboard) -->
+        <div id="global-usage-card" class="qb-explorer-card" style="display: none; margin-bottom: 1.5rem; border: 1.5px solid var(--accent); background: var(--bg-surface);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
+                <div>
+                    <h4 style="margin: 0; color: var(--text-primary); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                        <span>👑 全平台用戶總使用量監控看板</span>
+                        <span class="version-badge" style="background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); font-size: 0.75rem;">管理員專屬</span>
+                    </h4>
+                    <p style="margin: 0.35rem 0 0 0; color: var(--text-muted); font-size: 0.82rem;">
+                        即時聚合 Firestore 全庫 <code>users</code>、<code>user_stats</code> 與 <code>user_progress</code>，掌握全體學生累積作答量、正確率與最後活躍時間。
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <button type="button" id="btn-refresh-global-usage" class="btn-sm" style="background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="fetchAllUsersUsage()">🔄 重新整理數據</button>
+                    <button type="button" class="btn-sm" style="background: var(--bg-surface-raised); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="copyGlobalUsageReport()">📋 複製 Markdown 報告</button>
+                    <button type="button" class="btn-sm" style="background: var(--success); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="exportGlobalUsageCSV()">💾 匯出 CSV 報表</button>
+                </div>
+            </div>
+
+            <!-- 4 大全域統計指標卡片 -->
+            <div class="hero-banner" style="margin-bottom: 1.25rem;">
+                <div class="hero-card">
+                    <div class="hero-label">👥 總註冊用戶數</div>
+                    <div class="hero-val" id="global-stat-users" style="color: var(--accent);">0 人</div>
+                </div>
+                <div class="hero-card">
+                    <div class="hero-label">📝 全體累計刷題量</div>
+                    <div class="hero-val" id="global-stat-total-quizzes" style="color: #10b981;">0 次</div>
+                </div>
+                <div class="hero-card">
+                    <div class="hero-label">🎯 全平台平均正確率</div>
+                    <div class="hero-val" id="global-stat-avg-acc" style="color: #d97706;">0%</div>
+                </div>
+                <div class="hero-card">
+                    <div class="hero-label">🌟 全體精熟構造數</div>
+                    <div class="hero-val" id="global-stat-mastered" style="color: #8b5cf6;">0 題次</div>
+                </div>
+            </div>
+
+            <!-- 全體用戶詳細數據排行表 -->
+            <div style="overflow-x: auto; max-height: 480px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+                <table class="stats-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="position: sticky; top: 0; background: var(--bg-surface-raised); z-index: 2;">
+                            <th style="padding: 10px; width: 45px; text-align: center;">#</th>
+                            <th style="padding: 10px; text-align: left;">學生名稱</th>
+                            <th style="padding: 10px; text-align: left;">Email 帳號</th>
+                            <th style="padding: 10px; text-align: center;">累計刷題量</th>
+                            <th style="padding: 10px; text-align: center;">正確 / 錯誤</th>
+                            <th style="padding: 10px; text-align: center;">正確率</th>
+                            <th style="padding: 10px; text-align: center;">精熟構造 (間隔≥21)</th>
+                            <th style="padding: 10px; text-align: center;">最高連勝</th>
+                            <th style="padding: 10px; text-align: center;">最後活躍時間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="global-users-tbody">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                ⏳ 請點擊上方「🔄 重新整理數據」以載入雲端全體用戶數據...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- 🗂️ 全題庫名詞檢索與解剖圖鑑辭典 (Question Bank Explorer) -->
         <div class="qb-explorer-card">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
@@ -2176,7 +2242,9 @@
     
     // 🔐 管理員白名單系統 (Admin Whitelist)
     const ADMIN_EMAIL_WHITELIST = [
-        "pierceh@gmail.com"
+        "pierceh@gmail.com",
+        "b15609014@ntu.edu.tw",
+        "aaronhuang1205@gmail.com"
     ];
 
     window.checkIsAdmin = checkIsAdmin;
@@ -4941,7 +5009,275 @@
 
         window.cachedTopWeakTerms = topWeak;
         renderQuestionBankExplorer();
+
+        // 👑 管理員專屬：檢查並自動加載全體用戶總使用量
+        const u = currentUser || (typeof auth !== 'undefined' && auth.currentUser) || window.currentUser;
+        const globalCard = document.getElementById('global-usage-card');
+        if (globalCard) {
+            if (checkIsAdmin(u)) {
+                globalCard.style.display = 'block';
+                if (!window._hasLoadedGlobalUsage) {
+                    window.fetchAllUsersUsage();
+                }
+            } else {
+                globalCard.style.display = 'none';
+            }
+        }
     }
+
+    // ==========================================
+    // 👑 全平台用戶總使用量抓取與統計核心引擎
+    // ==========================================
+    window._cachedGlobalUsage = null;
+    window._hasLoadedGlobalUsage = false;
+
+    window.fetchAllUsersUsage = async function() {
+        const u = currentUser || (typeof auth !== 'undefined' && auth.currentUser) || window.currentUser;
+        if (!u) {
+            alert("請先登入 Google 帳號以獲取資料庫讀取權限！");
+            return null;
+        }
+
+        const btn = document.getElementById('btn-refresh-global-usage');
+        if (btn) btn.innerText = "⏳ 正在抓取全體數據...";
+
+        try {
+            console.log("⏳ 正在從 Firestore 讀取所有用戶、統計與作答紀錄...");
+            const [usersSnap, statsSnap, progSnap] = await Promise.all([
+                getDocs(collection(db, "users")).catch(err => { console.warn("users 讀取受限:", err); return { docs: [] }; }),
+                getDocs(collection(db, "user_stats")).catch(err => { console.warn("user_stats 讀取受限:", err); return { docs: [] }; }),
+                getDocs(collection(db, "user_progress")).catch(err => { console.warn("user_progress 讀取受限:", err); return { docs: [] }; })
+            ]);
+
+            const statsMap = {};
+            statsSnap.docs.forEach(d => { statsMap[d.id] = d.data(); });
+
+            const progMap = {}; // uid -> { total, correct, wrong, mastered, lastTime }
+            let platformGrandTotal = 0;
+            let platformGrandCorrect = 0;
+            let platformGrandWrong = 0;
+            let platformGrandMastered = 0;
+
+            progSnap.docs.forEach(d => {
+                const data = d.data();
+                const uid = data.userId || (d.id.includes('_') ? d.id.split('_')[0] : d.id);
+                if (!progMap[uid]) {
+                    progMap[uid] = { total: 0, correct: 0, wrong: 0, mastered: 0, lastTime: 0 };
+                }
+                const total = data.totalAnswered ?? (data.repetitions || (data.nextReviewDate ? 1 : 0)) ?? 0;
+                const wrg = data.wrongCount || 0;
+                const corr = (data.correctCount !== undefined && data.correctCount !== null) ? data.correctCount : Math.max(0, total - wrg);
+                
+                progMap[uid].total += total;
+                progMap[uid].correct += corr;
+                progMap[uid].wrong += wrg;
+                if ((data.interval && data.interval >= 21) || (data.repetitions && data.repetitions >= 4)) {
+                    progMap[uid].mastered += 1;
+                    platformGrandMastered += 1;
+                }
+                if (data.lastReviewed && data.lastReviewed > progMap[uid].lastTime) {
+                    progMap[uid].lastTime = data.lastReviewed;
+                }
+
+                platformGrandTotal += total;
+                platformGrandCorrect += corr;
+                platformGrandWrong += wrg;
+            });
+
+            // 整合 users 集合與其他集合中出現過的 uid
+            const userDocsMap = {};
+            usersSnap.docs.forEach(d => { userDocsMap[d.id] = d.data(); });
+
+            const allUids = Array.from(new Set([...Object.keys(userDocsMap), ...Object.keys(statsMap), ...Object.keys(progMap)]));
+
+            const userRows = allUids.map(uid => {
+                const u = userDocsMap[uid] || {};
+                const s = statsMap[uid] || {};
+                const p = progMap[uid] || { total: 0, correct: 0, wrong: 0, mastered: 0, lastTime: 0 };
+                const total = p.total || 0;
+                const corr = p.correct || 0;
+                const wrg = p.wrong || 0;
+                const acc = total > 0 ? Math.round((corr / total) * 100) : 0;
+
+                const lastActiveTs = Math.max(u.lastLogin || 0, s.lastUpdated || 0, p.lastTime || 0);
+                const lastActiveStr = lastActiveTs > 0 ? new Date(lastActiveTs).toLocaleString('zh-TW', { hour12: false }) : '無紀錄';
+
+                return {
+                    uid,
+                    displayName: u.displayName || (uid === u.uid ? '學生' : `用戶_${uid.substring(0, 6)}`),
+                    email: u.email || '—',
+                    totalAnswered: total,
+                    correctCount: corr,
+                    wrongCount: wrg,
+                    accuracy: acc,
+                    mastered: p.mastered,
+                    maxCombo: s.maxCombo || 0,
+                    currentCombo: s.currentCombo || 0,
+                    lastActive: lastActiveStr,
+                    lastActiveTs
+                };
+            });
+
+            userRows.sort((a, b) => b.totalAnswered - a.totalAnswered);
+
+            // 更新 UI
+            renderGlobalUsageUI(userRows, platformGrandTotal, platformGrandCorrect, platformGrandWrong, platformGrandMastered);
+
+            console.log("\n==========================================");
+            console.log("📊 全體用戶總使用量統計報告 (Global Usage Report)");
+            console.log(`👥 總註冊用戶數: ${userRows.length} 位`);
+            console.log(`📝 全平台累計刷題量: ${platformGrandTotal} 次`);
+            console.log(`🎯 全平台平均答對率: ${platformGrandTotal > 0 ? Math.round((platformGrandCorrect / platformGrandTotal) * 100) : 0}%`);
+            console.log("==========================================\n");
+            console.table(userRows.map(r => ({
+                "學生姓名": r.displayName,
+                "Email": r.email,
+                "累計刷題次數": r.totalAnswered,
+                "答對 / 答錯": `${r.correctCount} / ${r.wrongCount}`,
+                "正確率": `${r.accuracy}%`,
+                "精熟構造": r.mastered,
+                "最高Combo": r.maxCombo,
+                "最後活躍": r.lastActive
+            })));
+
+            window._cachedGlobalUsage = {
+                summary: {
+                    totalUsers: userRows.length,
+                    grandTotalQuizzes: platformGrandTotal,
+                    platformAccuracy: platformGrandTotal > 0 ? Math.round((platformGrandCorrect / platformGrandTotal) * 100) : 0,
+                    platformMastered: platformGrandMastered
+                },
+                users: userRows
+            };
+            window._hasLoadedGlobalUsage = true;
+
+            return window._cachedGlobalUsage;
+        } catch (err) {
+            console.error("抓取全體使用量失敗:", err);
+            alert("抓取全體使用量失敗: " + err.message);
+            return null;
+        } finally {
+            if (btn) btn.innerText = "🔄 重新整理數據";
+        }
+    };
+
+    // 渲染全域使用量 UI
+    function renderGlobalUsageUI(rows, totalQuizzes, totalCorrect, totalWrong, totalMastered) {
+        const statUsers = document.getElementById('global-stat-users');
+        const statTotal = document.getElementById('global-stat-total-quizzes');
+        const statAcc = document.getElementById('global-stat-avg-acc');
+        const statMastered = document.getElementById('global-stat-mastered');
+        const tbody = document.getElementById('global-users-tbody');
+
+        const avgAcc = totalQuizzes > 0 ? Math.round((totalCorrect / totalQuizzes) * 100) : 0;
+
+        if (statUsers) statUsers.innerText = `${rows.length} 人`;
+        if (statTotal) statTotal.innerText = `${totalQuizzes.toLocaleString()} 次`;
+        if (statAcc) statAcc.innerText = `${avgAcc}%`;
+        if (statMastered) statMastered.innerText = `${totalMastered.toLocaleString()} 題次`;
+
+        if (!tbody) return;
+
+        if (rows.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        📭 目前資料庫中尚未登記任何用戶作答資料
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = rows.map((r, idx) => {
+            let pillClass = 'acc-high';
+            if (r.accuracy < 60) pillClass = 'acc-low';
+            else if (r.accuracy < 80) pillClass = 'acc-med';
+
+            const rankBadge = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+
+            return `
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="text-align: center; font-weight: bold; color: var(--text-muted); padding: 8px;">${rankBadge}</td>
+                    <td style="padding: 8px; font-weight: 600; color: var(--text-primary);">${r.displayName}</td>
+                    <td style="padding: 8px; font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);">${r.email}</td>
+                    <td style="text-align: center; font-weight: 700; color: var(--accent); padding: 8px;">${r.totalAnswered.toLocaleString()} 次</td>
+                    <td style="text-align: center; padding: 8px;">
+                        <span style="color: var(--success); font-weight: bold;">${r.correctCount}</span> / 
+                        <span style="color: var(--danger); font-weight: bold;">${r.wrongCount}</span>
+                    </td>
+                    <td style="text-align: center; padding: 8px;">
+                        <span class="accuracy-pill ${pillClass}">${r.totalAnswered > 0 ? r.accuracy + '%' : '未測驗'}</span>
+                    </td>
+                    <td style="text-align: center; padding: 8px; color: #8b5cf6; font-weight: 600;">${r.mastered}</td>
+                    <td style="text-align: center; padding: 8px; color: #d97706; font-weight: 600;">${r.maxCombo} 題</td>
+                    <td style="text-align: center; font-size: 0.78rem; color: var(--text-muted); padding: 8px;">${r.lastActive}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // 匯出 CSV 報表
+    window.exportGlobalUsageCSV = function() {
+        if (!window._cachedGlobalUsage || !window._cachedGlobalUsage.users || window._cachedGlobalUsage.users.length === 0) {
+            alert("請先點擊「🔄 重新整理數據」抓取用戶資料！");
+            return;
+        }
+        const headers = ["排名", "學生姓名", "Email", "UID", "累計刷題次數", "答對次數", "答錯次數", "正確率", "精熟構造數", "最高連勝Combo", "最後活躍時間"];
+        const rows = window._cachedGlobalUsage.users.map((r, i) => [
+            i + 1,
+            `"${(r.displayName || '').replace(/"/g, '""')}"`,
+            `"${(r.email || '').replace(/"/g, '""')}"`,
+            `"${r.uid}"`,
+            r.totalAnswered,
+            r.correctCount,
+            r.wrongCount,
+            `"${r.accuracy}%"`,
+            r.mastered,
+            r.maxCombo,
+            `"${r.lastActive}"`
+        ]);
+
+        const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\r\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const d = new Date();
+        a.download = `獸醫解剖學_全體用戶使用量_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // 複製 Markdown 報告至剪貼簿
+    window.copyGlobalUsageReport = function() {
+        if (!window._cachedGlobalUsage || !window._cachedGlobalUsage.users || window._cachedGlobalUsage.users.length === 0) {
+            alert("請先點擊「🔄 重新整理數據」抓取用戶資料！");
+            return;
+        }
+        const summary = window._cachedGlobalUsage.summary;
+        let text = `📊 【獸醫解剖學記憶分析系統 全體用戶總使用量報告】\n`;
+        text += `• 總註冊用戶數：${summary.totalUsers} 位\n`;
+        text += `• 全平台累計刷題量：${summary.grandTotalQuizzes.toLocaleString()} 次\n`;
+        text += `• 全體平均正確率：${summary.platformAccuracy}%\n\n`;
+        text += `| # | 學生姓名 | Email | 刷題量 | 正解/錯題 | 正確率 | 精熟數 | 最高Combo | 最後活躍時間 |\n`;
+        text += `|---|---|---|---|---|---|---|---|---|\n`;
+        window._cachedGlobalUsage.users.forEach((r, i) => {
+            text += `| ${i + 1} | ${r.displayName} | ${r.email} | ${r.totalAnswered} 次 | ${r.correctCount}/${r.wrongCount} | ${r.accuracy}% | ${r.mastered} | ${r.maxCombo} 題 | ${r.lastActive} |\n`;
+        });
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("📋 已成功複製全體用戶使用量 Markdown 報表至剪貼簿！");
+            }).catch(() => {
+                prompt("請複製以下報表：", text);
+            });
+        } else {
+            prompt("請複製以下報表：", text);
+        }
+    };
+
+    // 方便 Console 快速呼叫別名
+    window.getAllUsersUsage = window.fetchAllUsersUsage;
 
     window.startSingleTermDrill = (termName) => {
         const tLower = termName.trim().toLowerCase();
